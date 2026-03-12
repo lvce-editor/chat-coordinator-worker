@@ -1,7 +1,7 @@
 {
   "name": "@lvce-editor/chat-coordinator-worker",
   "version": "0.0.0-dev",
-  "description": "Chat Network Worker",
+  "description": "Chat Coordinator Worker",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lvce-editor/chat-coordinator-worker.git"
