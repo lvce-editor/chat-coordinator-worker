@@ -32,7 +32,7 @@ const emitEvent = (event: ChatCoordinatorEvent): void => {
     if (!queue || queue.length === 0) {
       continue
     }
-    const callbacks = waiters.slice()
+    const callbacks = [...waiters]
     waiters.length = 0
     for (const callback of callbacks) {
       callback()
@@ -299,12 +299,12 @@ export const consumeEvents = (subscriberId: string): readonly ChatCoordinatorEve
   if (!queue) {
     return []
   }
-  const events = queue.slice()
+  const events = [...queue]
   queue.length = 0
   return events
 }
 
-export const waitForEvents = async (subscriberId: string, timeout: number = 1_000): Promise<readonly ChatCoordinatorEvent[]> => {
+export const waitForEvents = async (subscriberId: string, timeout: number = 1000): Promise<readonly ChatCoordinatorEvent[]> => {
   const queue = subscriberQueues.get(subscriberId)
   if (!queue) {
     return []

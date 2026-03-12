@@ -1,10 +1,11 @@
-import * as CoordinatorState from '../CoordinatorState/CoordinatorState.ts'
 import type {
   ChatCoordinatorSession,
   ChatCoordinatorSessionSummary,
   ChatCoordinatorSubmitOptions,
   ChatCoordinatorSubmitResult,
+  ChatCoordinatorEvent,
 } from '../CoordinatorState/CoordinatorTypes.ts'
+import * as CoordinatorState from '../CoordinatorState/CoordinatorState.ts'
 
 export const createSession = async (title?: string): Promise<ChatCoordinatorSession> => {
   return CoordinatorState.createSession(title)
@@ -38,10 +39,10 @@ export const unsubscribe = async (subscriberId: string): Promise<void> => {
   CoordinatorState.unsubscribe(subscriberId)
 }
 
-export const consumeEvents = async (subscriberId: string) => {
+export const consumeEvents = async (subscriberId: string): Promise<readonly ChatCoordinatorEvent[]> => {
   return CoordinatorState.consumeEvents(subscriberId)
 }
 
-export const waitForEvents = async (subscriberId: string, timeout?: number) => {
+export const waitForEvents = async (subscriberId: string, timeout?: number): Promise<readonly ChatCoordinatorEvent[]> => {
   return CoordinatorState.waitForEvents(subscriberId, timeout)
 }

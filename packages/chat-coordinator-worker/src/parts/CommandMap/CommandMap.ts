@@ -1,5 +1,5 @@
-import { handleMessagePort } from '../HandleMessagePort/HandleMessagePort.ts'
 import * as CoordinatorCommands from '../CoordinatorCommands/CoordinatorCommands.ts'
+import { handleMessagePort } from '../HandleMessagePort/HandleMessagePort.ts'
 import * as NetworkCommandMap from './NetworkCommandMap.ts'
 
 export const commandMap = {
