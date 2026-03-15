@@ -1,4 +1,4 @@
-import type { ChatState } from '../ChatState/ChatState.ts'
+import type { ChatModel } from '../ChatState/ChatState.ts'
 import { getAiResponse } from '../GetAiResponse/GetAiResponse.ts'
 import { isDefaultSessionTitle } from '../IsDefaultSessionTitle/IsDefaultSessionTitle.ts'
 import { isOpenApiModel } from '../IsOpenApiModel/IsOpenApiModel.ts'
@@ -9,8 +9,25 @@ const getTimeString = (): string => {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-export const getAiSessionTitle = async (state: ChatState, userText: string, assistantText: string): Promise<string> => {
-  const { models, openApiApiBaseUrl, openApiApiKey, openRouterApiBaseUrl, openRouterApiKey, selectedModelId, useMockApi } = state
+interface GetAiSessionTitleOptions {
+  readonly assetDir: string
+  readonly mockAiResponseDelay: number
+  readonly mockApiCommandId: string
+  readonly models: readonly ChatModel[]
+  readonly nextMessageId: number
+  readonly openApiApiBaseUrl: string
+  readonly openApiApiKey: string
+  readonly openRouterApiBaseUrl: string
+  readonly openRouterApiKey: string
+  readonly passIncludeObfuscation: boolean
+  readonly platform: number
+  readonly selectedModelId: string
+  readonly useChatNetworkWorkerForRequests: boolean
+  readonly useMockApi: boolean
+}
+
+export const getAiSessionTitle = async (options: GetAiSessionTitleOptions, userText: string, assistantText: string): Promise<string> => {
+  const { models, openApiApiBaseUrl, openApiApiKey, openRouterApiBaseUrl, openRouterApiKey, selectedModelId, useMockApi } = options
   if (useMockApi) {
     return ''
   }
@@ -36,21 +53,21 @@ Assistant: ${assistantText}`
     time: getTimeString(),
   }
   const titleResponse = await getAiResponse({
-    assetDir: state.assetDir,
+    assetDir: options.assetDir,
     messages: [promptMessage],
-    mockAiResponseDelay: state.mockAiResponseDelay,
-    mockApiCommandId: state.mockApiCommandId,
+    mockAiResponseDelay: options.mockAiResponseDelay,
+    mockApiCommandId: options.mockApiCommandId,
     models,
-    nextMessageId: state.nextMessageId,
+    nextMessageId: options.nextMessageId,
     openApiApiBaseUrl,
     openApiApiKey,
     openRouterApiBaseUrl,
     openRouterApiKey,
-    passIncludeObfuscation: state.passIncludeObfuscation,
-    platform: state.platform,
+    passIncludeObfuscation: options.passIncludeObfuscation,
+    platform: options.platform,
     selectedModelId,
     streamingEnabled: false,
-    useChatNetworkWorkerForRequests: state.useChatNetworkWorkerForRequests,
+    useChatNetworkWorkerForRequests: options.useChatNetworkWorkerForRequests,
     useMockApi,
     userText: titlePrompt,
     webSearchEnabled: false,
