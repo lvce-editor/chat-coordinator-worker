@@ -5,6 +5,10 @@ import { isOpenApiModel } from '../IsOpenApiModel/IsOpenApiModel.ts'
 import { isOpenRouterModel } from '../IsOpenRouterModel/IsOpenRouterModel.ts'
 import { sanitizeGeneratedTitle } from '../SanitizeGeneratedTitle/SanitizeGeneratedTitle.ts'
 
+const getTimeString = (): string => {
+  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
 export const getAiSessionTitle = async (state: ChatState, userText: string, assistantText: string): Promise<string> => {
   const { models, openApiApiBaseUrl, openApiApiKey, openRouterApiBaseUrl, openRouterApiKey, selectedModelId, useMockApi } = state
   if (useMockApi) {
@@ -29,7 +33,7 @@ Assistant: ${assistantText}`
     id: crypto.randomUUID(),
     role: 'user' as const,
     text: titlePrompt,
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    time: getTimeString(),
   }
   const titleResponse = await getAiResponse({
     assetDir: state.assetDir,
