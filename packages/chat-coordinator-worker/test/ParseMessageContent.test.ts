@@ -219,7 +219,12 @@ test('parseMessageContent should parse markdown bold text in paragraphs', () => 
           type: 'text',
         },
         {
-          text: 'Transport Agnostic',
+          children: [
+            {
+              text: 'Transport Agnostic',
+              type: 'text',
+            },
+          ],
           type: 'bold',
         },
         {
@@ -245,12 +250,53 @@ test('parseMessageContent should parse markdown italic text in paragraphs', () =
           type: 'text',
         },
         {
-          text: 'asynchronous',
+          children: [
+            {
+              text: 'asynchronous',
+              type: 'text',
+            },
+          ],
           type: 'italic',
         },
         {
           text: ': Supports both synchronous and asynchronous communication.',
           type: 'text',
+        },
+      ],
+      type: 'text',
+    },
+  ])
+})
+
+test('parseMessageContent should parse markdown bold nested inside italic', () => {
+  const rawMessage = '*italic with **bold** inside*'
+
+  const result = ParseMessageContent.parseMessageContent(rawMessage)
+
+  expect(result).toEqual([
+    {
+      children: [
+        {
+          children: [
+            {
+              text: 'italic with ',
+              type: 'text',
+            },
+            {
+              children: [
+                {
+                  text: 'bold',
+                  type: 'text',
+                },
+              ],
+              type: 'bold',
+            },
+            {
+              text: ' inside',
+              type: 'text',
+            },
+          ],
+          type: 'italic',
         },
       ],
       type: 'text',
