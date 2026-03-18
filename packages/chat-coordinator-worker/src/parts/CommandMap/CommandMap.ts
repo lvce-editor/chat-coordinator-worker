@@ -10,12 +10,6 @@ import { mockOpenApiStreamPushChunk } from '../MockOpenApiStreamPushChunk/MockOp
 import { mockOpenApiStreamReset } from '../MockOpenApiStreamReset/MockOpenApiStreamReset.ts'
 
 export const commandMap = {
-  'Chat.mockOpenApiRequestGetAll': mockOpenApiRequestGetAll,
-  'Chat.mockOpenApiRequestReset': mockOpenApiRequestReset,
-  'Chat.mockOpenApiSetHttpErrorResponse': mockOpenApiSetHttpErrorResponse,
-  'Chat.mockOpenApiStreamFinish': mockOpenApiStreamFinish,
-  'Chat.mockOpenApiStreamPushChunk': mockOpenApiStreamPushChunk,
-  'Chat.mockOpenApiStreamReset': mockOpenApiStreamReset,
   'ChatCoordinator.cancelRun': CoordinatorCommands.cancelRun,
   'ChatCoordinator.consumeEvents': CoordinatorCommands.consumeEvents,
   'ChatCoordinator.createSession': CoordinatorCommands.createSession,
@@ -24,6 +18,12 @@ export const commandMap = {
   'ChatCoordinator.getAiSessionTitle': getAiSessionTitle,
   'ChatCoordinator.getSession': CoordinatorCommands.getSession,
   'ChatCoordinator.listSessions': CoordinatorCommands.listSessions,
+  'ChatCoordinator.mockOpenApiRequestGetAll': mockOpenApiRequestGetAll,
+  'ChatCoordinator.mockOpenApiRequestReset': mockOpenApiRequestReset,
+  'ChatCoordinator.mockOpenApiSetHttpErrorResponse': mockOpenApiSetHttpErrorResponse,
+  'ChatCoordinator.mockOpenApiStreamFinish': mockOpenApiStreamFinish,
+  'ChatCoordinator.mockOpenApiStreamPushChunk': mockOpenApiStreamPushChunk,
+  'ChatCoordinator.mockOpenApiStreamReset': mockOpenApiStreamReset,
   'ChatCoordinator.submit': CoordinatorCommands.submit,
   'ChatCoordinator.subscribe': CoordinatorCommands.subscribe,
   'ChatCoordinator.unsubscribe': CoordinatorCommands.unsubscribe,
