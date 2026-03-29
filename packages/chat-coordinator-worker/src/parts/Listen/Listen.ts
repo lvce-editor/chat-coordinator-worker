@@ -1,8 +1,8 @@
-import { WebWorkerRpcClient2 } from '@lvce-editor/rpc'
+import { WebWorkerRpcClient } from '@lvce-editor/rpc'
 import * as CommandMap from '../CommandMap/CommandMap.ts'
 
 export const listen = async (): Promise<void> => {
-  await WebWorkerRpcClient2.create({
+  await WebWorkerRpcClient.create({
     commandMap: CommandMap.commandMap,
   })
 }
