@@ -29,4 +29,5 @@ export const commandMap = {
   'ChatCoordinator.unsubscribe': CoordinatorCommands.unsubscribe,
   'ChatCoordinator.waitForEvents': CoordinatorCommands.waitForEvents,
   'HandleMessagePort.handleMessagePort': handleMessagePort,
+  initialize: (_: string, port: MessagePort): Promise<void> => handleMessagePort(port),
 }
