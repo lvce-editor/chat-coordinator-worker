@@ -48,6 +48,23 @@ export const listChatSessions = async (): Promise<readonly ChatSession[]> => {
   })
 }
 
+export const listChatSessionsWithMessages = async (): Promise<readonly ChatSession[]> => {
+  const sessions = await chatSessionStorage.listSessions()
+  return sessions.map((session) => {
+    const resultBase: ChatSession = {
+      id: session.id,
+      messages: [...session.messages],
+      title: session.title,
+    }
+    return session.projectId
+      ? {
+          ...resultBase,
+          projectId: session.projectId,
+        }
+      : resultBase
+  })
+}
+
 export const getChatSession = async (id: string): Promise<ChatSession | undefined> => {
   const session = await chatSessionStorage.getSession(id)
   if (!session) {
