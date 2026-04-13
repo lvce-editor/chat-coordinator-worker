@@ -1,10 +1,14 @@
-import { expect, test } from '@jest/globals'
+import { beforeEach, expect, test } from '@jest/globals'
+import { resetChatSessionStorage } from '../src/parts/ChatSessionStorage/ChatSessionStorage.ts'
 import * as CoordinatorCommands from '../src/parts/CoordinatorCommands/CoordinatorCommands.ts'
 import * as CoordinatorState from '../src/parts/CoordinatorState/CoordinatorState.ts'
 
-test('createSession should create and list a session', async () => {
+beforeEach(() => {
   CoordinatorState.reset()
+  resetChatSessionStorage()
+})
 
+test('createSession should create and list a session', async () => {
   const session = await CoordinatorCommands.createSession('Planning')
   const sessions = await CoordinatorCommands.listSessions()
 
@@ -19,7 +23,6 @@ test('createSession should create and list a session', async () => {
 })
 
 test('submit should create a session when none is provided', async () => {
-  CoordinatorState.reset()
   await CoordinatorCommands.subscribe('submit-client')
 
   const result = await CoordinatorCommands.submit({
@@ -46,8 +49,6 @@ test('submit should create a session when none is provided', async () => {
 })
 
 test('submit should return error for empty prompt', async () => {
-  CoordinatorState.reset()
-
   const result = await CoordinatorCommands.submit({
     text: '   ',
   })
@@ -59,8 +60,6 @@ test('submit should return error for empty prompt', async () => {
 })
 
 test('subscribe and consumeEvents should buffer session events', async () => {
-  CoordinatorState.reset()
-
   await CoordinatorCommands.subscribe('client-1')
   const session = await CoordinatorCommands.createSession('Inbox')
 
@@ -81,8 +80,6 @@ test('subscribe and consumeEvents should buffer session events', async () => {
 })
 
 test('deleteSession should remove session and emit event', async () => {
-  CoordinatorState.reset()
-
   await CoordinatorCommands.subscribe('client-2')
   const session = await CoordinatorCommands.createSession('Delete Me')
   await CoordinatorCommands.consumeEvents('client-2')
@@ -100,7 +97,6 @@ test('deleteSession should remove session and emit event', async () => {
 })
 
 test('submit should reject when session already has active run', async () => {
-  CoordinatorState.reset()
   const session = await CoordinatorCommands.createSession('Busy')
 
   const first = await CoordinatorCommands.submit({
@@ -125,7 +121,6 @@ test('submit should reject when session already has active run', async () => {
 })
 
 test('cancelRun should emit run-cancelled and stop progress', async () => {
-  CoordinatorState.reset()
   await CoordinatorCommands.subscribe('cancel-client')
 
   const submitResult = await CoordinatorCommands.submit({
@@ -144,7 +139,6 @@ test('cancelRun should emit run-cancelled and stop progress', async () => {
 })
 
 test('waitForEvents should return immediately when queue has events', async () => {
-  CoordinatorState.reset()
   await CoordinatorCommands.subscribe('wait-client-1')
   await CoordinatorCommands.createSession('ready')
 
@@ -153,7 +147,6 @@ test('waitForEvents should return immediately when queue has events', async () =
 })
 
 test('waitForEvents should resolve when a new event arrives', async () => {
-  CoordinatorState.reset()
   await CoordinatorCommands.subscribe('wait-client-2')
 
   const waitPromise = CoordinatorCommands.waitForEvents('wait-client-2', 500)
@@ -161,4 +154,49 @@ test('waitForEvents should resolve when a new event arrives', async () => {
   const events = await waitPromise
 
   expect(events.some((event) => event.type === 'session-created')).toBe(true)
+})
+
+test('listSessions should hydrate persisted sessions after coordinator reset', async () => {
+  const session = await CoordinatorCommands.createSession('Persisted Session')
+
+  CoordinatorState.reset()
+
+  const sessions = await CoordinatorCommands.listSessions()
+
+  expect(sessions).toEqual([
+    {
+      id: session.id,
+      messageCount: 0,
+      title: 'Persisted Session',
+    },
+  ])
+})
+
+test('getSession should hydrate persisted messages after coordinator reset', async () => {
+  const result = await CoordinatorCommands.submit({
+    text: 'Persist this conversation',
+  })
+  if (result.type !== 'success') {
+    throw new Error('Expected submit success result')
+  }
+  await CoordinatorState.awaitRun(result.runId)
+
+  CoordinatorState.reset()
+
+  const session = await CoordinatorCommands.getSession(result.sessionId)
+
+  expect(session).toBeDefined()
+  expect(session?.messages).toEqual([
+    expect.objectContaining({
+      id: result.userMessageId,
+      role: 'user',
+      text: 'Persist this conversation',
+    }),
+    expect.objectContaining({
+      id: result.assistantMessageId,
+      inProgress: false,
+      role: 'assistant',
+      text: 'Coordinator pipeline placeholder response for: Persist this conversation',
+    }),
+  ])
 })
