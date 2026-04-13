@@ -36,9 +36,7 @@ test('executeToolByName delegates to chat-tool-worker', async () => {
     platform: 0,
   })
 
-  expect(mockRpc.invocations).toEqual([
-    ['ChatTool.execute', 'read_file', '{"path":"src/main.ts"}', { assetDir: '/test-asset-dir', platform: 0 }],
-  ])
+  expect(mockRpc.invocations).toEqual([['ChatTool.execute', 'read_file', '{"path":"src/main.ts"}', { assetDir: '/test-asset-dir', platform: 0 }]])
   expect(result).toEqual({ ok: true })
 })
 

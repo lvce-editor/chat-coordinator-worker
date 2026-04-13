@@ -1,6 +1,4 @@
 import { ChatMessageParsingWorker, ChatToolWorker } from '@lvce-editor/rpc-registry'
-import type { MessageIntermediateNode } from '../ParseMessageContentTypes/ParseMessageContentTypes.ts'
-import type { ChatTool, ExecuteToolOptions } from '../Types/Types.ts'
 import type {
   ChatCoordinatorSession,
   ChatCoordinatorSessionSummary,
@@ -8,6 +6,8 @@ import type {
   ChatCoordinatorSubmitResult,
   ChatCoordinatorEvent,
 } from '../CoordinatorState/CoordinatorTypes.ts'
+import type { MessageIntermediateNode } from '../ParseMessageContentTypes/ParseMessageContentTypes.ts'
+import type { ChatTool, ExecuteToolOptions } from '../Types/Types.ts'
 import * as CoordinatorState from '../CoordinatorState/CoordinatorState.ts'
 
 export const createSession = async (title?: string): Promise<ChatCoordinatorSession> => {
@@ -54,19 +54,13 @@ export const parseMessageContent = async (rawMessage: string): Promise<readonly 
   return ChatMessageParsingWorker.invoke('ChatMessageParsing.parseMessageContent', rawMessage) as Promise<readonly MessageIntermediateNode[]>
 }
 
-export const parseMessageContents = async (
-  rawMessages: readonly string[],
-): Promise<readonly (readonly MessageIntermediateNode[])[]> => {
+export const parseMessageContents = async (rawMessages: readonly string[]): Promise<readonly (readonly MessageIntermediateNode[])[]> => {
   return ChatMessageParsingWorker.invoke('ChatMessageParsing.parseMessageContents', rawMessages) as Promise<
     readonly (readonly MessageIntermediateNode[])[]
   >
 }
 
-export const executeToolByName = async (
-  name: string,
-  rawArguments: unknown,
-  options: ExecuteToolOptions,
-): Promise<unknown> => {
+export const executeToolByName = async (name: string, rawArguments: unknown, options: ExecuteToolOptions): Promise<unknown> => {
   return ChatToolWorker.invoke('ChatTool.execute', name, rawArguments, options)
 }
 
