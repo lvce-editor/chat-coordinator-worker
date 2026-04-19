@@ -1,5 +1,6 @@
 import type { NetworkRequestOptions } from '../NetworkRequestOptions/NetworkRequestOptions.ts'
 import type { NetworkRequestResult } from '../NetworkRequestResult/NetworkRequestResult.ts'
+import { serializeHeaders } from '../SerializeHeaders/SerializeHeaders.ts'
 
 export const makeNetworkRequest = async (options: NetworkRequestOptions): Promise<NetworkRequestResult> => {
   const { body, headers, method, url } = options
@@ -19,7 +20,7 @@ export const makeNetworkRequest = async (options: NetworkRequestOptions): Promis
   const json = await response.json()
   return {
     data: json,
-    headers: Object.fromEntries(response.headers.entries()),
+    headers: serializeHeaders(response.headers),
     type: 'success',
   }
 }

@@ -3,12 +3,14 @@ import type { AiLoopIterationResult } from '../AiLoopIterationResult/AiLoopItera
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { getRedactedHeaders } from '../GetRedactedHeaders/GetRedactedHeaders.ts'
+import { getTimeStamp } from '../GetTimeStamp/GetTimeStamp.ts'
 import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
 import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 
 export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Promise<AiLoopIterationResult> => {
   const { headers, modelId, sessionId, systemPrompt, toolCalls, turnId, url } = loopOptions
   const requestId = crypto.randomUUID()
+  const timestamp = getTimeStamp()
   const requestBody = {
     input: [{ content: systemPrompt, role: 'system' }],
     model: modelId,
@@ -21,6 +23,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
     method: 'POST',
     requestId,
     sessionId,
+    timestamp,
     turnId,
     type: ChatEventType.AiRequest,
   })
@@ -37,6 +40,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
     await appendChatEvent({
       requestId,
       sessionId,
+      timestamp,
       turnId,
       type: ChatEventType.AiResponseError,
       value: result.error,
@@ -50,6 +54,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
       headers: result.headers,
       requestId,
       sessionId,
+      timestamp,
       toolCalls: result.toolCalls,
       turnId,
       type: ChatEventType.AiResponseSuccess,
