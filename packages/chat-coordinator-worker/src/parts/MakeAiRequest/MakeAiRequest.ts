@@ -5,10 +5,10 @@ import { makeNetworkRequest } from '../MakeNetworkRequest/MakeNetworkRequest.ts'
 
 interface AiRequestOptions {
   readonly headers: Readonly<Record<string, string>>
+  readonly modelId: string
   readonly systemPrompt: string
   readonly toolCallResults: readonly ToolCallResult[]
   readonly toolCalls: readonly ToolCall<any>[]
-  readonly modelId: string
   readonly url: string
 }
 
