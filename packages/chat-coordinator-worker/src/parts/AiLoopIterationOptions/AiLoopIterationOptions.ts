@@ -5,7 +5,7 @@ export interface AiLoopIterationOptions {
   readonly modelId: string
   readonly sessionId: string
   readonly systemPrompt: string
-  readonly turnId: string
   readonly toolCalls: readonly ToolCall<unknown>[]
+  readonly turnId: string
   readonly url: string
 }

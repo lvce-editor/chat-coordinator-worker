@@ -3,7 +3,7 @@ export interface AiLoopOptions {
   readonly modelId: string
   readonly providerId: string
   readonly sessionId: string
-  readonly turnId: string
   readonly systemPrompt: string
+  readonly turnId: string
   readonly url: string
 }

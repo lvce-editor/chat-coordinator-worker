@@ -31,8 +31,8 @@ test('ai loop returns success and appends the ai response event', async () => {
     modelId: 'gpt-4.1-mini',
     providerId: 'openai',
     sessionId: 'session-1',
-    turnId: 'turn-1',
     systemPrompt: 'You are a helpful assistant.',
+    turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
 
@@ -110,8 +110,8 @@ test('ai loop propagates request failures', async () => {
       modelId: 'gpt-4.1-mini',
       providerId: 'openai',
       sessionId: 'session-1',
-      turnId: 'turn-1',
       systemPrompt: 'You are a helpful assistant.',
+      turnId: 'turn-1',
       url: 'https://api.openai.com/v1/responses',
     }),
   ).rejects.toThrow(error)

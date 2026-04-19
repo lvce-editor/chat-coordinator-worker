@@ -7,8 +7,8 @@ test('AiLoopIterationOptions type is importable', () => {
     modelId: 'gpt-5-mini',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
-    turnId: 'turn-1',
     toolCalls: [],
+    turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   }
 
@@ -17,8 +17,8 @@ test('AiLoopIterationOptions type is importable', () => {
     modelId: 'gpt-5-mini',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
-    turnId: 'turn-1',
     toolCalls: [],
+    turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
 })
