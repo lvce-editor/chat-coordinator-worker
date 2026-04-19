@@ -1,4 +1,4 @@
-interface SubmitOptions {
+export interface SubmitOptions {
   readonly text: string
 }
 
