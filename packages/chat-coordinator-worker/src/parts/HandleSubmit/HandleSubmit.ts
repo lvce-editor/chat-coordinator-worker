@@ -5,7 +5,7 @@ import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { getTimeStamp } from '../GetTimeStamp/GetTimeStamp.ts'
 
 export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
-  const { modelId, sessionId, systemPrompt, text } = options
+  const { modelId, openAiKey, sessionId, systemPrompt, text } = options
 
   await appendChatEvent({
     sessionId,
@@ -13,8 +13,6 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
     type: ChatEventType.HandleSubmit,
     value: text,
   })
-
-  const openAiKey = '' // TODO
 
   await aiLoop({
     headers: {
