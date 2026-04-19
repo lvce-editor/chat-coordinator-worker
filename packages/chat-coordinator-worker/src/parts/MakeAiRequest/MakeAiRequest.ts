@@ -1,9 +1,11 @@
 import type { AiRequestResult } from '../AiRequestResult/AiRequestResult.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
+import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 import { makeNetworkRequest } from '../MakeNetworkRequest/MakeNetworkRequest.ts'
 
 interface AiRequestOptions {
   readonly systemPrompt: string
+  readonly toolCallResults: readonly ToolCallResult[]
   readonly toolCalls: readonly ToolCall<any>[]
   readonly url: string
 }

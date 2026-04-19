@@ -4,16 +4,19 @@ import type { AiLoopResult } from '../AiLoopResult/AiLoopResult.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
+import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
 
 export const aiLoop = async (loopOptions: AiLoopOptions): Promise<AiLoopResult> => {
   const { systemPrompt, url } = loopOptions
   let toolCalls: readonly ToolCall<unknown>[] = []
 
   do {
+    const toolCallResults = await getToolCallResults(toolCalls)
     const result = await makeAiRequest({
       systemPrompt,
       toolCalls,
       url,
+      toolCallResults,
     })
 
     if (result.type === 'error') {
