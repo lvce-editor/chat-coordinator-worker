@@ -4,11 +4,11 @@ import { handleSubmit } from '../src/parts/HandleSubmit/HandleSubmit.ts'
 
 test('handle submit stores the openai response headers', async () => {
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
-  ChatStorageWorker.set({
-    appendEvent,
-  } as any)
-  jest.useFakeTimers()
-  jest.setSystemTime(new Date('2026-04-19T00:00:00.000Z'))
+  const rpc = ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendEvent': appendEvent,
+  })
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
       ['content-type', 'application/json'],
@@ -40,27 +40,33 @@ test('handle submit stores the openai response headers', async () => {
     },
     method: 'POST',
   })
-  expect(ChatStorageWorker.appendEvent).toHaveBeenCalledTimes(2)
-  expect(appendEvent).toHaveBeenNthCalledWith(1, {
-    requestId: 'request-1',
-    sessionId: 'session-1',
-    timestamp: '2026-04-19T00:00:00.000Z',
-    type: 'handle-submit',
-    value: 'Hello world',
-  })
-  expect(appendEvent).toHaveBeenNthCalledWith(2, {
-    headers: {
-      'content-type': 'application/json',
-      'x-request-id': 'req_123',
-    },
-    toolCalls: [],
-    type: 'aiResponseSuccess',
-    value: {
-      id: 'resp_1',
-      status: 'completed',
-    },
-  })
-
-  jest.useRealTimers()
+  expect(rpc.invocations).toEqual([
+    [
+      'ChatStorage.appendEvent',
+      {
+        requestId: 'request-1',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'handle-submit',
+        value: 'Hello world',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        headers: {
+          'content-type': 'application/json',
+          'x-request-id': 'req_123',
+        },
+        toolCalls: [],
+        type: 'aiResponseSuccess',
+        value: {
+          id: 'resp_1',
+          status: 'completed',
+        },
+      },
+    ],
+  ])
+  dateSpy.mockRestore()
   fetchSpy.mockRestore()
 })

@@ -8,7 +8,7 @@ afterEach(async () => {
 
 test('ai loop returns success and appends the ai response event', async () => {
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
-  const mockRpc = ChatStorageWorker.registerMockRpc({
+  const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
   })
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -46,7 +46,7 @@ test('ai loop returns success and appends the ai response event', async () => {
     },
     method: 'POST',
   })
-  expect(mockRpc.invocations).toEqual([
+  expect(rpc.invocations).toEqual([
     [
       'ChatStorage.appendEvent',
       {
@@ -67,7 +67,7 @@ test('ai loop returns success and appends the ai response event', async () => {
 
 test('ai loop propagates request failures', async () => {
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
-  const mockRpc = ChatStorageWorker.registerMockRpc({
+  const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
   })
   const error = new Error('request failed')
@@ -85,5 +85,5 @@ test('ai loop propagates request failures', async () => {
   ).rejects.toThrow(error)
 
   expect(fetchSpy).toHaveBeenCalledTimes(1)
-  expect(mockRpc.invocations).toEqual([])
+  expect(rpc.invocations).toEqual([])
 })
