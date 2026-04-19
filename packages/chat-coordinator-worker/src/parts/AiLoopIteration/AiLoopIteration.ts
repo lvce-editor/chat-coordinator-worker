@@ -58,7 +58,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
     await appendChatEvent({
       requestId,
       sessionId,
-      type: 'aiResponseError',
+      type: ChatEventType.AiResponseError,
       value: result.error,
     })
     return {
@@ -71,7 +71,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
       requestId,
       sessionId,
       toolCalls: result.toolCalls,
-      type: 'aiResponseSuccess',
+      type: ChatEventType.AiResponseSuccess,
       value: result.data,
     })
   }
