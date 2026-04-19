@@ -57,6 +57,11 @@ export interface ChatAttachmentAddedEvent extends ChatViewEventBase {
   readonly type: 'chat-attachment-added'
 }
 
+export interface ChatAttachmentRemovedEvent extends ChatViewEventBase {
+  readonly attachmentId: string
+  readonly type: 'chat-attachment-removed'
+}
+
 export interface DataEvent extends ChatViewEventBase {
   readonly type: 'sse-response-part'
   readonly value: unknown
@@ -72,6 +77,23 @@ export interface EventStreamFinishedEvent extends ChatViewEventBase {
   readonly value: '[DONE]'
 }
 
+export interface ToolExecutionStartedEvent extends ChatViewEventBase {
+  readonly arguments: unknown
+  readonly id: string
+  readonly name: string
+  readonly options: unknown
+  readonly time: string
+  readonly type: 'tool-execution-started'
+}
+
+export interface ToolExecutionFinishedEvent extends ChatViewEventBase {
+  readonly id: string
+  readonly name: string
+  readonly result: unknown
+  readonly status: 'error' | 'success'
+  readonly type: 'tool-execution-finished'
+}
+
 export type ChatViewEvent =
   | ChatSessionCreatedEvent
   | ChatSessionDeletedEvent
@@ -82,6 +104,9 @@ export type ChatViewEvent =
   | HandleInputEvent
   | HandleSubmitEvent
   | ChatAttachmentAddedEvent
+  | ChatAttachmentRemovedEvent
   | DataEvent
   | ResponseCompletedEvent
   | EventStreamFinishedEvent
+  | ToolExecutionStartedEvent
+  | ToolExecutionFinishedEvent
