@@ -3,6 +3,7 @@ import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
+import { getRedactedHeaders } from '../GetRedactedHeaders/GetRedactedHeaders.ts'
 import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 
 export interface AiLoopIterationOptions {
@@ -13,20 +14,6 @@ export interface AiLoopIterationOptions {
   readonly systemPrompt: string
   readonly toolCalls: readonly ToolCall<unknown>[]
   readonly url: string
-}
-
-const getRedactedHeaders = (headers: Readonly<Record<string, string>>): Readonly<Record<string, string>> => {
-  const redactedHeaders: Record<string, string> = {}
-
-  for (const [headerName, headerValue] of Object.entries(headers)) {
-    if (headerName.toLowerCase() === 'authorization') {
-      redactedHeaders[headerName] = headerValue.toLowerCase().startsWith('bearer ') ? 'Bearer [redacted]' : '[redacted]'
-    } else {
-      redactedHeaders[headerName] = headerValue
-    }
-  }
-
-  return redactedHeaders
 }
 
 export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Promise<AiLoopIterationResult> => {
