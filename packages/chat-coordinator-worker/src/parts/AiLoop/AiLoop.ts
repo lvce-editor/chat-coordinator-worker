@@ -3,8 +3,8 @@ import type { AiLoopOptions } from '../AiLoopOptions/AiLoopOptions.ts'
 import type { AiLoopResult } from '../AiLoopResult/AiLoopResult.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
-import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
+import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 
 export const aiLoop = async (loopOptions: AiLoopOptions): Promise<AiLoopResult> => {
   const { systemPrompt, url } = loopOptions
@@ -14,9 +14,9 @@ export const aiLoop = async (loopOptions: AiLoopOptions): Promise<AiLoopResult> 
     const toolCallResults = await getToolCallResults(toolCalls)
     const result = await makeAiRequest({
       systemPrompt,
+      toolCallResults,
       toolCalls,
       url,
-      toolCallResults,
     })
 
     if (result.type === 'error') {
