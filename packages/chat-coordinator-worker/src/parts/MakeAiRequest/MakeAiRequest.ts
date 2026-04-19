@@ -4,6 +4,7 @@ import { makeNetworkRequest } from '../MakeNetworkRequest/MakeNetworkRequest.ts'
 
 interface AiRequestOptions {
   readonly systemPrompt: string
+  readonly toolCalls: readonly ToolCall<any>[]
   readonly url: string
 }
 
