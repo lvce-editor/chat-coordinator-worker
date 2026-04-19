@@ -22,7 +22,7 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
     },
     modelId,
     providerId: 'openai',
-    requestId,
+    turnId: requestId,
     sessionId,
     systemPrompt,
     url: 'https://api.openai.com/v1/responses',

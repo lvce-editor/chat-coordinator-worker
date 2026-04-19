@@ -7,7 +7,8 @@ import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
 import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 
 export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Promise<AiLoopIterationResult> => {
-  const { headers, modelId, requestId, sessionId, systemPrompt, toolCalls, url } = loopOptions
+  const { headers, modelId, sessionId, systemPrompt, toolCalls, turnId, url } = loopOptions
+  const requestId = crypto.randomUUID()
   const requestBody = {
     input: [{ content: systemPrompt, role: 'system' }],
     model: modelId,
@@ -20,6 +21,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
     method: 'POST',
     requestId,
     sessionId,
+    turnId,
     type: ChatEventType.AiRequest,
   })
   const result = await makeAiRequest({
