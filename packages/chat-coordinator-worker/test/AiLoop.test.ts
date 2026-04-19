@@ -48,7 +48,7 @@ test('ai loop returns success and appends the ai response event', async () => {
   })
   expect(mockRpc.invocations).toEqual([
     [
-      'appendEvent',
+      'ChatStorage.appendEvent',
       {
         headers: {
           'content-type': 'application/json',

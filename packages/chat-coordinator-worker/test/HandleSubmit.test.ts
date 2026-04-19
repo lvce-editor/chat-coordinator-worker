@@ -14,7 +14,7 @@ test('handle submit stores the openai response headers', async () => {
       ['content-type', 'application/json'],
       ['x-request-id', 'req_123'],
     ]),
-    json: jest.fn().mockResolvedValue({
+    json: async () => ({
       id: 'resp_1',
       status: 'completed',
     }),
