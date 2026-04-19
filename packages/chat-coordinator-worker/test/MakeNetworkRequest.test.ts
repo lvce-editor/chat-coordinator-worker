@@ -7,7 +7,7 @@ test('make network request returns response headers', async () => {
       ['content-type', 'application/json'],
       ['x-request-id', 'req_123'],
     ]),
-    json: jest.fn().mockResolvedValue({
+    json: async () => ({
       id: 'resp_1',
       status: 'completed',
     }),
@@ -47,7 +47,7 @@ test('make network request returns response headers', async () => {
 test('make network request omits body and headers when not provided', async () => {
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([['content-type', 'application/json']]),
-    json: jest.fn().mockResolvedValue({
+    json: async () => ({
       ok: true,
     }),
   } as any)

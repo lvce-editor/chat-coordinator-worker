@@ -7,13 +7,15 @@ import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 export interface AiLoopIterationOptions {
   readonly headers: Readonly<Record<string, string>>
   readonly modelId: string
+  readonly requestId: string
+  readonly sessionId: string
   readonly systemPrompt: string
   readonly toolCalls: readonly ToolCall<unknown>[]
   readonly url: string
 }
 
 export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Promise<AiLoopIterationResult> => {
-  const { headers, modelId, systemPrompt, toolCalls, url } = loopOptions
+  const { headers, modelId, requestId, sessionId, systemPrompt, toolCalls, url } = loopOptions
 
   const toolCallResults = await getToolCallResults(toolCalls)
   const result = await makeAiRequest({
@@ -27,6 +29,8 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
 
   if (result.type === 'error') {
     await appendChatEvent({
+      requestId,
+      sessionId,
       type: 'aiResponseError',
       value: result.error,
     })
@@ -37,6 +41,8 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
   } else {
     await appendChatEvent({
       headers: result.headers,
+      requestId,
+      sessionId,
       toolCalls: result.toolCalls,
       type: 'aiResponseSuccess',
       value: result.data,

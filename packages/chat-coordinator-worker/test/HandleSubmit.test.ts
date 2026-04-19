@@ -58,6 +58,8 @@ test('handle submit stores the openai response headers', async () => {
           'content-type': 'application/json',
           'x-request-id': 'req_123',
         },
+        requestId: 'request-1',
+        sessionId: 'session-1',
         toolCalls: [],
         type: 'aiResponseSuccess',
         value: {

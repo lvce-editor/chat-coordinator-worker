@@ -30,6 +30,7 @@ test('ai loop returns success and appends the ai response event', async () => {
     modelId: 'gpt-4.1-mini',
     providerId: 'openai',
     requestId: 'request-1',
+    sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     url: 'https://api.openai.com/v1/responses',
   })
@@ -54,6 +55,8 @@ test('ai loop returns success and appends the ai response event', async () => {
           'content-type': 'application/json',
           'x-request-id': 'req_123',
         },
+        requestId: 'request-1',
+        sessionId: 'session-1',
         toolCalls: [],
         type: 'aiResponseSuccess',
         value: {
@@ -79,6 +82,7 @@ test('ai loop propagates request failures', async () => {
       modelId: 'gpt-4.1-mini',
       providerId: 'openai',
       requestId: 'request-1',
+      sessionId: 'session-1',
       systemPrompt: 'You are a helpful assistant.',
       url: 'https://api.openai.com/v1/responses',
     }),
