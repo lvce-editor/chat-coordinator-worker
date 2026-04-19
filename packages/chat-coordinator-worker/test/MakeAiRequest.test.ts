@@ -11,7 +11,7 @@ test('make ai request forwards the system prompt and returns response data', asy
       ['content-type', 'application/json'],
       ['x-request-id', 'req_123'],
     ]),
-    json: jest.fn().mockResolvedValue({
+    json: jest.fn<() => Promise<unknown>>().mockResolvedValue({
       id: 'resp_1',
       status: 'completed',
     }),
