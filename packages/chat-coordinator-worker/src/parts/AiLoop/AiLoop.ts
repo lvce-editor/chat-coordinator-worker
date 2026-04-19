@@ -7,7 +7,7 @@ import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 
 export const aiLoop = async (loopOptions: AiLoopOptions): Promise<AiLoopResult> => {
   const { systemPrompt, url } = loopOptions
-  let toolCalls: readonly ToolCall<any>[] = []
+  let toolCalls: readonly ToolCall<unknown>[] = []
 
   do {
     const result = await makeAiRequest({
