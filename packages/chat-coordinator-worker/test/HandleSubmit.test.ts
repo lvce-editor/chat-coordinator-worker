@@ -7,6 +7,7 @@ test('handle submit stores the openai response headers', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
   })
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
   const realDate = globalThis.Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -68,7 +69,7 @@ test('handle submit stores the openai response headers', async () => {
           'Content-Type': 'application/json',
         },
         method: 'POST',
-        requestId: 'request-1',
+        requestId: '00000000-0000-4000-8000-000000000000',
         sessionId: 'session-1',
         turnId: 'request-1',
         type: 'ai-request',
@@ -81,7 +82,7 @@ test('handle submit stores the openai response headers', async () => {
           'content-type': 'application/json',
           'x-request-id': 'req_123',
         },
-        requestId: 'request-1',
+        requestId: '00000000-0000-4000-8000-000000000000',
         sessionId: 'session-1',
         toolCalls: [],
         turnId: 'request-1',
@@ -93,6 +94,7 @@ test('handle submit stores the openai response headers', async () => {
       },
     ],
   ])
+  randomUUIDSpy.mockRestore()
   dateSpy.mockRestore()
   fetchSpy.mockRestore()
 })

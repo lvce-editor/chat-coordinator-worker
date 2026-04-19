@@ -11,6 +11,7 @@ test('ai loop returns success and appends the ai response event', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
   })
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
       ['content-type', 'application/json'],
@@ -65,7 +66,7 @@ test('ai loop returns success and appends the ai response event', async () => {
           'Content-Type': 'application/json',
         },
         method: 'POST',
-        requestId: 'random-request-id',
+        requestId: '00000000-0000-4000-8000-000000000000',
         sessionId: 'session-1',
         turnId: 'turn-1',
         type: 'ai-request',
@@ -78,7 +79,7 @@ test('ai loop returns success and appends the ai response event', async () => {
           'content-type': 'application/json',
           'x-request-id': 'req_123',
         },
-        requestId: 'random-request-id',
+        requestId: '00000000-0000-4000-8000-000000000000',
         sessionId: 'session-1',
         toolCalls: [],
         turnId: 'turn-1',
@@ -90,6 +91,8 @@ test('ai loop returns success and appends the ai response event', async () => {
       },
     ],
   ])
+
+  randomUUIDSpy.mockRestore()
 })
 
 test('ai loop propagates request failures', async () => {
@@ -97,6 +100,7 @@ test('ai loop propagates request failures', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
   })
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
   const error = new Error('request failed')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockRejectedValueOnce(error)
 
@@ -128,11 +132,13 @@ test('ai loop propagates request failures', async () => {
         },
         headers: {},
         method: 'POST',
-        requestId: 'random-request-id',
+        requestId: '00000000-0000-4000-8000-000000000000',
         sessionId: 'session-1',
         turnId: 'turn-1',
         type: 'ai-request',
       },
     ],
   ])
+
+  randomUUIDSpy.mockRestore()
 })
