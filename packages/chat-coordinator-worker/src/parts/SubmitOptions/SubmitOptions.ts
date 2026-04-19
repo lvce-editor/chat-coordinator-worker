@@ -3,6 +3,7 @@ export interface SubmitOptions {
   readonly id: string
   readonly modelId: string
   readonly openAiKey: string
+  readonly requestId: string
   readonly role: 'user' | 'assistant'
   readonly sessionId: string
   readonly systemPrompt: string
