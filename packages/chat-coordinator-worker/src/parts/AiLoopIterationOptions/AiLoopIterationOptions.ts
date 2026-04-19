@@ -4,8 +4,8 @@ export interface AiLoopIterationOptions {
   readonly headers: Readonly<Record<string, string>>
   readonly modelId: string
   readonly sessionId: string
-  readonly turnId: string
   readonly systemPrompt: string
+  readonly turnId: string
   readonly toolCalls: readonly ToolCall<unknown>[]
   readonly url: string
 }
