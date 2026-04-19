@@ -11,6 +11,8 @@ test('ai loop returns success and appends the ai response event', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
   })
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
@@ -68,6 +70,7 @@ test('ai loop returns success and appends the ai response event', async () => {
         method: 'POST',
         requestId: '00000000-0000-4000-8000-000000000000',
         sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
       },
@@ -81,6 +84,7 @@ test('ai loop returns success and appends the ai response event', async () => {
         },
         requestId: '00000000-0000-4000-8000-000000000000',
         sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response-success',
@@ -93,6 +97,7 @@ test('ai loop returns success and appends the ai response event', async () => {
   ])
 
   randomUUIDSpy.mockRestore()
+  dateSpy.mockRestore()
 })
 
 test('ai loop propagates request failures', async () => {
@@ -100,6 +105,8 @@ test('ai loop propagates request failures', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
   })
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
   const error = new Error('request failed')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockRejectedValueOnce(error)
@@ -134,6 +141,7 @@ test('ai loop propagates request failures', async () => {
         method: 'POST',
         requestId: '00000000-0000-4000-8000-000000000000',
         sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
       },
@@ -141,4 +149,5 @@ test('ai loop propagates request failures', async () => {
   ])
 
   randomUUIDSpy.mockRestore()
+  dateSpy.mockRestore()
 })

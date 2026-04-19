@@ -2,6 +2,7 @@ import type { AiLoopIterationOptions } from '../AiLoopIterationOptions/AiLoopIte
 import type { AiLoopIterationResult } from '../AiLoopIterationResult/AiLoopIterationResult.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
+import { getRequestId } from '../GetRequestId/GetRequestId.ts'
 import { getRedactedHeaders } from '../GetRedactedHeaders/GetRedactedHeaders.ts'
 import { getTimeStamp } from '../GetTimeStamp/GetTimeStamp.ts'
 import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
@@ -9,7 +10,7 @@ import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 
 export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Promise<AiLoopIterationResult> => {
   const { headers, modelId, sessionId, systemPrompt, toolCalls, turnId, url } = loopOptions
-  const requestId = crypto.randomUUID()
+  const requestId = getRequestId()
   const timestamp = getTimeStamp()
   const requestBody = {
     input: [{ content: systemPrompt, role: 'system' }],
