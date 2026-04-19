@@ -8,13 +8,13 @@ interface AiRequestOptions {
 }
 
 export const makeAiRequest = async (options: AiRequestOptions): Promise<AiRequestResult> => {
-  const { systemPrompt } = options
+  const { systemPrompt, url } = options
   const response = await makeNetworkRequest({
     body: {
       systemPrompt,
     },
     method: 'POST',
-    url: 'https://api.openai.com/v1/chat/completions',
+    url,
   })
   if (response.type === 'error') {
     return {
