@@ -1,5 +1,5 @@
-import type { AiRequestResult } from '../AiRequestResult/AiRequestResult.ts'
 import type { AiRequestOptions } from '../AiRequestOptions/AiRequestOptions.ts'
+import type { AiRequestResult } from '../AiRequestResult/AiRequestResult.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import { makeNetworkRequest } from '../MakeNetworkRequest/MakeNetworkRequest.ts'
 

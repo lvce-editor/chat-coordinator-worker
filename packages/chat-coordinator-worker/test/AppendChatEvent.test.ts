@@ -4,7 +4,7 @@ import { appendChatEvent } from '../src/parts/AppendChatEvent/AppendChatEvent.ts
 
 test('append chat event forwards event to chat storage worker', async () => {
   const appendEventSpy = jest.spyOn(ChatStorageWorker, 'appendEvent').mockResolvedValue(undefined)
-  const event = {
+  const event: any = {
     type: 'chat-message-added',
     sessionId: 'session-1',
   }

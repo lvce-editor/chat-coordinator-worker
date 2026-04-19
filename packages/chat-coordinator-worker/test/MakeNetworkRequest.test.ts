@@ -43,3 +43,32 @@ test('make network request returns response headers', async () => {
 
   fetchSpy.mockRestore()
 })
+
+test('make network request omits body and headers when not provided', async () => {
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([['content-type', 'application/json']]),
+    json: jest.fn().mockResolvedValue({
+      ok: true,
+    }),
+  } as any)
+
+  const result = await makeNetworkRequest({
+    method: 'GET',
+    url: 'https://example.com/data',
+  })
+
+  expect(result).toEqual({
+    data: {
+      ok: true,
+    },
+    headers: {
+      'content-type': 'application/json',
+    },
+    type: 'success',
+  })
+  expect(fetchSpy).toHaveBeenCalledWith('https://example.com/data', {
+    method: 'GET',
+  })
+
+  fetchSpy.mockRestore()
+})
