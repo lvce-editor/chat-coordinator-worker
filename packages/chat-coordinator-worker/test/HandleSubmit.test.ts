@@ -34,7 +34,7 @@ test('handle submit stores the openai response headers', async () => {
   })
 
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"}],"model":"gpt-4.1-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"model":"gpt-4.1-mini"}',
     headers: {
       Authorization: 'Bearer test-key',
       'Content-Type': 'application/json',
@@ -60,6 +60,10 @@ test('handle submit stores the openai response headers', async () => {
             {
               content: 'You are a helpful assistant.',
               role: 'system',
+            },
+            {
+              content: 'Hello world',
+              role: 'user',
             },
           ],
           model: 'gpt-4.1-mini',

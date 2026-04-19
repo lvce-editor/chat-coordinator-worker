@@ -1,13 +1,14 @@
 import type { AiRequestOptions } from '../AiRequestOptions/AiRequestOptions.ts'
 import type { AiRequestResult } from '../AiRequestResult/AiRequestResult.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
+import { getAiRequestBody } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import { makeNetworkRequest } from '../MakeNetworkRequest/MakeNetworkRequest.ts'
 
 export const makeAiRequest = async (options: AiRequestOptions): Promise<AiRequestResult> => {
-  const { headers, modelId, systemPrompt, url } = options
+  const { headers, modelId, systemPrompt, text, url } = options
   const response = await makeNetworkRequest({
     body: {
-      input: [{ content: systemPrompt, role: 'system' }],
+      ...getAiRequestBody(systemPrompt, text),
       model: modelId,
     },
     headers,

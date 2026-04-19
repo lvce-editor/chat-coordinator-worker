@@ -34,6 +34,7 @@ test('ai loop returns success and appends the ai response event', async () => {
     providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
@@ -43,7 +44,7 @@ test('ai loop returns success and appends the ai response event', async () => {
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"}],"model":"gpt-4.1-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"model":"gpt-4.1-mini"}',
     headers: {
       Authorization: 'Bearer test-key',
       'Content-Type': 'application/json',
@@ -59,6 +60,10 @@ test('ai loop returns success and appends the ai response event', async () => {
             {
               content: 'You are a helpful assistant.',
               role: 'system',
+            },
+            {
+              content: 'Hello world',
+              role: 'user',
             },
           ],
           model: 'gpt-4.1-mini',
@@ -118,6 +123,7 @@ test('ai loop propagates request failures', async () => {
       providerId: 'openai',
       sessionId: 'session-1',
       systemPrompt: 'You are a helpful assistant.',
+      text: 'Hello world',
       turnId: 'turn-1',
       url: 'https://api.openai.com/v1/responses',
     }),
@@ -133,6 +139,10 @@ test('ai loop propagates request failures', async () => {
             {
               content: 'You are a helpful assistant.',
               role: 'system',
+            },
+            {
+              content: 'Hello world',
+              role: 'user',
             },
           ],
           model: 'gpt-4.1-mini',

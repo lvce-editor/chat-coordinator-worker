@@ -23,6 +23,7 @@ test('make ai request forwards the system prompt and returns response data', asy
     },
     modelId: 'gpt-5-mini',
     systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
     url: 'https://api.openai.com/v1/responses',
@@ -42,7 +43,7 @@ test('make ai request forwards the system prompt and returns response data', asy
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"}],"model":"gpt-5-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"model":"gpt-5-mini"}',
     headers: {
       Authorization: 'Bearer test-key',
     },
@@ -59,6 +60,7 @@ test('make ai request propagates network failures', async () => {
       headers: {},
       modelId: 'gpt-5-mini',
       systemPrompt: 'You are a helpful assistant.',
+      text: 'Hello world',
       toolCallResults: [],
       toolCalls: [],
       url: 'https://api.openai.com/v1/responses',
@@ -66,7 +68,7 @@ test('make ai request propagates network failures', async () => {
   ).rejects.toThrow(error)
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"}],"model":"gpt-5-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"model":"gpt-5-mini"}',
     headers: {},
     method: 'POST',
   })
