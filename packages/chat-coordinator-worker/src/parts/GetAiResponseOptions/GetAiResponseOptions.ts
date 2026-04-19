@@ -1,8 +1,16 @@
 import type { ChatMessage, ChatModel } from '../ChatState/ChatState.ts'
 import type { StreamingToolCall } from '../StreamingToolCall/StreamingToolCall.ts'
+import type { ExecuteToolOptions } from '../Types/Types.ts'
+
+export interface ExecuteAiToolOptions extends ExecuteToolOptions {
+  readonly callId: string
+}
+
+export type ExecuteAiTool = (name: string, rawArguments: string, options: ExecuteAiToolOptions) => Promise<string>
 
 export interface GetAiResponseOptions {
   readonly assetDir: string
+  readonly executeTool?: ExecuteAiTool
   readonly messageId?: string
   readonly messages: readonly ChatMessage[]
   readonly mockAiResponseDelay?: number

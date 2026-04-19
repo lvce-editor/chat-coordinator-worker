@@ -21,6 +21,7 @@ import * as MockOpenApiRequest from '../MockOpenApiRequest/MockOpenApiRequest.ts
 
 export const getAiResponse = async ({
   assetDir,
+  executeTool,
   messageId,
   messages,
   mockAiResponseDelay = 800,
@@ -89,7 +90,9 @@ export const getAiResponse = async ({
         }
         openAiInput.length = 0
         for (const toolCall of result.responseFunctionCalls) {
-          const content = await executeChatTool(toolCall.name, toolCall.arguments, { assetDir, platform })
+          const content = executeTool
+            ? await executeTool(toolCall.name, toolCall.arguments, { assetDir, callId: toolCall.callId, platform })
+            : await executeChatTool(toolCall.name, toolCall.arguments, { assetDir, platform })
           openAiInput.push({
             call_id: toolCall.callId,
             output: content,
@@ -106,6 +109,11 @@ export const getAiResponse = async ({
         assetDir,
         platform,
         {
+          ...(executeTool
+            ? {
+                executeTool,
+              }
+            : {}),
           includeObfuscation: passIncludeObfuscation,
           ...(onDataEvent
             ? {
@@ -168,6 +176,7 @@ export const getAiResponse = async ({
         assetDir,
         platform,
         useChatNetworkWorkerForRequests,
+        executeTool,
       )
       if (result.type === 'success') {
         const { text: assistantText } = result

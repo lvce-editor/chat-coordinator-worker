@@ -1,10 +1,11 @@
 import type { ChatToolCall } from '../ChatMessage/ChatMessage.ts'
 import type { ChatModel } from '../ChatModel/ChatModel.ts'
+import type { AgentMode } from '../AgentMode/AgentMode.ts'
 
 export interface ChatCoordinatorMessage {
   readonly id: string
   readonly inProgress?: boolean
-  readonly role: 'assistant' | 'tool' | 'user'
+  readonly role: 'assistant' | 'system' | 'tool' | 'user'
   readonly text: string
   readonly time: string
   readonly toolCalls?: readonly ChatToolCall[]
@@ -29,9 +30,11 @@ export interface ChatCoordinatorSubmitOptions {
 }
 
 export interface ChatCoordinatorHandleSubmitOptions {
+  readonly agentMode?: AgentMode
   readonly aiSessionTitleGenerationEnabled?: boolean
   readonly assetDir: string
   readonly contextMessages?: readonly ChatCoordinatorMessage[]
+  readonly messageId?: string
   readonly mockAiResponseDelay?: number
   readonly mockApiCommandId: string
   readonly models: readonly ChatModel[]
@@ -45,10 +48,12 @@ export interface ChatCoordinatorHandleSubmitOptions {
   readonly selectedModelId: string
   readonly sessionId?: string
   readonly streamingEnabled?: boolean
+  readonly systemPrompt?: string
   readonly useChatNetworkWorkerForRequests?: boolean
   readonly useMockApi: boolean
   readonly userText: string
   readonly webSearchEnabled?: boolean
+  readonly workspaceUri?: string
 }
 
 export interface ChatCoordinatorSubmitErrorResult {

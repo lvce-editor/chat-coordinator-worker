@@ -12,7 +12,7 @@ export const reset = (): void => {
 }
 
 export const capture = (request: MockOpenApiRequest): void => {
-  requests = [...requests, request]
+  requests = [...requests, structuredClone(request)]
 }
 
 export const getAll = (): readonly MockOpenApiRequest[] => {

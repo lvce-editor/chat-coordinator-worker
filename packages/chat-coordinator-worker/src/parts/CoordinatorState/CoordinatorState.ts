@@ -9,14 +9,13 @@ import type {
   ChatCoordinatorSubmitResult,
 } from './CoordinatorTypes.ts'
 import {
-  appendChatViewEvent,
   deleteChatSession,
   getChatSession,
   listChatSessionsWithMessages,
   saveChatSession,
   useRpcChatSessionStorage,
 } from '../ChatSessionStorage/ChatSessionStorage.ts'
-import { getAiResponse } from '../GetAiResponse/GetAiResponse.ts'
+import { startHandleSubmit } from '../HandleSubmit/HandleSubmit.ts'
 
 const sessions: ChatCoordinatorSession[] = []
 const subscriberQueues = new Map<string, ChatCoordinatorEvent[]>()
@@ -222,144 +221,6 @@ const processRun = async (runId: string, sessionId: string, assistantMessageId: 
   finalizeRun(runId, sessionId)
 }
 
-const processHandleSubmitRun = async (
-  runId: string,
-  sessionId: string,
-  assistantMessageId: string,
-  aiMessages: readonly ChatCoordinatorMessage[],
-  options: Readonly<ChatCoordinatorHandleSubmitOptions>,
-): Promise<void> => {
-  const {
-    assetDir,
-    mockAiResponseDelay,
-    mockApiCommandId,
-    models,
-    openApiApiBaseUrl,
-    openApiApiKey,
-    openRouterApiBaseUrl,
-    openRouterApiKey,
-    passIncludeObfuscation,
-    platform,
-    selectedModelId,
-    streamingEnabled = true,
-    useChatNetworkWorkerForRequests = false,
-    useMockApi,
-    userText,
-    webSearchEnabled = false,
-  } = options
-  try {
-    const assistantMessage = await getAiResponse({
-      assetDir,
-      messageId: assistantMessageId,
-      messages: aiMessages,
-      ...(mockAiResponseDelay === undefined
-        ? {}
-        : {
-            mockAiResponseDelay,
-          }),
-      mockApiCommandId,
-      models,
-      nextMessageId: aiMessages.length + 1,
-      onDataEvent: async (value: unknown): Promise<void> => {
-        await appendChatViewEvent({
-          sessionId,
-          timestamp: new Date().toISOString(),
-          type: 'sse-response-part',
-          value,
-        })
-      },
-      onEventStreamFinished: async (): Promise<void> => {
-        await appendChatViewEvent({
-          sessionId,
-          timestamp: new Date().toISOString(),
-          type: 'event-stream-finished',
-          value: '[DONE]',
-        })
-      },
-      onTextChunk: async (chunk: string): Promise<void> => {
-        const session = await getSession(sessionId)
-        const message = session?.messages.find((item) => item.id === assistantMessageId)
-        if (!message) {
-          return
-        }
-        const updatedMessage = await updateMessage(sessionId, assistantMessageId, `${message.text}${chunk}`, true)
-        if (updatedMessage) {
-          emitEvent({
-            message: clone(updatedMessage),
-            runId,
-            sessionId,
-            type: 'message-updated',
-          })
-        }
-      },
-      onToolCallsChunk: async (toolCalls): Promise<void> => {
-        const session = await getSession(sessionId)
-        const message = session?.messages.find((item) => item.id === assistantMessageId)
-        if (!message) {
-          return
-        }
-        const updatedMessage = await updateMessage(sessionId, assistantMessageId, message.text, true, toolCalls)
-        if (updatedMessage) {
-          emitEvent({
-            message: clone(updatedMessage),
-            runId,
-            sessionId,
-            type: 'message-updated',
-          })
-        }
-      },
-      openApiApiBaseUrl,
-      openApiApiKey,
-      openRouterApiBaseUrl,
-      openRouterApiKey,
-      ...(passIncludeObfuscation === undefined
-        ? {}
-        : {
-            passIncludeObfuscation,
-          }),
-      platform,
-      selectedModelId,
-      streamingEnabled,
-      useChatNetworkWorkerForRequests,
-      useMockApi,
-      userText,
-      webSearchEnabled,
-    })
-    const doneMessage = await updateMessage(sessionId, assistantMessageId, assistantMessage.text, false, assistantMessage.toolCalls)
-    if (doneMessage) {
-      emitEvent({
-        message: clone(doneMessage),
-        runId,
-        sessionId,
-        type: 'message-updated',
-      })
-    }
-    emitEvent({
-      runId,
-      sessionId,
-      type: 'run-finished',
-    })
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to complete chat request.'
-    const doneMessage = await updateMessage(sessionId, assistantMessageId, errorMessage, false)
-    if (doneMessage) {
-      emitEvent({
-        message: clone(doneMessage),
-        runId,
-        sessionId,
-        type: 'message-updated',
-      })
-    }
-    emitEvent({
-      runId,
-      sessionId,
-      type: 'run-finished',
-    })
-  } finally {
-    finalizeRun(runId, sessionId)
-  }
-}
-
 export const listSessions = async (): Promise<readonly ChatCoordinatorSessionSummary[]> => {
   await ensureHydrated()
   return sessions.map((session) => ({
@@ -494,103 +355,60 @@ export const submit = async (options: Readonly<ChatCoordinatorSubmitOptions>): P
 
 export const handleSubmit = async (options: Readonly<ChatCoordinatorHandleSubmitOptions>): Promise<ChatCoordinatorHandleSubmitResult> => {
   useRpcChatSessionStorage()
-  await ensureHydrated()
-  const text = options.userText.trim()
-  if (!text) {
-    return {
-      message: 'Prompt is empty.',
-      type: 'error',
-    }
-  }
-
-  let session = options.sessionId ? sessions.find((item) => item.id === options.sessionId) : undefined
-  if (!session && options.sessionId) {
-    const storedSession = await getStoredSession(options.sessionId)
-    if (storedSession) {
-      upsertSession(storedSession)
-      session = storedSession
-    }
-  }
-  if (!session) {
-    session = {
-      id: crypto.randomUUID(),
-      messages: [],
-      ...(options.projectId
-        ? {
-            projectId: options.projectId,
-          }
-        : {}),
-      title: `Chat ${sessions.length + 1}`,
-    }
-    sessions.push(clone(session))
-    await persistSession(session.id)
-    emitEvent({
-      session: clone(session),
-      type: 'session-created',
-    })
-  }
-
-  if (activeRunBySessionId.has(session.id)) {
-    return {
-      message: 'Session already has an active run.',
-      type: 'error',
-    }
-  }
-
-  await appendChatViewEvent({
-    sessionId: session.id,
-    timestamp: new Date().toISOString(),
-    type: 'handle-submit',
-    value: text,
+  const result = await startHandleSubmit(options, {
+    onMessageAppended: (sessionId, message) => {
+      emitEvent({
+        message: clone(message),
+        sessionId,
+        type: 'message-appended',
+      })
+    },
+    onMessageUpdated: (runId, sessionId, message) => {
+      emitEvent({
+        message: clone(message),
+        runId,
+        sessionId,
+        type: 'message-updated',
+      })
+    },
+    onRunFinished: (runId, sessionId) => {
+      emitEvent({
+        runId,
+        sessionId,
+        type: 'run-finished',
+      })
+      runById.delete(runId)
+      runPromises.delete(runId)
+    },
+    onRunStarted: (assistantMessageId, runId, sessionId) => {
+      emitEvent({
+        assistantMessageId,
+        runId,
+        sessionId,
+        type: 'run-started',
+      })
+    },
+    onSessionCreated: (session) => {
+      emitEvent({
+        session: clone(session),
+        type: 'session-created',
+      })
+    },
   })
-
-  const userMessage = createMessage('user', text)
-  const assistantMessage: ChatCoordinatorMessage = {
-    ...createMessage('assistant', ''),
-    inProgress: true,
+  if (result.type !== 'success') {
+    return result
   }
-  const aiMessages = [...session.messages.filter((message) => !message.inProgress), ...(options.contextMessages || []), userMessage]
-  await appendMessage(session.id, userMessage)
-  await appendMessage(session.id, assistantMessage)
-  const updatedSession = await getSession(session.id)
-  if (updatedSession) {
-    emitEvent({
-      session: updatedSession,
-      type: 'session-updated',
-    })
-  }
-  emitEvent({
-    message: clone(userMessage),
-    sessionId: session.id,
-    type: 'message-appended',
+  runById.set(result.runId, {
+    assistantMessageId: result.assistantMessageId,
+    sessionId: result.sessionId,
   })
-  emitEvent({
-    message: clone(assistantMessage),
-    sessionId: session.id,
-    type: 'message-appended',
-  })
-
-  const runId = crypto.randomUUID()
-  activeRunBySessionId.set(session.id, runId)
-  runById.set(runId, {
-    assistantMessageId: assistantMessage.id,
-    sessionId: session.id,
-  })
-  emitEvent({
-    assistantMessageId: assistantMessage.id,
-    runId,
-    sessionId: session.id,
-    type: 'run-started',
-  })
-  const runPromise = processHandleSubmitRun(runId, session.id, assistantMessage.id, aiMessages, options)
-  runPromises.set(runId, runPromise)
-
+  runPromises.set(result.runId, result.runPromise)
   return {
-    assistantMessageId: assistantMessage.id,
-    runId,
-    sessionId: session.id,
+    assistantMessageId: result.assistantMessageId,
+    runId: result.runId,
+    sessionId: result.sessionId,
     type: 'success',
-    userMessageId: userMessage.id,
+    userMessageId: result.userMessageId,
   }
 }
 

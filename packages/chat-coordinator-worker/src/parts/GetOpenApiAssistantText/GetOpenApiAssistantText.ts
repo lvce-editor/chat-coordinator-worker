@@ -732,6 +732,7 @@ export const getOpenApiAssistantText = async (
   options?: GetOpenApiAssistantTextOptions,
 ): Promise<GetOpenApiAssistantTextResult> => {
   const {
+    executeTool,
     includeObfuscation = false,
     onDataEvent,
     onEventStreamFinished,
@@ -852,7 +853,9 @@ export const getOpenApiAssistantText = async (
         openAiInput.length = 0
         const executedToolCalls: StreamingToolCall[] = []
         for (const toolCall of streamResult.responseFunctionCalls) {
-          const content = await executeChatTool(toolCall.name, toolCall.arguments, { assetDir, platform })
+          const content = executeTool
+            ? await executeTool(toolCall.name, toolCall.arguments, { assetDir, callId: toolCall.callId, platform })
+            : await executeChatTool(toolCall.name, toolCall.arguments, { assetDir, platform })
           const executionStatus = getToolCallExecutionStatus(content)
           executedToolCalls.push({
             arguments: toolCall.arguments,
@@ -1013,7 +1016,9 @@ export const getOpenApiAssistantText = async (
       openAiInput.length = 0
       const executedToolCalls: StreamingToolCall[] = []
       for (const toolCall of responseFunctionCalls) {
-        const content = await executeChatTool(toolCall.name, toolCall.arguments, { assetDir, platform })
+        const content = executeTool
+          ? await executeTool(toolCall.name, toolCall.arguments, { assetDir, callId: toolCall.callId, platform })
+          : await executeChatTool(toolCall.name, toolCall.arguments, { assetDir, platform })
         const executionStatus = getToolCallExecutionStatus(content)
         executedToolCalls.push({
           arguments: toolCall.arguments,
@@ -1091,7 +1096,12 @@ export const getOpenApiAssistantText = async (
           }
           const name = Reflect.get(toolFunction, 'name')
           const rawArguments = Reflect.get(toolFunction, 'arguments')
-          const content = typeof name === 'string' ? await executeChatTool(name, rawArguments, { assetDir, platform }) : '{}'
+          const content =
+            typeof name === 'string'
+              ? executeTool
+                ? await executeTool(name, typeof rawArguments === 'string' ? rawArguments : '', { assetDir, callId: id, platform })
+                : await executeChatTool(name, rawArguments, { assetDir, platform })
+              : '{}'
           if (typeof name === 'string') {
             const executionStatus = getToolCallExecutionStatus(content)
             executedToolCalls.push({

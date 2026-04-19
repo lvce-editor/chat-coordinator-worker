@@ -1,6 +1,8 @@
+import type { ExecuteAiTool } from '../GetAiResponseOptions/GetAiResponseOptions.ts'
 import type { StreamingToolCall } from '../StreamingToolCall/StreamingToolCall.ts'
 
 export interface GetOpenApiAssistantTextOptions {
+  readonly executeTool?: ExecuteAiTool
   readonly includeObfuscation?: boolean
   readonly onDataEvent?: (value: unknown) => Promise<void>
   readonly onEventStreamFinished?: () => Promise<void>

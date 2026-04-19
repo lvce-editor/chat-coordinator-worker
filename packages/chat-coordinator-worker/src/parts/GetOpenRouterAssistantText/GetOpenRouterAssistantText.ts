@@ -1,4 +1,5 @@
 import type { ChatMessage } from '../ChatMessage/ChatMessage.ts'
+import type { ExecuteAiTool } from '../GetAiResponseOptions/GetAiResponseOptions.ts'
 import { makeApiRequest } from '../ChatNetworkRequest/ChatNetworkRequest.ts'
 import { executeChatTool, getBasicChatTools } from '../ChatTools/ChatTools.ts'
 import { getClientRequestIdHeader } from '../GetClientRequestIdHeader/GetClientRequestIdHeader.ts'
@@ -188,6 +189,7 @@ export const getOpenRouterAssistantText = async (
   assetDir: string,
   platform: number,
   useChatNetworkWorkerForRequests = false,
+  executeTool?: ExecuteAiTool,
 ): Promise<GetOpenRouterAssistantTextResult> => {
   const completionMessages: any[] = messages.map((message) => ({
     content: message.text,
@@ -359,7 +361,12 @@ export const getOpenRouterAssistantText = async (
         }
         const name = Reflect.get(toolFunction, 'name')
         const rawArguments = Reflect.get(toolFunction, 'arguments')
-        const content = typeof name === 'string' ? await executeChatTool(name, rawArguments, { assetDir, platform }) : '{}'
+        const content =
+          typeof name === 'string'
+            ? executeTool
+              ? await executeTool(name, typeof rawArguments === 'string' ? rawArguments : '', { assetDir, callId: id, platform })
+              : await executeChatTool(name, rawArguments, { assetDir, platform })
+            : '{}'
         completionMessages.push({
           content,
           role: 'tool',
