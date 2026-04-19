@@ -70,6 +70,7 @@ test('handle submit stores the openai response headers', async () => {
         method: 'POST',
         requestId: 'request-1',
         sessionId: 'session-1',
+        turnId: 'request-1',
         type: 'ai-request',
       },
     ],
@@ -83,6 +84,7 @@ test('handle submit stores the openai response headers', async () => {
         requestId: 'request-1',
         sessionId: 'session-1',
         toolCalls: [],
+        turnId: 'request-1',
         type: 'ai-response-success',
         value: {
           id: 'resp_1',

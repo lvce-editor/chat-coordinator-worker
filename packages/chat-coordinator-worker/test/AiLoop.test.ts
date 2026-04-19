@@ -81,6 +81,7 @@ test('ai loop returns success and appends the ai response event', async () => {
         requestId: 'random-request-id',
         sessionId: 'session-1',
         toolCalls: [],
+        turnId: 'turn-1',
         type: 'ai-response-success',
         value: {
           id: 'resp_1',
