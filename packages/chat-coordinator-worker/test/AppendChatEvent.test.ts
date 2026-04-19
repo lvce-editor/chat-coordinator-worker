@@ -1,18 +1,23 @@
 import { expect, jest, test } from '@jest/globals'
-import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
-import { appendChatEvent } from '../src/parts/AppendChatEvent/AppendChatEvent.ts'
+
+const appendEvent = jest.fn()
+
+await jest.unstable_mockModule('@lvce-editor/rpc-registry', () => ({
+  ChatStorageWorker: {
+    appendEvent,
+  },
+}))
+
+const { appendChatEvent } = await import('../src/parts/AppendChatEvent/AppendChatEvent.ts')
 
 test('append chat event forwards event to chat storage worker', async () => {
-  const appendEventSpy = jest.spyOn(ChatStorageWorker, 'appendEvent').mockResolvedValue(undefined)
-  const event: any = {
-    type: 'chat-message-added',
+  const event = {
     sessionId: 'session-1',
+    type: 'chat-message-added',
   }
 
   await appendChatEvent(event)
 
-  expect(appendEventSpy).toHaveBeenCalledTimes(1)
-  expect(appendEventSpy).toHaveBeenCalledWith(event)
-
-  appendEventSpy.mockRestore()
+  expect(appendEvent).toHaveBeenCalledTimes(1)
+  expect(appendEvent.mock.calls[0][0]).toEqual(event)
 })

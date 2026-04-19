@@ -1,78 +1,64 @@
 import { expect, jest, test } from '@jest/globals'
-import * as AiLoop from '../src/parts/AiLoop/AiLoop.ts'
-import * as AiLoopIteration from '../src/parts/AiLoopIteration/AiLoopIteration.ts'
 
-test('ai loop repeats until there are no tool calls left', async () => {
-  const aiLoopIterationSpy = jest.spyOn(AiLoopIteration, 'aiLoopIteration')
-  const toolCalls = [{ args: { path: 'example.txt' }, id: 'tool-call-1' }]
+const appendEvent = jest.fn()
 
-  aiLoopIterationSpy.mockResolvedValueOnce({
-    data: 'first response',
-    toolCalls,
-    type: 'success',
-  })
-  aiLoopIterationSpy.mockResolvedValueOnce({
-    data: 'final response',
-    toolCalls: [],
-    type: 'success',
-  })
+await jest.unstable_mockModule('@lvce-editor/rpc-registry', () => ({
+  ChatStorageWorker: {
+    appendEvent,
+  },
+}))
 
-  const result = await AiLoop.aiLoop({
-    headers: {
-      Authorization: 'Bearer test-key',
-    },
-    modelId: 'gpt-4.1-mini',
-    providerId: 'openai',
-    requestId: 'request-1',
-    systemPrompt: 'You are a helpful assistant.',
-    url: 'https://api.openai.com/v1/responses',
-  })
+const { ChatStorageWorker } = await import('@lvce-editor/rpc-registry')
+const { aiLoopIteration } = await import('../src/parts/AiLoopIteration/AiLoopIteration.ts')
 
-  expect(result).toEqual({
-    type: 'success',
-  })
-  expect(aiLoopIterationSpy).toHaveBeenNthCalledWith(1, {
-    headers: {
-      Authorization: 'Bearer test-key',
-    },
-    modelId: 'gpt-4.1-mini',
-    systemPrompt: 'You are a helpful assistant.',
-    toolCalls: [],
-    url: 'https://api.openai.com/v1/responses',
-  })
-  expect(aiLoopIterationSpy).toHaveBeenNthCalledWith(2, {
-    headers: {
-      Authorization: 'Bearer test-key',
-    },
-    modelId: 'gpt-4.1-mini',
-    systemPrompt: 'You are a helpful assistant.',
-    toolCalls,
-    url: 'https://api.openai.com/v1/responses',
-  })
+test('ai loop iteration stores response headers with the response body', async () => {
+  appendEvent.mockResolvedValue(undefined)
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_123'],
+    ]),
+    json: jest.fn().mockResolvedValue({
+      id: 'resp_1',
+      status: 'completed',
+    }),
+  } as any)
 
-  aiLoopIterationSpy.mockRestore()
-})
-
-test('ai loop returns the first iteration error', async () => {
-  const aiLoopIterationSpy = jest.spyOn(AiLoopIteration, 'aiLoopIteration').mockResolvedValueOnce({
-    error: new Error('boom'),
-    type: 'error',
-  })
-
-  const result = await AiLoop.aiLoop({
+  const result = await aiLoopIteration({
     headers: {},
-    modelId: 'gpt-4.1-mini',
-    providerId: 'openai',
-    requestId: 'request-1',
+    modelId: 'gpt-5-mini',
     systemPrompt: 'You are a helpful assistant.',
+    toolCalls: [],
     url: 'https://api.openai.com/v1/responses',
   })
 
   expect(result).toEqual({
-    error: new Error('boom'),
-    type: 'error',
+    data: {
+      id: 'resp_1',
+      status: 'completed',
+    },
+    toolCalls: [],
+    type: 'success',
   })
-  expect(aiLoopIterationSpy).toHaveBeenCalledTimes(1)
+  expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"}],"model":"gpt-5-mini"}',
+    headers: {},
+    method: 'POST',
+  })
+  expect(ChatStorageWorker.appendEvent).toHaveBeenCalledTimes(1)
+  expect(appendEvent).toHaveBeenCalledWith({
+    headers: {
+      'content-type': 'application/json',
+      'x-request-id': 'req_123',
+    },
+    toolCalls: [],
+    type: 'aiResponseSuccess',
+    value: {
+      id: 'resp_1',
+      status: 'completed',
+    },
+  })
 
-  aiLoopIterationSpy.mockRestore()
+  appendEvent.mockReset()
+  fetchSpy.mockRestore()
 })
