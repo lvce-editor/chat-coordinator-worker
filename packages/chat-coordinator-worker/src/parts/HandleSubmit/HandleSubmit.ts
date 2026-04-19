@@ -6,6 +6,7 @@ import { getTimeStamp } from '../GetTimeStamp/GetTimeStamp.ts'
 export interface SubmitOptions {
   readonly attachments: readonly any[]
   readonly id: string
+  readonly modelId: string
   readonly role: 'user' | 'assistant'
   readonly sessionId: string
   readonly systemPrompt: string
@@ -13,7 +14,7 @@ export interface SubmitOptions {
 }
 
 export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
-  const { sessionId, systemPrompt, text } = options
+  const { modelId, sessionId, systemPrompt, text } = options
 
   await appendChatEvent({
     sessionId,
@@ -23,7 +24,6 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
   })
 
   const openAiKey = '' // TODO
-  const modelId = 'gpt-5.4-mini'
 
   await aiLoop({
     headers: {
