@@ -4,6 +4,8 @@ import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
 import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 
 export interface AiLoopIterationOptions {
+  readonly headers: Readonly<Record<string, string>>
+  readonly modelId: string
   readonly systemPrompt: string
   readonly toolCalls: readonly ToolCall<unknown>[]
   readonly url: string
@@ -23,10 +25,12 @@ interface AiLoopIterationErrorResult {
 type AiLoopIterationResult = AiLoopIterationSuccessResult | AiLoopIterationErrorResult
 
 export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Promise<AiLoopIterationResult> => {
-  const { systemPrompt, toolCalls, url } = loopOptions
+  const { headers, modelId, systemPrompt, toolCalls, url } = loopOptions
 
   const toolCallResults = await getToolCallResults(toolCalls)
   const result = await makeAiRequest({
+    headers,
+    modelId,
     systemPrompt,
     toolCallResults,
     toolCalls,

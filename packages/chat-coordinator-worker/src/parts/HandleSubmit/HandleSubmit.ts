@@ -24,6 +24,6 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
     providerId: 'openai',
     requestId,
     systemPrompt,
-    url: 'https://api.openai.com/v1/chat/completions',
+    url: 'https://api.openai.com/v1/responses',
   })
 }

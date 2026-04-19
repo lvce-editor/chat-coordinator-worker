@@ -1,5 +1,6 @@
 export interface NetworkRequestOptions {
-  readonly body: any
+  readonly body?: unknown
+  readonly headers?: Readonly<Record<string, string>>
   readonly method: string
   readonly url: string
 }

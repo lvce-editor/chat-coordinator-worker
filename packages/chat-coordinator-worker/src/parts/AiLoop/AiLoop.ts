@@ -10,6 +10,8 @@ export const aiLoop = async (loopOptions: AiLoopOptions): Promise<AiLoopResult> 
 
   do {
     const result = await aiLoopIteration({
+      headers: loopOptions.headers,
+      modelId: loopOptions.modelId,
       systemPrompt,
       toolCalls,
       url,

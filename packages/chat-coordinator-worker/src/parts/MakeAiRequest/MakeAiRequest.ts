@@ -4,18 +4,22 @@ import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 import { makeNetworkRequest } from '../MakeNetworkRequest/MakeNetworkRequest.ts'
 
 interface AiRequestOptions {
+  readonly headers: Readonly<Record<string, string>>
   readonly systemPrompt: string
   readonly toolCallResults: readonly ToolCallResult[]
   readonly toolCalls: readonly ToolCall<any>[]
+  readonly modelId: string
   readonly url: string
 }
 
 export const makeAiRequest = async (options: AiRequestOptions): Promise<AiRequestResult> => {
-  const { systemPrompt, url } = options
+  const { headers, modelId, systemPrompt, url } = options
   const response = await makeNetworkRequest({
     body: {
-      systemPrompt,
+      input: [{ content: systemPrompt, role: 'system' }],
+      model: modelId,
     },
+    headers,
     method: 'POST',
     url,
   })
