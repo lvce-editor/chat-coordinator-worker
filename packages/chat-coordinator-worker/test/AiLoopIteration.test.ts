@@ -24,10 +24,10 @@ test('ai loop iteration stores response headers with the response body', async (
   const result = await aiLoopIteration({
     headers: {},
     modelId: 'gpt-5-mini',
-    requestId: 'request-1',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     toolCalls: [],
+    turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
 
