@@ -51,6 +51,28 @@ test('ai loop returns success and appends the ai response event', async () => {
     [
       'ChatStorage.appendEvent',
       {
+        body: {
+          input: [
+            {
+              content: 'You are a helpful assistant.',
+              role: 'system',
+            },
+          ],
+          model: 'gpt-4.1-mini',
+        },
+        headers: {
+          Authorization: 'Bearer [redacted]',
+          'Content-Type': 'application/json',
+        },
+        method: 'POST',
+        requestId: 'request-1',
+        sessionId: 'session-1',
+        type: 'ai-request',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
         headers: {
           'content-type': 'application/json',
           'x-request-id': 'req_123',
@@ -89,5 +111,25 @@ test('ai loop propagates request failures', async () => {
   ).rejects.toThrow(error)
 
   expect(fetchSpy).toHaveBeenCalledTimes(1)
-  expect(rpc.invocations).toEqual([])
+  expect(rpc.invocations).toEqual([
+    [
+      'ChatStorage.appendEvent',
+      {
+        body: {
+          input: [
+            {
+              content: 'You are a helpful assistant.',
+              role: 'system',
+            },
+          ],
+          model: 'gpt-4.1-mini',
+        },
+        headers: {},
+        method: 'POST',
+        requestId: 'request-1',
+        sessionId: 'session-1',
+        type: 'ai-request',
+      },
+    ],
+  ])
 })

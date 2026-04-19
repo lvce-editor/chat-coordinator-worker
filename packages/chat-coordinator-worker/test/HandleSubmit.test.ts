@@ -54,6 +54,28 @@ test('handle submit stores the openai response headers', async () => {
     [
       'ChatStorage.appendEvent',
       {
+        body: {
+          input: [
+            {
+              content: 'You are a helpful assistant.',
+              role: 'system',
+            },
+          ],
+          model: 'gpt-4.1-mini',
+        },
+        headers: {
+          Authorization: 'Bearer [redacted]',
+          'Content-Type': 'application/json',
+        },
+        method: 'POST',
+        requestId: 'request-1',
+        sessionId: 'session-1',
+        type: 'ai-request',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
         headers: {
           'content-type': 'application/json',
           'x-request-id': 'req_123',
