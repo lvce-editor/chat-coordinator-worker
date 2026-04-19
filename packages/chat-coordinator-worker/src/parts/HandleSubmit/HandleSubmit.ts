@@ -156,11 +156,7 @@ const ensureSystemPrompt = (
   if (!options.systemPrompt) {
     return previousMessages
   }
-  const resolvedSystemPrompt = getSystemPromptForAgentMode(
-    options.systemPrompt,
-    options.workspaceUri || '',
-    options.agentMode || defaultAgentMode,
-  )
+  const resolvedSystemPrompt = getSystemPromptForAgentMode(options.systemPrompt, options.workspaceUri || '', options.agentMode || defaultAgentMode)
   const systemMessage = createMessage('system', resolvedSystemPrompt)
   return [systemMessage, ...previousMessages]
 }
@@ -274,7 +270,11 @@ export const startHandleSubmit = async (
       hooks.onMessageUpdated?.(runId, sessionId, updatedMessage)
     }
 
-    const executeTool = async (name: string, rawArguments: string, toolOptions: { readonly assetDir: string; readonly callId: string; readonly platform: number }): Promise<string> => {
+    const executeTool = async (
+      name: string,
+      rawArguments: string,
+      toolOptions: { readonly assetDir: string; readonly callId: string; readonly platform: number },
+    ): Promise<string> => {
       const startedAt = new Date().toISOString()
       await appendChatViewEvent({
         arguments: rawArguments,

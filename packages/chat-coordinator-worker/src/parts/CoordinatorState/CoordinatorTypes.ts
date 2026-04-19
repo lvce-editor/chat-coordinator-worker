@@ -1,6 +1,6 @@
+import type { AgentMode } from '../AgentMode/AgentMode.ts'
 import type { ChatToolCall } from '../ChatMessage/ChatMessage.ts'
 import type { ChatModel } from '../ChatModel/ChatModel.ts'
-import type { AgentMode } from '../AgentMode/AgentMode.ts'
 
 export interface ChatCoordinatorMessage {
   readonly id: string

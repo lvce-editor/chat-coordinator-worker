@@ -368,9 +368,7 @@ test('handleSubmit should rebuild previous history from events, ignore progress 
 
   await CoordinatorState.awaitRun(result.runId)
 
-  expect(mockToolRpc.invocations).toEqual([
-    ['ChatTool.execute', 'read_file', '{"path":"src/main.ts"}', { assetDir: '/tmp', platform: 0 }],
-  ])
+  expect(mockToolRpc.invocations).toEqual([['ChatTool.execute', 'read_file', '{"path":"src/main.ts"}', { assetDir: '/tmp', platform: 0 }]])
   expect(mockStorageRpc.invocations.some((invocation) => invocation[0] === 'ChatStorage.getEvents')).toBe(true)
 
   const requests = MockOpenApiRequest.getAll()
