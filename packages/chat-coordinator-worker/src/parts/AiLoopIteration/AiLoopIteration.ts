@@ -1,20 +1,10 @@
+import type { AiLoopIterationOptions } from '../AiLoopIterationOptions/AiLoopIterationOptions.ts'
 import type { AiLoopIterationResult } from '../AiLoopIterationResult/AiLoopIterationResult.ts'
-import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
-import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
 import { getRedactedHeaders } from '../GetRedactedHeaders/GetRedactedHeaders.ts'
+import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
 import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
-
-export interface AiLoopIterationOptions {
-  readonly headers: Readonly<Record<string, string>>
-  readonly modelId: string
-  readonly requestId: string
-  readonly sessionId: string
-  readonly systemPrompt: string
-  readonly toolCalls: readonly ToolCall<unknown>[]
-  readonly url: string
-}
 
 export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Promise<AiLoopIterationResult> => {
   const { headers, modelId, requestId, sessionId, systemPrompt, toolCalls, url } = loopOptions
