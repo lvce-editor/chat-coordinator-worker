@@ -1,16 +1,12 @@
 import { expect, jest, test } from '@jest/globals'
-
-const appendEvent = jest.fn()
-
-await jest.unstable_mockModule('@lvce-editor/rpc-registry', () => ({
-  ChatStorageWorker: {
-    appendEvent,
-  },
-}))
-
-const { appendChatEvent } = await import('../src/parts/AppendChatEvent/AppendChatEvent.ts')
+import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
+import { appendChatEvent } from '../src/parts/AppendChatEvent/AppendChatEvent.ts'
 
 test('append chat event forwards event to chat storage worker', async () => {
+  const appendEvent = jest.fn(async (_event: unknown) => undefined)
+  ChatStorageWorker.set({
+    appendEvent,
+  } as any)
   const event = {
     sessionId: 'session-1',
     type: 'chat-message-added',

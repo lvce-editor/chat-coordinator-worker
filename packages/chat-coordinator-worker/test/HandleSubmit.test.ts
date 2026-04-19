@@ -1,25 +1,14 @@
 import { expect, jest, test } from '@jest/globals'
-
-const appendEvent = jest.fn()
-const getTimeStamp = jest.fn()
-
-await jest.unstable_mockModule('@lvce-editor/rpc-registry', () => ({
-  ChatStorageWorker: {
-    appendEvent,
-  },
-}))
-
-await jest.unstable_mockModule('../src/parts/GetTimeStamp/GetTimeStamp.ts', () => ({
-  getTimeStamp,
-}))
-
-const { ChatStorageWorker } = await import('@lvce-editor/rpc-registry')
-const { getTimeStamp: getTimeStampMock } = await import('../src/parts/GetTimeStamp/GetTimeStamp.ts')
-const { handleSubmit } = await import('../src/parts/HandleSubmit/HandleSubmit.ts')
+import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
+import { handleSubmit } from '../src/parts/HandleSubmit/HandleSubmit.ts'
 
 test('handle submit stores the openai response headers', async () => {
-  appendEvent.mockResolvedValue(undefined)
-  getTimeStamp.mockReturnValue('2026-04-19T00:00:00.000Z')
+  const appendEvent = jest.fn(async (_event: unknown) => undefined)
+  ChatStorageWorker.set({
+    appendEvent,
+  } as any)
+  jest.useFakeTimers()
+  jest.setSystemTime(new Date('2026-04-19T00:00:00.000Z'))
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
       ['content-type', 'application/json'],
@@ -72,7 +61,6 @@ test('handle submit stores the openai response headers', async () => {
     },
   })
 
-  appendEvent.mockReset()
-  getTimeStampMock.mockReset()
+  jest.useRealTimers()
   fetchSpy.mockRestore()
 })

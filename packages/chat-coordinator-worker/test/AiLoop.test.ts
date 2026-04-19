@@ -4,13 +4,12 @@ import { aiLoop } from '../src/parts/AiLoop/AiLoop.ts'
 
 afterEach(async () => {
   jest.restoreAllMocks()
-  await ChatStorageWorker.dispose()
 })
 
 test('ai loop returns success and appends the ai response event', async () => {
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
   const mockRpc = ChatStorageWorker.registerMockRpc({
-    appendEvent,
+    'ChatStorage.appendEvent': appendEvent,
   })
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
@@ -69,7 +68,7 @@ test('ai loop returns success and appends the ai response event', async () => {
 test('ai loop propagates request failures', async () => {
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
   const mockRpc = ChatStorageWorker.registerMockRpc({
-    appendEvent,
+    'ChatStorage.appendEvent': appendEvent,
   })
   const error = new Error('request failed')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockRejectedValueOnce(error)

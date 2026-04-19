@@ -5,13 +5,13 @@ import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import { aiLoopIteration } from '../AiLoopIteration/AiLoopIteration.ts'
 
 export const aiLoop = async (loopOptions: AiLoopOptions): Promise<AiLoopResult> => {
-  const { systemPrompt, url } = loopOptions
+  const { headers, modelId, systemPrompt, url } = loopOptions
   let toolCalls: readonly ToolCall<unknown>[] = []
 
   do {
     const result = await aiLoopIteration({
-      headers: loopOptions.headers,
-      modelId: loopOptions.modelId,
+      headers,
+      modelId,
       systemPrompt,
       toolCalls,
       url,
