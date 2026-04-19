@@ -1,3 +1,5 @@
+import { LazyTransferMessagePortRpcParent } from '@lvce-editor/rpc'
+import { ChatStorageWorker, RendererWorker } from '@lvce-editor/rpc-registry'
 import type { ChatSession } from '../ChatSession/ChatSession.ts'
 import type { ChatViewEvent } from '../ChatViewEvent/ChatViewEvent.ts'
 import { IndexedDbChatSessionStorage } from '../IndexedDbChatSessionStorage/IndexedDbChatSessionStorage.ts'
@@ -20,14 +22,75 @@ const createDefaultStorage = (): Readonly<ChatSessionStorage> => {
   return new IndexedDbChatSessionStorage()
 }
 
+let chatStorageWorkerRpcPromise: Promise<void> | undefined
+
+const ensureChatStorageWorker = async (): Promise<void> => {
+  if (chatStorageWorkerRpcPromise) {
+    return chatStorageWorkerRpcPromise
+  }
+  chatStorageWorkerRpcPromise = (async (): Promise<void> => {
+    const rpc = await LazyTransferMessagePortRpcParent.create({
+      commandMap: {},
+      send: RendererWorker.sendMessagePortToChatStorageWorker,
+    })
+    ChatStorageWorker.set(rpc)
+  })()
+  return chatStorageWorkerRpcPromise
+}
+
+const invokeChatStorage = async <T>(method: string, ...params: readonly unknown[]): Promise<T> => {
+  try {
+    return (await ChatStorageWorker.invoke(method, ...params)) as T
+  } catch (error) {
+    void error
+    await ensureChatStorageWorker()
+    return ChatStorageWorker.invoke(method, ...params) as Promise<T>
+  }
+}
+
+class RpcChatSessionStorage implements ChatSessionStorage {
+  async appendEvent(event: ChatViewEvent): Promise<void> {
+    await invokeChatStorage('ChatStorage.appendEvent', event)
+  }
+
+  async clear(): Promise<void> {
+    await invokeChatStorage('ChatStorage.clear')
+  }
+
+  async deleteSession(id: string): Promise<void> {
+    await invokeChatStorage('ChatStorage.deleteSession', id)
+  }
+
+  async getEvents(sessionId?: string): Promise<readonly ChatViewEvent[]> {
+    return invokeChatStorage('ChatStorage.getEvents', sessionId)
+  }
+
+  async getSession(id: string): Promise<ChatSession | undefined> {
+    return invokeChatStorage('ChatStorage.getSession', id)
+  }
+
+  async listSessions(): Promise<readonly ChatSession[]> {
+    return invokeChatStorage('ChatStorage.listSessions')
+  }
+
+  async setSession(session: ChatSession): Promise<void> {
+    await invokeChatStorage('ChatStorage.setSession', session)
+  }
+}
+
 let chatSessionStorage: Readonly<ChatSessionStorage> = createDefaultStorage()
 
 export const setChatSessionStorage = (storage: Readonly<ChatSessionStorage>): void => {
   chatSessionStorage = storage
 }
 
+export const useRpcChatSessionStorage = (): void => {
+  chatSessionStorage = new RpcChatSessionStorage()
+}
+
 export const resetChatSessionStorage = (): void => {
   chatSessionStorage = new InMemoryChatSessionStorage()
+  chatStorageWorkerRpcPromise = undefined
 }
 
 export const listChatSessions = async (): Promise<readonly ChatSession[]> => {

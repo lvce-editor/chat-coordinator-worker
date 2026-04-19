@@ -1,5 +1,7 @@
 import { ChatMessageParsingWorker, ChatToolWorker } from '@lvce-editor/rpc-registry'
 import type {
+  ChatCoordinatorHandleSubmitOptions,
+  ChatCoordinatorHandleSubmitResult,
   ChatCoordinatorSession,
   ChatCoordinatorSessionSummary,
   ChatCoordinatorSubmitOptions,
@@ -28,6 +30,10 @@ export const deleteSession = async (sessionId: string): Promise<boolean> => {
 
 export const submit = async (options: Readonly<ChatCoordinatorSubmitOptions>): Promise<ChatCoordinatorSubmitResult> => {
   return CoordinatorState.submit(options)
+}
+
+export const handleSubmit = async (options: Readonly<ChatCoordinatorHandleSubmitOptions>): Promise<ChatCoordinatorHandleSubmitResult> => {
+  return CoordinatorState.handleSubmit(options)
 }
 
 export const cancelRun = async (runId: string): Promise<boolean> => {

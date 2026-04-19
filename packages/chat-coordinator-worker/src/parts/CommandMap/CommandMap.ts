@@ -19,6 +19,7 @@ export const commandMap = {
   'ChatCoordinator.getAiSessionTitle': getAiSessionTitle,
   'ChatCoordinator.getSession': CoordinatorCommands.getSession,
   'ChatCoordinator.getTools': CoordinatorCommands.getTools,
+  'ChatCoordinator.handleSubmit': CoordinatorCommands.handleSubmit,
   'ChatCoordinator.listSessions': CoordinatorCommands.listSessions,
   'ChatCoordinator.mockOpenApiRequestGetAll': mockOpenApiRequestGetAll,
   'ChatCoordinator.mockOpenApiRequestReset': mockOpenApiRequestReset,
