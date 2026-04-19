@@ -3,9 +3,10 @@ import { ChatStorageWorker, RendererWorker } from '@lvce-editor/rpc-registry'
 import * as CommandMap from '../CommandMap/CommandMap.ts'
 
 export const listen = async (): Promise<void> => {
-  await WebWorkerRpcClient.create({
+  const r = await WebWorkerRpcClient.create({
     commandMap: CommandMap.commandMap,
   })
+  RendererWorker.set(r)
 
   const s = await LazyTransferMessagePortRpcParent.create({
     commandMap: {},
