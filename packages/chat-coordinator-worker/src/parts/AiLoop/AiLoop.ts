@@ -1,14 +1,8 @@
+import type { AiLoopOptions } from '../AiLoopOptions/AiLoopOptions.ts'
 import type { AiLoopResult } from '../AiLoopResult/AiLoopResult.ts'
 import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 
-export interface LoopOptions {
-  readonly modelId: string
-  readonly providerId: string
-  readonly systemPrompt: string
-  readonly url: string
-}
-
-export const aiLoop = async (loopOptions: LoopOptions): Promise<AiLoopResult> => {
+export const aiLoop = async (loopOptions: AiLoopOptions): Promise<AiLoopResult> => {
   const { systemPrompt, url } = loopOptions
   // TODO
   const toolCalls = []
@@ -30,4 +24,8 @@ export const aiLoop = async (loopOptions: LoopOptions): Promise<AiLoopResult> =>
       }
     }
   } while (toolCalls.length > 0)
+
+  return {
+    type: 'success',
+  }
 }
