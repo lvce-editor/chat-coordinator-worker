@@ -2,7 +2,13 @@ import type { AiRequestResult } from '../AiRequestResult/AiRequestResult.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import { makeNetworkRequest } from '../MakeNetworkRequest/MakeNetworkRequest.ts'
 
-export const makeAiRequest = async (systemPrompt: string): Promise<AiRequestResult> => {
+interface AiRequestOptions {
+  readonly systemPrompt: string
+  readonly url: string
+}
+
+export const makeAiRequest = async (options: AiRequestOptions): Promise<AiRequestResult> => {
+  const { systemPrompt } = options
   const response = await makeNetworkRequest({
     body: {
       systemPrompt,
