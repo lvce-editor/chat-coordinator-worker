@@ -1,3 +1,4 @@
+import type { AiLoopIterationResult } from '../AiLoopIterationResult/AiLoopIterationResult.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
@@ -10,19 +11,6 @@ export interface AiLoopIterationOptions {
   readonly toolCalls: readonly ToolCall<unknown>[]
   readonly url: string
 }
-
-interface AiLoopIterationSuccessResult {
-  readonly data: string
-  readonly toolCalls: readonly ToolCall<unknown>[]
-  readonly type: 'success'
-}
-
-interface AiLoopIterationErrorResult {
-  readonly error: Error
-  readonly type: 'error'
-}
-
-type AiLoopIterationResult = AiLoopIterationSuccessResult | AiLoopIterationErrorResult
 
 export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Promise<AiLoopIterationResult> => {
   const { headers, modelId, systemPrompt, toolCalls, url } = loopOptions
@@ -48,6 +36,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
     }
   } else {
     await appendChatEvent({
+      headers: result.headers,
       toolCalls: result.toolCalls,
       type: 'aiResponseSuccess',
       value: result.data,

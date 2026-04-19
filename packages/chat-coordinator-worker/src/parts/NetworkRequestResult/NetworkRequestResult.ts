@@ -1,5 +1,6 @@
 interface NetworkRequestSuccessResult {
   data: any
+  headers: Readonly<Record<string, string>>
   type: 'success'
 }
 
