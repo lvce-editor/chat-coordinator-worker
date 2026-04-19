@@ -22,7 +22,17 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
     value: text,
   })
 
+  const openAiKey = '' // TODO
+  const modelId = 'gpt-5.4-mini'
+
   await aiLoop({
+    headers: {
+      Authorization: `Bearer ${openAiKey}`,
+      'Content-Type': 'application/json',
+    },
+    modelId,
+    providerId: 'openai',
     systemPrompt,
+    url: 'https://api.openai.com/v1/chat/completions',
   })
 }
