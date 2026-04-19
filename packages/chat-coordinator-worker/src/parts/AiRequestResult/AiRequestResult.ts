@@ -1,6 +1,9 @@
+import type { ToolCall } from '../ToolCall/ToolCall.ts'
+
 type AiRequestSuccessResult = {
   readonly data: any
   readonly type: 'success'
+  readonly toolCalls: readonly ToolCall<any>[]
 }
 
 type AiRequestErrorResult = {

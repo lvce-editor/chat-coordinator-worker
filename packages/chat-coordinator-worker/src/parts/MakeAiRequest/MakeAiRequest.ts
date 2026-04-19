@@ -1,4 +1,5 @@
 import type { AiRequestResult } from '../AiRequestResult/AiRequestResult.ts'
+import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import { makeNetworkRequest } from '../MakeNetworkRequest/MakeNetworkRequest.ts'
 
 export const makeAiRequest = async (systemPrompt: string): Promise<AiRequestResult> => {
@@ -15,8 +16,10 @@ export const makeAiRequest = async (systemPrompt: string): Promise<AiRequestResu
       type: 'error',
     }
   }
+  const toolCalls: readonly ToolCall<any>[] = [] // TODO
   return {
     data: response.data,
+    toolCalls,
     type: 'success',
   }
 }
