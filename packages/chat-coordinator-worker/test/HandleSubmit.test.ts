@@ -6,6 +6,14 @@ test('handle submit stores the openai response headers', async () => {
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
+    'ChatStorage.getEvents': async (sessionId: string) => [
+      {
+        sessionId,
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'handle-submit',
+        value: 'Hello world',
+      },
+    ],
   })
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
   const realDate = globalThis.Date
@@ -52,6 +60,7 @@ test('handle submit stores the openai response headers', async () => {
         value: 'Hello world',
       },
     ],
+    ['ChatStorage.getEvents', 'session-1'],
     [
       'ChatStorage.appendEvent',
       {
