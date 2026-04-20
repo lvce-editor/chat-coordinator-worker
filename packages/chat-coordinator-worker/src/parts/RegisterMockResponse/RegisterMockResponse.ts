@@ -1,6 +1,6 @@
 import * as MockOpenApiStream from '../MockOpenApiStream/MockOpenApiStream.ts'
 
-interface MockResponse {
+export interface MockResponse {
   readonly text: string
 }
 
