@@ -1,6 +1,6 @@
+import type { AiRequestInput } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
-import type { AiRequestInput } from '../GetAiRequestBody/GetAiRequestBody.ts'
 
 export interface AiRequestOptions {
   readonly headers: Readonly<Record<string, string>>

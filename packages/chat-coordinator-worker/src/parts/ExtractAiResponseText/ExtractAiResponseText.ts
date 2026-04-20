@@ -6,8 +6,8 @@ interface ResponseContentPart {
 }
 
 interface ResponseOutputItem {
-  readonly content?: readonly ResponseContentPart[]
   readonly arguments?: string
+  readonly content?: readonly ResponseContentPart[]
   readonly call_id?: string
   readonly id?: string
   readonly type?: string
@@ -50,7 +50,9 @@ const getToolCallArgs = (serializedArguments: string): unknown => {
   }
 }
 
-const isResponseToolCallItem = (item: ResponseOutputItem): boolean => {
+const isResponseToolCallItem = (
+  item: ResponseOutputItem,
+): item is ResponseOutputItem & { readonly arguments: string; readonly call_id?: string; readonly id?: string } => {
   return item.type === 'function_call' && typeof item.arguments === 'string' && (typeof item.call_id === 'string' || typeof item.id === 'string')
 }
 

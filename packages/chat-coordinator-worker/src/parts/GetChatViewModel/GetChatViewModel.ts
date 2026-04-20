@@ -12,7 +12,7 @@ import type {
 } from '../ChatViewModel/ChatViewModel.ts'
 import { toFinalMessages } from '../ToFinalMessages/ToFinalMessages.ts'
 
-interface GetChatViewModelOptions {
+export interface GetChatViewModelOptions {
   readonly sessionId: string
   readonly useChatMathWorker?: boolean
 }
@@ -98,7 +98,10 @@ const getDisplayItems = (messages: readonly ChatMessage[]): readonly ChatViewIte
 }
 
 const toChatViewDomNodes = (nodes: readonly unknown[]): readonly ChatViewDomNode[] => {
-  return nodes.map((node) => ({ ...(node as Record<string, unknown>) }))
+  return nodes.map((node) => ({
+    type: Number((node as Record<string, unknown>).type),
+    ...(node as Record<string, unknown>),
+  }))
 }
 
 const renderMathInline = async (children: readonly ChatViewInlineNode[], useChatMathWorker: boolean): Promise<readonly ChatViewInlineNode[]> => {
@@ -228,12 +231,13 @@ export const getChatViewModel = async ({ sessionId, useChatMathWorker = true }: 
   const messages = toFinalMessages(events)
   const displayItems = getDisplayItems(messages)
   const itemsNeedingParsing = displayItems.filter((item) => hasMessageText(item.message))
-  const parsedContents = itemsNeedingParsing.length
-    ? ((await ChatMessageParsingWorker.invoke(
-        'ChatMessageParsing.parseMessageContents',
-        itemsNeedingParsing.map((item) => item.message.text),
-      )) as readonly (readonly ChatViewContentNode[])[])
-    : []
+  const parsedContents =
+    itemsNeedingParsing.length > 0
+      ? ((await ChatMessageParsingWorker.invoke(
+          'ChatMessageParsing.parseMessageContents',
+          itemsNeedingParsing.map((item) => item.message.text),
+        )) as readonly (readonly ChatViewContentNode[])[])
+      : []
   let parsedIndex = 0
   const items: ChatViewItem[] = []
   for (const item of displayItems) {

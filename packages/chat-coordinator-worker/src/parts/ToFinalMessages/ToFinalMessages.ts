@@ -63,6 +63,30 @@ type StoredEvent =
   | StoredMessageEvent
   | EventBase
 
+const isChatSessionMessagesReplacedEvent = (event: StoredEvent): event is ChatSessionMessagesReplacedEvent => {
+  return event.type === 'chat-session-messages-replaced'
+}
+
+const isChatMessageAddedEvent = (event: StoredEvent): event is ChatMessageAddedEvent => {
+  return event.type === 'chat-message-added'
+}
+
+const isChatMessageUpdatedEvent = (event: StoredEvent): event is ChatMessageUpdatedEvent => {
+  return event.type === 'chat-message-updated'
+}
+
+const isHandleSubmitEvent = (event: StoredEvent): event is HandleSubmitEvent => {
+  return event.type === 'handle-submit'
+}
+
+const isStoredMessageEvent = (event: StoredEvent): event is StoredMessageEvent => {
+  return event.type === 'message'
+}
+
+const isAiResponseSuccessEvent = (event: StoredEvent): event is AiResponseSuccessEvent => {
+  return event.type === 'ai-response-success'
+}
+
 const getResponseOutputText = (parsed: unknown): string => {
   if (!parsed || typeof parsed !== 'object') {
     return ''
@@ -178,7 +202,7 @@ export const toFinalMessages = (events: readonly unknown[]): readonly ChatMessag
   let syntheticAssistantIndex = 0
   for (const rawEvent of events) {
     const event = rawEvent as StoredEvent
-    if (event.type === 'chat-session-messages-replaced') {
+    if (isChatSessionMessagesReplacedEvent(event)) {
       byId.clear()
       order = []
       for (const message of event.messages) {
@@ -187,12 +211,12 @@ export const toFinalMessages = (events: readonly unknown[]): readonly ChatMessag
       }
       continue
     }
-    if (event.type === 'chat-message-added') {
+    if (isChatMessageAddedEvent(event)) {
       byId.set(event.message.id, event.message)
       order.push(event.message.id)
       continue
     }
-    if (event.type === 'chat-message-updated') {
+    if (isChatMessageUpdatedEvent(event)) {
       const message = byId.get(event.messageId)
       if (!message) {
         continue
@@ -214,7 +238,7 @@ export const toFinalMessages = (events: readonly unknown[]): readonly ChatMessag
       })
       continue
     }
-    if (event.type === 'handle-submit') {
+    if (isHandleSubmitEvent(event)) {
       const id = getEventMessageId(event, 'user-message', syntheticUserIndex)
       syntheticUserIndex += 1
       const message: ChatMessage = {
@@ -227,7 +251,7 @@ export const toFinalMessages = (events: readonly unknown[]): readonly ChatMessag
       order.push(id)
       continue
     }
-    if (event.type === 'message') {
+    if (isStoredMessageEvent(event)) {
       if (event.message.role !== 'assistant' && event.message.role !== 'user') {
         continue
       }
@@ -251,7 +275,7 @@ export const toFinalMessages = (events: readonly unknown[]): readonly ChatMessag
       order.push(id)
       continue
     }
-    if (event.type === 'ai-response-success') {
+    if (isAiResponseSuccessEvent(event)) {
       const id = getEventMessageId(event, 'assistant-message', syntheticAssistantIndex)
       syntheticAssistantIndex += 1
       const responseToolCalls = getResponseToolCalls(event.value)

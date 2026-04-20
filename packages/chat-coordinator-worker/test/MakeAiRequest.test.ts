@@ -1,6 +1,6 @@
 import { afterEach, expect, jest, test } from '@jest/globals'
-import * as MockOpenApiStream from '../src/parts/MockOpenApiStream/MockOpenApiStream.ts'
 import { makeAiRequest } from '../src/parts/MakeAiRequest/MakeAiRequest.ts'
+import * as MockOpenApiStream from '../src/parts/MockOpenApiStream/MockOpenApiStream.ts'
 import { registerMockResponse } from '../src/parts/RegisterMockResponse/RegisterMockResponse.ts'
 
 afterEach(() => {

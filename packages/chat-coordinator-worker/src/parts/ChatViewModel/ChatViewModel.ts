@@ -33,8 +33,8 @@ export interface ChatMessage {
 }
 
 export interface ChatViewDomNode {
-  readonly type: number
   readonly [key: string]: unknown
+  readonly type: number
 }
 
 export type ChatViewContentNode =
