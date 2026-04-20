@@ -236,9 +236,12 @@ test('process queue requeues the same session after tool calls and resolves afte
   const appendEvent = jest.fn(async (event: any) => {
     events.push(event)
   })
+  const appendDebugEvent = jest.fn(async (event: any) => {
+    events.push(event)
+  })
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
-    'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
+    'ChatStorage.appendDebugEvent': appendDebugEvent,
     'ChatStorage.getEvents': async () => events,
   })
   const realDate = globalThis.Date
