@@ -1,7 +1,6 @@
 import type { AiRequestOptions } from '../AiRequestOptions/AiRequestOptions.ts'
 import type { AiRequestResult } from '../AiRequestResult/AiRequestResult.ts'
-import type { ToolCall } from '../ToolCall/ToolCall.ts'
-import { extractAiResponseText } from '../ExtractAiResponseText/ExtractAiResponseText.ts'
+import { extractAiResponse } from '../ExtractAiResponseText/ExtractAiResponseText.ts'
 import { getAiRequestBody } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import { makeNetworkRequest } from '../MakeNetworkRequest/MakeNetworkRequest.ts'
 
@@ -23,13 +22,12 @@ export const makeAiRequest = async (options: AiRequestOptions): Promise<AiReques
       type: 'error',
     }
   }
-  const responseText = extractAiResponseText(response.data)
-  const toolCalls: readonly ToolCall<any>[] = [] // TODO normalize provider-specific tool calls
+  const { text, toolCalls } = extractAiResponse(response.data)
   return {
     data: response.data,
     headers: response.headers,
     statusCode: response.statusCode,
-    text: responseText,
+    text,
     toolCalls,
     type: 'success',
   }

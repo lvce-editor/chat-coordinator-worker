@@ -200,3 +200,140 @@ test('ai loop returns reschedule after executing tool calls', async () => {
   randomUUIDSpy.mockRestore()
   dateSpy.mockRestore()
 })
+
+test('ai loop returns reschedule when ai response contains tool calls', async () => {
+  const rpc = ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendDebugEvent': async () => undefined,
+    'ChatStorage.appendEvent': async () => undefined,
+    'ChatStorage.getEvents': async (sessionId: string) => [
+      {
+        sessionId,
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'handle-submit',
+        value: 'Hello world',
+      },
+    ],
+  })
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000002')
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_124'],
+    ]),
+    json: async () => ({
+      id: 'resp_2',
+      output: [
+        {
+          arguments: '{"query":"status"}',
+          call_id: 'tool_1',
+          type: 'function_call',
+        },
+      ],
+      status: 'completed',
+    }),
+    ok: true,
+    status: 200,
+  } as any)
+
+  const result = await aiLoop({
+    headers: {},
+    modelId: 'gpt-4.1-mini',
+    providerId: 'openai',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
+    turnId: 'turn-1',
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    type: 'reschedule',
+  })
+  expect(fetchSpy).toHaveBeenCalledTimes(1)
+  expect(rpc.invocations).toEqual([
+    ['ChatStorage.getEvents', 'session-1'],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        body: {
+          input: [
+            {
+              content: 'You are a helpful assistant.',
+              role: 'system',
+            },
+            {
+              content: 'Hello world',
+              role: 'user',
+            },
+          ],
+          model: 'gpt-4.1-mini',
+        },
+        headers: {},
+        method: 'POST',
+        requestId: '00000000-0000-4000-8000-000000000002',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        turnId: 'turn-1',
+        type: 'ai-request',
+      },
+    ],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        headers: {
+          'content-type': 'application/json',
+          'x-request-id': 'req_124',
+        },
+        requestId: '00000000-0000-4000-8000-000000000002',
+        sessionId: 'session-1',
+        statusCode: 200,
+        timestamp: '2026-04-19T00:00:00.000Z',
+        toolCalls: [
+          {
+            args: {
+              query: 'status',
+            },
+            id: 'tool_1',
+          },
+        ],
+        turnId: 'turn-1',
+        type: 'ai-response-success',
+        value: {
+          id: 'resp_2',
+          output: [
+            {
+              arguments: '{"query":"status"}',
+              call_id: 'tool_1',
+              type: 'function_call',
+            },
+          ],
+          status: 'completed',
+        },
+      },
+    ],
+    ['ChatStorage.getEvents', 'session-1'],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        requestId: '00000000-0000-4000-8000-000000000002',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        toolCallResults: [
+          {
+            type: 'success',
+            value: {
+              query: 'status',
+            },
+          },
+        ],
+        turnId: 'turn-1',
+        type: 'tool-calls-finished',
+      },
+    ],
+  ])
+
+  randomUUIDSpy.mockRestore()
+  dateSpy.mockRestore()
+})

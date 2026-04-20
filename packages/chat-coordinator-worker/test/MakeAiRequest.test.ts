@@ -126,6 +126,70 @@ test('make ai request extracts assistant text from output items', async () => {
   expect(fetchSpy).toHaveBeenCalledTimes(1)
 })
 
+test('make ai request extracts tool calls from response output items', async () => {
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_125'],
+    ]),
+    json: jest.fn<() => Promise<unknown>>().mockResolvedValue({
+      id: 'resp_3',
+      output: [
+        {
+          arguments: '{"query":"status"}',
+          call_id: 'tool_1',
+          name: 'read_status',
+          type: 'function_call',
+        },
+      ],
+      status: 'completed',
+    }),
+    ok: true,
+    status: 200,
+  } as any)
+
+  const result = await makeAiRequest({
+    headers: {},
+    modelId: 'gpt-5-mini',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
+    toolCallResults: [],
+    toolCalls: [],
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    data: {
+      id: 'resp_3',
+      output: [
+        {
+          arguments: '{"query":"status"}',
+          call_id: 'tool_1',
+          name: 'read_status',
+          type: 'function_call',
+        },
+      ],
+      status: 'completed',
+    },
+    headers: {
+      'content-type': 'application/json',
+      'x-request-id': 'req_125',
+    },
+    statusCode: 200,
+    text: undefined,
+    toolCalls: [
+      {
+        args: {
+          query: 'status',
+        },
+        id: 'tool_1',
+      },
+    ],
+    type: 'success',
+  })
+  expect(fetchSpy).toHaveBeenCalledTimes(1)
+})
+
 test('make ai request returns error result for non-2xx responses', async () => {
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
