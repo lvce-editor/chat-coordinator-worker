@@ -90,8 +90,11 @@ test('process queue resolves only after the requested session version has been p
     ]),
     json: async () => ({
       id: 'resp_1',
+      output_text: 'First answer',
       status: 'completed',
     }),
+    ok: true,
+    status: 200,
   } as any)
 
   await expect(firstPromise).resolves.toBeUndefined()
@@ -103,8 +106,11 @@ test('process queue resolves only after the requested session version has been p
     ]),
     json: async () => ({
       id: 'resp_2',
+      output_text: 'Second answer',
       status: 'completed',
     }),
+    ok: true,
+    status: 200,
   } as any)
 
   await expect(secondPromise).resolves.toBeUndefined()
@@ -140,6 +146,25 @@ test('process queue resolves only after the requested session version has been p
       },
     ],
     [
+      'ChatStorage.appendEvent',
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        message: {
+          content: [
+            {
+              text: 'First answer',
+              type: 'text',
+            },
+          ],
+          role: 'assistant',
+        },
+        requestId: '00000000-0000-4000-8000-000000000001',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'message',
+      },
+    ],
+    [
       'ChatStorage.appendDebugEvent',
       {
         headers: {
@@ -148,12 +173,14 @@ test('process queue resolves only after the requested session version has been p
         },
         requestId: '00000000-0000-4000-8000-000000000001',
         sessionId: 'session-1',
+        statusCode: 200,
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response-success',
         value: {
           id: 'resp_1',
+          output_text: 'First answer',
           status: 'completed',
         },
       },
@@ -188,6 +215,25 @@ test('process queue resolves only after the requested session version has been p
       },
     ],
     [
+      'ChatStorage.appendEvent',
+      {
+        id: '00000000-0000-4000-8000-000000000002',
+        message: {
+          content: [
+            {
+              text: 'Second answer',
+              type: 'text',
+            },
+          ],
+          role: 'assistant',
+        },
+        requestId: '00000000-0000-4000-8000-000000000002',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'message',
+      },
+    ],
+    [
       'ChatStorage.appendDebugEvent',
       {
         headers: {
@@ -196,12 +242,14 @@ test('process queue resolves only after the requested session version has been p
         },
         requestId: '00000000-0000-4000-8000-000000000002',
         sessionId: 'session-1',
+        statusCode: 200,
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-2',
         type: 'ai-response-success',
         value: {
           id: 'resp_2',
+          output_text: 'Second answer',
           status: 'completed',
         },
       },
@@ -257,8 +305,11 @@ test('process queue requeues the same session after tool calls and resolves afte
     ]),
     json: async () => ({
       id: 'resp_10',
+      output_text: 'Tool call follow-up',
       status: 'completed',
     }),
+    ok: true,
+    status: 200,
   } as any)
 
   addPendingSessionWork({
@@ -328,6 +379,25 @@ test('process queue requeues the same session after tool calls and resolves afte
       },
     ],
     [
+      'ChatStorage.appendEvent',
+      {
+        id: '00000000-0000-4000-8000-000000000011',
+        message: {
+          content: [
+            {
+              text: 'Tool call follow-up',
+              type: 'text',
+            },
+          ],
+          role: 'assistant',
+        },
+        requestId: '00000000-0000-4000-8000-000000000011',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'message',
+      },
+    ],
+    [
       'ChatStorage.appendDebugEvent',
       {
         headers: {
@@ -336,12 +406,14 @@ test('process queue requeues the same session after tool calls and resolves afte
         },
         requestId: '00000000-0000-4000-8000-000000000011',
         sessionId: 'session-1',
+        statusCode: 200,
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response-success',
         value: {
           id: 'resp_10',
+          output_text: 'Tool call follow-up',
           status: 'completed',
         },
       },

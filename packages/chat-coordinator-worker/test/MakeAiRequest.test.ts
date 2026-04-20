@@ -13,6 +13,7 @@ test('make ai request forwards the system prompt and returns response data', asy
     ]),
     json: jest.fn<() => Promise<unknown>>().mockResolvedValue({
       id: 'resp_1',
+      output_text: 'Hello from assistant',
       status: 'completed',
     }),
     ok: true,
@@ -34,6 +35,7 @@ test('make ai request forwards the system prompt and returns response data', asy
   expect(result).toEqual({
     data: {
       id: 'resp_1',
+      output_text: 'Hello from assistant',
       status: 'completed',
     },
     headers: {
@@ -41,6 +43,7 @@ test('make ai request forwards the system prompt and returns response data', asy
       'x-request-id': 'req_123',
     },
     statusCode: 200,
+    text: 'Hello from assistant',
     toolCalls: [],
     type: 'success',
   })
@@ -52,6 +55,75 @@ test('make ai request forwards the system prompt and returns response data', asy
     },
     method: 'POST',
   })
+})
+
+test('make ai request extracts assistant text from output items', async () => {
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_124'],
+    ]),
+    json: jest.fn<() => Promise<unknown>>().mockResolvedValue({
+      id: 'resp_2',
+      output: [
+        {
+          content: [
+            {
+              text: 'Hello',
+              type: 'output_text',
+            },
+            {
+              text: ' world',
+              type: 'output_text',
+            },
+          ],
+        },
+      ],
+      status: 'completed',
+    }),
+    ok: true,
+    status: 200,
+  } as any)
+
+  const result = await makeAiRequest({
+    headers: {},
+    modelId: 'gpt-5-mini',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
+    toolCallResults: [],
+    toolCalls: [],
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    data: {
+      id: 'resp_2',
+      output: [
+        {
+          content: [
+            {
+              text: 'Hello',
+              type: 'output_text',
+            },
+            {
+              text: ' world',
+              type: 'output_text',
+            },
+          ],
+        },
+      ],
+      status: 'completed',
+    },
+    headers: {
+      'content-type': 'application/json',
+      'x-request-id': 'req_124',
+    },
+    statusCode: 200,
+    text: 'Hello world',
+    toolCalls: [],
+    type: 'success',
+  })
+  expect(fetchSpy).toHaveBeenCalledTimes(1)
 })
 
 test('make ai request returns error result for non-2xx responses', async () => {

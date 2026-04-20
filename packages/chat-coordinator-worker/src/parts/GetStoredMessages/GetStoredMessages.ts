@@ -1,4 +1,5 @@
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
+import type { AiRequestInput } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
@@ -18,6 +19,7 @@ interface StoredMessageContentPart {
 interface StoredMessageEvent {
   readonly message: {
     readonly content?: readonly StoredMessageContentPart[]
+    readonly role?: 'assistant' | 'user'
   }
   readonly type: typeof ChatEventType.Message
 }
@@ -40,7 +42,7 @@ type StoredEvent =
   | ToolCallsFinishedEvent
 
 interface StoredAiLoopState {
-  readonly messages: readonly string[]
+  readonly messages: readonly AiRequestInput[]
   readonly toolCallResults: readonly ToolCallResult[]
   readonly toolCalls: readonly ToolCall<unknown>[]
 }
@@ -49,19 +51,31 @@ const isHandleSubmitEvent = (event: StoredEvent): event is LegacyHandleSubmitEve
   return event.type === ChatEventType.Message || event.type === 'handle-submit'
 }
 
-const getStoredMessageText = (event: LegacyHandleSubmitEvent | StoredMessageEvent): string | undefined => {
+const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredMessageEvent): AiRequestInput | undefined => {
   if ('value' in event && typeof event.value === 'string') {
-    return event.value
+    return {
+      content: event.value,
+      role: 'user',
+    }
   }
   if (!('message' in event)) {
     return undefined
   }
-  const { content = [] } = event.message
+  const { content = [], role } = event.message
+  if (role !== 'assistant' && role !== 'user') {
+    return undefined
+  }
   const text = content
     .filter((part: StoredMessageContentPart) => part.type === 'text' && typeof part.text === 'string')
     .map((part: StoredMessageContentPart) => part.text)
     .join('')
-  return text || undefined
+  if (!text) {
+    return undefined
+  }
+  return {
+    content: text,
+    role,
+  }
 }
 
 const isAiResponseSuccessEvent = (event: StoredEvent): event is StoredAiResponseSuccessEvent => {
@@ -72,7 +86,7 @@ const isToolCallsFinishedEvent = (event: StoredEvent): event is ToolCallsFinishe
   return event.type === ChatEventType.ToolCallsFinished
 }
 
-export const getStoredMessages = async (sessionId: string, fallbackText: string): Promise<readonly string[]> => {
+export const getStoredMessages = async (sessionId: string, fallbackText: string): Promise<readonly AiRequestInput[]> => {
   const state = await getStoredAiLoopState(sessionId, fallbackText, [], [])
   return state.messages
 }
@@ -84,15 +98,15 @@ export const getStoredAiLoopState = async (
   fallbackToolCallResults: readonly ToolCallResult[],
 ): Promise<StoredAiLoopState> => {
   const events = await ChatStorageWorker.getEvents(sessionId)
-  const messages: string[] = []
+  const messages: AiRequestInput[] = []
   let toolCalls = fallbackToolCalls
   let toolCallResults = fallbackToolCallResults
 
   for (const event of events as readonly StoredEvent[]) {
     if (isHandleSubmitEvent(event)) {
-      const text = getStoredMessageText(event)
-      if (text) {
-        messages.push(text)
+      const message = getStoredMessage(event)
+      if (message) {
+        messages.push(message)
       }
       continue
     }
@@ -109,7 +123,10 @@ export const getStoredAiLoopState = async (
   }
 
   if (messages.length === 0) {
-    messages.push(fallbackText)
+    messages.push({
+      content: fallbackText,
+      role: 'user',
+    })
   }
 
   return {

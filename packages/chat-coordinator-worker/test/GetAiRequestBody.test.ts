@@ -34,3 +34,41 @@ test('getAiRequestBody includes all stored submit texts', () => {
     ],
   })
 })
+
+test('getAiRequestBody preserves stored assistant messages', () => {
+  expect(
+    getAiRequestBody('You are a helpful assistant.', [
+      {
+        content: 'Hello world',
+        role: 'user',
+      },
+      {
+        content: 'Hi there',
+        role: 'assistant',
+      },
+      {
+        content: 'Follow up question',
+        role: 'user',
+      },
+    ]),
+  ).toEqual({
+    input: [
+      {
+        content: 'You are a helpful assistant.',
+        role: 'system',
+      },
+      {
+        content: 'Hello world',
+        role: 'user',
+      },
+      {
+        content: 'Hi there',
+        role: 'assistant',
+      },
+      {
+        content: 'Follow up question',
+        role: 'user',
+      },
+    ],
+  })
+})

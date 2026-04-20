@@ -29,8 +29,11 @@ test('ai loop returns success and appends the ai response event', async () => {
     ]),
     json: async () => ({
       id: 'resp_1',
+      output_text: 'Hello from assistant',
       status: 'completed',
     }),
+    ok: true,
+    status: 200,
   } as any)
 
   const result = await aiLoop({
@@ -82,6 +85,25 @@ test('ai loop returns success and appends the ai response event', async () => {
       },
     ],
     [
+      'ChatStorage.appendEvent',
+      {
+        id: '00000000-0000-4000-8000-000000000000',
+        message: {
+          content: [
+            {
+              text: 'Hello from assistant',
+              type: 'text',
+            },
+          ],
+          role: 'assistant',
+        },
+        requestId: '00000000-0000-4000-8000-000000000000',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'message',
+      },
+    ],
+    [
       'ChatStorage.appendDebugEvent',
       {
         headers: {
@@ -90,12 +112,14 @@ test('ai loop returns success and appends the ai response event', async () => {
         },
         requestId: '00000000-0000-4000-8000-000000000000',
         sessionId: 'session-1',
+        statusCode: 200,
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response-success',
         value: {
           id: 'resp_1',
+          output_text: 'Hello from assistant',
           status: 'completed',
         },
       },
