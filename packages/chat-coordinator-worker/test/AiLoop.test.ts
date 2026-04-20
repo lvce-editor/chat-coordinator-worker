@@ -8,8 +8,8 @@ afterEach(() => {
 
 test('ai loop returns success and appends the ai response event', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
-    'ChatStorage.appendEvent': async () => undefined,
     'ChatStorage.appendDebugEvent': async () => undefined,
+    'ChatStorage.appendEvent': async () => undefined,
     'ChatStorage.getEvents': async (sessionId: string) => [
       {
         sessionId,
@@ -108,8 +108,8 @@ test('ai loop returns success and appends the ai response event', async () => {
 
 test('ai loop returns reschedule after executing tool calls', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
-    'ChatStorage.appendEvent': async () => undefined,
     'ChatStorage.appendDebugEvent': async () => undefined,
+    'ChatStorage.appendEvent': async () => undefined,
     'ChatStorage.getEvents': async (sessionId: string) => [
       {
         sessionId,

@@ -9,8 +9,8 @@ test('handle submit stores the openai response headers', async () => {
     events.push(event)
   })
   const rpc = ChatStorageWorker.registerMockRpc({
-    'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
+    'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.getEvents': async () => events,
   })
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
@@ -49,7 +49,7 @@ test('handle submit stores the openai response headers', async () => {
   })
   expect(rpc.invocations).toEqual([
     [
-      'ChatStorage.appendDebugEvent',
+      'ChatStorage.appendEvent',
       {
         id: 'request-1',
         message: {
@@ -60,7 +60,6 @@ test('handle submit stores the openai response headers', async () => {
             },
           ],
           role: 'user',
-          timestamp: 1776556800000,
         },
         requestId: 'request-1',
         sessionId: 'session-1',
@@ -98,7 +97,7 @@ test('handle submit stores the openai response headers', async () => {
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         headers: {
           'content-type': 'application/json',

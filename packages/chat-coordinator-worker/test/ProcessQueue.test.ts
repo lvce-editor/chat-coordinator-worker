@@ -36,8 +36,8 @@ test('process queue resolves only after the requested session version has been p
     ]
   })
   const rpc = ChatStorageWorker.registerMockRpc({
-    'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
+    'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.getEvents': getEvents,
   })
   const realDate = globalThis.Date
@@ -240,8 +240,8 @@ test('process queue requeues the same session after tool calls and resolves afte
     events.push(event)
   })
   const rpc = ChatStorageWorker.registerMockRpc({
-    'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.appendDebugEvent': appendDebugEvent,
+    'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.getEvents': async () => events,
   })
   const realDate = globalThis.Date

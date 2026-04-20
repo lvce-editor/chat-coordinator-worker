@@ -1,7 +1,7 @@
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
-import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
+import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 
 interface ToolCallsFinishedEvent {
   readonly sessionId: string
@@ -14,8 +14,8 @@ type StoredEvent = Awaited<ReturnType<typeof ChatStorageWorker.getEvents>>[numbe
 
 interface StoredAiLoopState {
   readonly messages: readonly string[]
-  readonly toolCalls: readonly ToolCall<unknown>[]
   readonly toolCallResults: readonly ToolCallResult[]
+  readonly toolCalls: readonly ToolCall<unknown>[]
 }
 
 interface StoredMessageContentPart {
@@ -41,7 +41,7 @@ const getStoredMessageText = (event: StoredEvent & ({ readonly value: string } |
   if (!('message' in event)) {
     return undefined
   }
-  const content = event.message.content || []
+  const { content = [] } = event.message
   const text = content
     .filter((part) => part.type === 'text' && typeof part.text === 'string')
     .map((part) => part.text)
@@ -87,8 +87,9 @@ export const getStoredAiLoopState = async (
       continue
     }
     if (isToolCallsFinishedEvent(event)) {
+      const { toolCallResults: eventToolCallResults } = event
       toolCalls = []
-      toolCallResults = event.toolCallResults
+      toolCallResults = eventToolCallResults
     }
   }
 
@@ -98,7 +99,7 @@ export const getStoredAiLoopState = async (
 
   return {
     messages,
-    toolCalls,
     toolCallResults,
+    toolCalls,
   }
 }

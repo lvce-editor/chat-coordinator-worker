@@ -3,8 +3,8 @@ import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 
 interface AiLoopIterationSuccessResult {
   readonly data: any
-  readonly toolCalls: readonly ToolCall<unknown>[]
   readonly toolCallResults: readonly ToolCallResult[]
+  readonly toolCalls: readonly ToolCall<unknown>[]
   readonly type: 'success'
 }
 

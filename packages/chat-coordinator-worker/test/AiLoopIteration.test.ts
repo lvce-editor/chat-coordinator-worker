@@ -8,8 +8,8 @@ afterEach(() => {
 
 test('ai loop iteration stores response headers with the response body', async () => {
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
-    'ChatStorage.appendEvent': async () => undefined,
     'ChatStorage.appendDebugEvent': async () => undefined,
+    'ChatStorage.appendEvent': async () => undefined,
     'ChatStorage.getEvents': async (sessionId: string) => [
       {
         sessionId,
@@ -114,8 +114,8 @@ test('ai loop iteration stores response headers with the response body', async (
 
 test('ai loop iteration executes pending tool calls and stores a resumable checkpoint', async () => {
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
-    'ChatStorage.appendEvent': async () => undefined,
     'ChatStorage.appendDebugEvent': async () => undefined,
+    'ChatStorage.appendEvent': async () => undefined,
     'ChatStorage.getEvents': async (sessionId: string) => [
       {
         sessionId,
@@ -199,8 +199,8 @@ test('ai loop iteration executes pending tool calls and stores a resumable check
 
 test('ai loop iteration resumes from stored tool call results and makes the next ai request', async () => {
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
-    'ChatStorage.appendEvent': async () => undefined,
     'ChatStorage.appendDebugEvent': async () => undefined,
+    'ChatStorage.appendEvent': async () => undefined,
     'ChatStorage.getEvents': async (sessionId: string) => [
       {
         sessionId,
