@@ -215,10 +215,7 @@ const renderMathNode = async (node: ChatViewContentNode, useChatMathWorker: bool
   return node
 }
 
-const renderMathNodes = async (
-  nodes: readonly ChatViewContentNode[],
-  useChatMathWorker: boolean,
-): Promise<readonly ChatViewContentNode[]> => {
+const renderMathNodes = async (nodes: readonly ChatViewContentNode[], useChatMathWorker: boolean): Promise<readonly ChatViewContentNode[]> => {
   const rendered: ChatViewContentNode[] = []
   for (const node of nodes) {
     rendered.push(await renderMathNode(node, useChatMathWorker))

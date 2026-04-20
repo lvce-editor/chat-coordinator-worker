@@ -19,4 +19,3 @@ export const listen = async (): Promise<void> => {
   ChatStorageWorker.set(s)
   await Promise.all([initializeChatMathWorker(), initializeChatMessageParsingWorker()])
 }
-

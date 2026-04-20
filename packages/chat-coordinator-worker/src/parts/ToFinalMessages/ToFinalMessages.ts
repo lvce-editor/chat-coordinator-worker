@@ -231,7 +231,11 @@ export const toFinalMessages = (events: readonly unknown[]): readonly ChatMessag
       if (event.message.role !== 'assistant' && event.message.role !== 'user') {
         continue
       }
-      const id = getEventMessageId(event, `${event.message.role}-message`, event.message.role === 'user' ? syntheticUserIndex : syntheticAssistantIndex)
+      const id = getEventMessageId(
+        event,
+        `${event.message.role}-message`,
+        event.message.role === 'user' ? syntheticUserIndex : syntheticAssistantIndex,
+      )
       if (event.message.role === 'user') {
         syntheticUserIndex += 1
       } else {
