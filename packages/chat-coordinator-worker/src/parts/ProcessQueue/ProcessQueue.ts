@@ -115,6 +115,7 @@ export const addPendingSessionWork = (options: AiLoopOptions): void => {
   enqueueSessionId(options.sessionId, pendingSessionWork)
 }
 
+// TODO simplify this
 export const processQueue = async (sessionId: string): Promise<void> => {
   const pendingSessionWork = pendingSessionWorkBySessionId.get(sessionId)
   if (!pendingSessionWork) {

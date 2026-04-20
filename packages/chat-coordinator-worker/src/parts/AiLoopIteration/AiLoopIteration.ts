@@ -5,6 +5,7 @@ import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { getAiRequestBody } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import { getRedactedHeaders } from '../GetRedactedHeaders/GetRedactedHeaders.ts'
 import { getRequestId } from '../GetRequestId/GetRequestId.ts'
+import { getStoredMessages } from '../GetStoredMessages/GetStoredMessages.ts'
 import { getTimeStamp } from '../GetTimeStamp/GetTimeStamp.ts'
 import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
 import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
@@ -13,8 +14,9 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
   const { headers, modelId, sessionId, systemPrompt, text, toolCalls, turnId, url } = loopOptions
   const requestId = getRequestId()
   const timestamp = getTimeStamp()
+  const messages = await getStoredMessages(sessionId, text)
   const requestBody = {
-    ...getAiRequestBody(systemPrompt, text),
+    ...getAiRequestBody(systemPrompt, messages),
     model: modelId,
   }
 
@@ -33,7 +35,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
     headers,
     modelId,
     systemPrompt,
-    text,
+    text: messages,
     toolCallResults,
     toolCalls,
     url,
