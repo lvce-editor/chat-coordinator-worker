@@ -18,7 +18,6 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
         },
       ],
       role,
-      timestamp: date.getTime(),
     },
     requestId,
     sessionId,
