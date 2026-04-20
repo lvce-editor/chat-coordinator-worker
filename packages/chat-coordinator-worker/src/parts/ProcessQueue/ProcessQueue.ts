@@ -73,6 +73,10 @@ const runQueue = async (): Promise<void> => {
     const targetVersion = pendingSessionWork.pendingVersion
     try {
       const result = await aiLoop(pendingSessionWork.options)
+      if (result.type === 'reschedule') {
+        enqueueSessionId(sessionId, pendingSessionWork)
+        continue
+      }
       if (result.type === 'error') {
         throw result.error
       }

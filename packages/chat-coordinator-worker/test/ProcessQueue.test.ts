@@ -82,6 +82,7 @@ test('process queue resolves only after the requested session version has been p
   })
   const secondPromise = processQueue('session-1')
 
+  await Promise.resolve()
   expect(fetchSpy).toHaveBeenCalledTimes(1)
 
   firstResponse.resolve({
@@ -203,6 +204,142 @@ test('process queue resolves only after the requested session version has been p
         type: 'ai-response-success',
         value: {
           id: 'resp_2',
+          status: 'completed',
+        },
+      },
+    ],
+  ])
+
+  randomUUIDSpy.mockRestore()
+  dateSpy.mockRestore()
+})
+
+test('process queue requeues the same session after tool calls and resolves after the resumed ai request', async () => {
+  const events: any[] = [
+    {
+      sessionId: 'session-1',
+      timestamp: '2026-04-19T00:00:00.000Z',
+      type: 'handle-submit',
+      value: 'Hello world',
+    },
+    {
+      requestId: 'request-0',
+      sessionId: 'session-1',
+      timestamp: '2026-04-19T00:00:00.000Z',
+      toolCalls: [{ args: { query: 'status' }, id: 'tool_1' }],
+      turnId: 'turn-1',
+      type: 'ai-response-success',
+      value: {
+        id: 'resp_0',
+        status: 'completed',
+      },
+    },
+  ]
+  const appendEvent = jest.fn(async (event: any) => {
+    events.push(event)
+  })
+  const rpc = ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendEvent': appendEvent,
+    'ChatStorage.getEvents': async () => events,
+  })
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
+  const randomUUIDSpy = jest
+    .spyOn(crypto, 'randomUUID')
+    .mockReturnValueOnce('00000000-0000-4000-8000-000000000010')
+    .mockReturnValueOnce('00000000-0000-4000-8000-000000000011')
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_10'],
+    ]),
+    json: async () => ({
+      id: 'resp_10',
+      status: 'completed',
+    }),
+  } as any)
+
+  addPendingSessionWork({
+    headers: {
+      Authorization: 'Bearer test-key',
+      'Content-Type': 'application/json',
+    },
+    modelId: 'gpt-4.1-mini',
+    providerId: 'openai',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
+    turnId: 'turn-1',
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  await expect(processQueue('session-1')).resolves.toBeUndefined()
+
+  expect(fetchSpy).toHaveBeenCalledTimes(1)
+  expect(rpc.invocations).toEqual([
+    ['ChatStorage.getEvents', 'session-1'],
+    [
+      'ChatStorage.appendEvent',
+      {
+        requestId: '00000000-0000-4000-8000-000000000010',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        toolCallResults: [
+          {
+            type: 'success',
+            value: {
+              query: 'status',
+            },
+          },
+        ],
+        turnId: 'turn-1',
+        type: 'tool-calls-finished',
+      },
+    ],
+    ['ChatStorage.getEvents', 'session-1'],
+    [
+      'ChatStorage.appendEvent',
+      {
+        body: {
+          input: [
+            {
+              content: 'You are a helpful assistant.',
+              role: 'system',
+            },
+            {
+              content: 'Hello world',
+              role: 'user',
+            },
+          ],
+          model: 'gpt-4.1-mini',
+        },
+        headers: {
+          Authorization: 'Bearer [redacted]',
+          'Content-Type': 'application/json',
+        },
+        method: 'POST',
+        requestId: '00000000-0000-4000-8000-000000000011',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        turnId: 'turn-1',
+        type: 'ai-request',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        headers: {
+          'content-type': 'application/json',
+          'x-request-id': 'req_10',
+        },
+        requestId: '00000000-0000-4000-8000-000000000011',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        toolCalls: [],
+        turnId: 'turn-1',
+        type: 'ai-response-success',
+        value: {
+          id: 'resp_10',
           status: 'completed',
         },
       },
