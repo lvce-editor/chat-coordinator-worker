@@ -89,3 +89,19 @@ export const readNextChunk = async (): Promise<string | undefined> => {
   waiters.push(resolve)
   return promise
 }
+
+export const consumeResponseText = async (): Promise<string | undefined> => {
+  if (queue.length === 0 && !finished) {
+    return undefined
+  }
+  const chunks: string[] = []
+  while (true) {
+    const chunk = await readNextChunk()
+    if (chunk === undefined) {
+      break
+    }
+    chunks.push(chunk)
+  }
+  reset()
+  return chunks.join('')
+}

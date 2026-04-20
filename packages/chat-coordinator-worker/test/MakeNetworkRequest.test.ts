@@ -1,5 +1,60 @@
-import { expect, jest, test } from '@jest/globals'
+import { afterEach, expect, jest, test } from '@jest/globals'
+import * as MockOpenApiStream from '../src/parts/MockOpenApiStream/MockOpenApiStream.ts'
 import { makeNetworkRequest } from '../src/parts/MakeNetworkRequest/MakeNetworkRequest.ts'
+import { registerMockResponse } from '../src/parts/RegisterMockResponse/RegisterMockResponse.ts'
+
+afterEach(() => {
+  jest.restoreAllMocks()
+  MockOpenApiStream.reset()
+})
+
+test('make network request returns registered mock response without calling fetch', async () => {
+  registerMockResponse({
+    text: 'Hello from mock assistant',
+  })
+  const fetchSpy = jest.spyOn(globalThis, 'fetch')
+
+  const result = await makeNetworkRequest({
+    body: { input: [] },
+    headers: {
+      Authorization: 'Bearer test-key',
+    },
+    method: 'POST',
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    data: {
+      created_at: 0,
+      id: 'resp_mock_0001',
+      model: 'mock-model',
+      object: 'response',
+      output: [
+        {
+          content: [
+            {
+              annotations: [],
+              text: 'Hello from mock assistant',
+              type: 'output_text',
+            },
+          ],
+          id: 'msg_mock_0001',
+          role: 'assistant',
+          status: 'completed',
+          type: 'message',
+        },
+      ],
+      output_text: 'Hello from mock assistant',
+      parallel_tool_calls: true,
+      status: 'completed',
+      tools: [],
+    },
+    headers: {},
+    statusCode: 200,
+    type: 'success',
+  })
+  expect(fetchSpy).not.toHaveBeenCalled()
+})
 
 test('make network request returns response headers', async () => {
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -43,8 +98,6 @@ test('make network request returns response headers', async () => {
     },
     method: 'POST',
   })
-
-  fetchSpy.mockRestore()
 })
 
 test('make network request omits body and headers when not provided', async () => {
@@ -75,8 +128,6 @@ test('make network request omits body and headers when not provided', async () =
   expect(fetchSpy).toHaveBeenCalledWith('https://example.com/data', {
     method: 'GET',
   })
-
-  fetchSpy.mockRestore()
 })
 
 test('make network request returns error result for non-2xx responses', async () => {
@@ -112,6 +163,4 @@ test('make network request returns error result for non-2xx responses', async ()
     headers: {},
     method: 'POST',
   })
-
-  fetchSpy.mockRestore()
 })

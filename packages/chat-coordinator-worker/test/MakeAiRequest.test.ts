@@ -1,8 +1,64 @@
 import { afterEach, expect, jest, test } from '@jest/globals'
+import * as MockOpenApiStream from '../src/parts/MockOpenApiStream/MockOpenApiStream.ts'
 import { makeAiRequest } from '../src/parts/MakeAiRequest/MakeAiRequest.ts'
+import { registerMockResponse } from '../src/parts/RegisterMockResponse/RegisterMockResponse.ts'
 
 afterEach(() => {
   jest.restoreAllMocks()
+  MockOpenApiStream.reset()
+})
+
+test('make ai request uses registered mock response text', async () => {
+  registerMockResponse({
+    text: 'Hello from mock assistant',
+  })
+  const fetchSpy = jest.spyOn(globalThis, 'fetch')
+
+  const result = await makeAiRequest({
+    headers: {
+      Authorization: 'Bearer test-key',
+    },
+    modelId: 'gpt-5-mini',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
+    toolCallResults: [],
+    toolCalls: [],
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    data: {
+      created_at: 0,
+      id: 'resp_mock_0001',
+      model: 'gpt-5-mini',
+      object: 'response',
+      output: [
+        {
+          content: [
+            {
+              annotations: [],
+              text: 'Hello from mock assistant',
+              type: 'output_text',
+            },
+          ],
+          id: 'msg_mock_0001',
+          role: 'assistant',
+          status: 'completed',
+          type: 'message',
+        },
+      ],
+      output_text: 'Hello from mock assistant',
+      parallel_tool_calls: true,
+      status: 'completed',
+      tools: [],
+    },
+    headers: {},
+    statusCode: 200,
+    text: 'Hello from mock assistant',
+    toolCalls: [],
+    type: 'success',
+  })
+  expect(fetchSpy).not.toHaveBeenCalled()
 })
 
 test('make ai request forwards the system prompt and returns response data', async () => {

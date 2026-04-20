@@ -1,9 +1,20 @@
 import type { NetworkRequestOptions } from '../NetworkRequestOptions/NetworkRequestOptions.ts'
 import type { NetworkRequestResult } from '../NetworkRequestResult/NetworkRequestResult.ts'
+import { createMockOpenAiResponse } from '../CreateMockOpenAiResponse/CreateMockOpenAiResponse.ts'
+import * as MockOpenApiStream from '../MockOpenApiStream/MockOpenApiStream.ts'
 import { serializeHeaders } from '../SerializeHeaders/SerializeHeaders.ts'
 
 export const makeNetworkRequest = async (options: NetworkRequestOptions): Promise<NetworkRequestResult> => {
   const { body, headers, method, url } = options
+  const mockResponseText = await MockOpenApiStream.consumeResponseText()
+  if (mockResponseText !== undefined) {
+    return {
+      data: createMockOpenAiResponse(body, mockResponseText),
+      headers: {},
+      statusCode: 200,
+      type: 'success',
+    }
+  }
   const requestInit: RequestInit = {
     method,
   }
