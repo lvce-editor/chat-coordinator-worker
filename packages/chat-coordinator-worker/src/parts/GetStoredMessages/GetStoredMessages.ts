@@ -10,14 +10,6 @@ interface ToolCallsFinishedEvent {
   readonly type: typeof ChatEventType.ToolCallsFinished
 }
 
-type StoredEvent = Awaited<ReturnType<typeof ChatStorageWorker.getEvents>>[number] | ToolCallsFinishedEvent
-
-interface StoredAiLoopState {
-  readonly messages: readonly string[]
-  readonly toolCallResults: readonly ToolCallResult[]
-  readonly toolCalls: readonly ToolCall<unknown>[]
-}
-
 interface StoredMessageContentPart {
   readonly text?: string
   readonly type?: string
@@ -27,14 +19,37 @@ interface StoredMessageEvent {
   readonly message: {
     readonly content?: readonly StoredMessageContentPart[]
   }
-  readonly type: typeof ChatEventType.Message | 'handle-submit'
+  readonly type: typeof ChatEventType.Message
 }
 
-const isHandleSubmitEvent = (event: StoredEvent): event is StoredEvent & ({ readonly value: string } | StoredMessageEvent) => {
+interface LegacyHandleSubmitEvent {
+  readonly type: 'handle-submit'
+  readonly value: string
+}
+
+interface StoredAiResponseSuccessEvent {
+  readonly toolCalls?: readonly ToolCall<unknown>[]
+  readonly type: typeof ChatEventType.AiResponseSuccess
+}
+
+type StoredEvent =
+  | Awaited<ReturnType<typeof ChatStorageWorker.getEvents>>[number]
+  | LegacyHandleSubmitEvent
+  | StoredAiResponseSuccessEvent
+  | StoredMessageEvent
+  | ToolCallsFinishedEvent
+
+interface StoredAiLoopState {
+  readonly messages: readonly string[]
+  readonly toolCallResults: readonly ToolCallResult[]
+  readonly toolCalls: readonly ToolCall<unknown>[]
+}
+
+const isHandleSubmitEvent = (event: StoredEvent): event is LegacyHandleSubmitEvent | StoredMessageEvent => {
   return event.type === ChatEventType.Message || event.type === 'handle-submit'
 }
 
-const getStoredMessageText = (event: StoredEvent & ({ readonly value: string } | StoredMessageEvent)): string | undefined => {
+const getStoredMessageText = (event: LegacyHandleSubmitEvent | StoredMessageEvent): string | undefined => {
   if ('value' in event && typeof event.value === 'string') {
     return event.value
   }
@@ -43,13 +58,13 @@ const getStoredMessageText = (event: StoredEvent & ({ readonly value: string } |
   }
   const { content = [] } = event.message
   const text = content
-    .filter((part) => part.type === 'text' && typeof part.text === 'string')
-    .map((part) => part.text)
+    .filter((part: StoredMessageContentPart) => part.type === 'text' && typeof part.text === 'string')
+    .map((part: StoredMessageContentPart) => part.text)
     .join('')
   return text || undefined
 }
 
-const isAiResponseSuccessEvent = (event: StoredEvent): event is StoredEvent & { readonly toolCalls?: readonly ToolCall<unknown>[] } => {
+const isAiResponseSuccessEvent = (event: StoredEvent): event is StoredAiResponseSuccessEvent => {
   return event.type === ChatEventType.AiResponseSuccess
 }
 

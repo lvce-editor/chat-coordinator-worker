@@ -1,7 +1,6 @@
 import type { AiLoopIterationOptions } from '../AiLoopIterationOptions/AiLoopIterationOptions.ts'
 import type { AiLoopIterationResult } from '../AiLoopIterationResult/AiLoopIterationResult.ts'
 import { appendChatDebugEvent } from '../AppendChatDebugEvent/AppendChatDebugEvent.ts'
-import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { getAiRequestBody } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import { getRedactedHeaders } from '../GetRedactedHeaders/GetRedactedHeaders.ts'

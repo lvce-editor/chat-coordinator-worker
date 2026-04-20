@@ -21,7 +21,7 @@ test('ai loop iteration stores response headers with the response body', async (
   })
   const realDate = globalThis.Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
-  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('request-1')
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000101')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
       ['content-type', 'application/json'],
@@ -80,7 +80,7 @@ test('ai loop iteration stores response headers with the response body', async (
         },
         headers: {},
         method: 'POST',
-        requestId: 'request-1',
+        requestId: '00000000-0000-4000-8000-000000000101',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
@@ -94,7 +94,7 @@ test('ai loop iteration stores response headers with the response body', async (
           'content-type': 'application/json',
           'x-request-id': 'req_123',
         },
-        requestId: 'request-1',
+        requestId: '00000000-0000-4000-8000-000000000101',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
@@ -142,7 +142,7 @@ test('ai loop iteration executes pending tool calls and stores a resumable check
   })
   const realDate = globalThis.Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
-  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('request-2')
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000102')
   const fetchSpy = jest.spyOn(globalThis, 'fetch')
 
   const result = await aiLoopIteration({
@@ -176,7 +176,7 @@ test('ai loop iteration executes pending tool calls and stores a resumable check
     [
       'ChatStorage.appendDebugEvent',
       {
-        requestId: 'request-2',
+        requestId: '00000000-0000-4000-8000-000000000102',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCallResults: [
@@ -227,7 +227,7 @@ test('ai loop iteration resumes from stored tool call results and makes the next
   })
   const realDate = globalThis.Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
-  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('request-3')
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000103')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
       ['content-type', 'application/json'],
@@ -281,7 +281,7 @@ test('ai loop iteration resumes from stored tool call results and makes the next
         },
         headers: {},
         method: 'POST',
-        requestId: 'request-3',
+        requestId: '00000000-0000-4000-8000-000000000103',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
@@ -295,7 +295,7 @@ test('ai loop iteration resumes from stored tool call results and makes the next
           'content-type': 'application/json',
           'x-request-id': 'req_456',
         },
-        requestId: 'request-3',
+        requestId: '00000000-0000-4000-8000-000000000103',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
