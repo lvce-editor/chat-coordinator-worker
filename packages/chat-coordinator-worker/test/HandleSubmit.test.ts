@@ -3,17 +3,15 @@ import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
 import { handleSubmit } from '../src/parts/HandleSubmit/HandleSubmit.ts'
 
 test('handle submit stores the openai response headers', async () => {
+  const events: any[] = []
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
+  appendEvent.mockImplementation(async (event: unknown) => {
+    events.push(event)
+  })
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
-    'ChatStorage.getEvents': async (sessionId: string) => [
-      {
-        sessionId,
-        timestamp: '2026-04-19T00:00:00.000Z',
-        type: 'handle-submit',
-        value: 'Hello world',
-      },
-    ],
+    'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
+    'ChatStorage.getEvents': async () => events,
   })
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
   const realDate = globalThis.Date
@@ -51,18 +49,28 @@ test('handle submit stores the openai response headers', async () => {
   })
   expect(rpc.invocations).toEqual([
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
+        id: 'request-1',
+        message: {
+          content: [
+            {
+              text: 'Hello world',
+              type: 'text',
+            },
+          ],
+          role: 'user',
+          timestamp: 1776556800000,
+        },
         requestId: 'request-1',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
-        type: 'handle-submit',
-        value: 'Hello world',
+        type: 'message',
       },
     ],
     ['ChatStorage.getEvents', 'session-1'],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         body: {
           input: [

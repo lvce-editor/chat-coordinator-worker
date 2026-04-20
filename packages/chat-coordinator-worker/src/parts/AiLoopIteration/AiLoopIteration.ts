@@ -1,5 +1,6 @@
 import type { AiLoopIterationOptions } from '../AiLoopIterationOptions/AiLoopIterationOptions.ts'
 import type { AiLoopIterationResult } from '../AiLoopIterationResult/AiLoopIterationResult.ts'
+import { appendChatDebugEvent } from '../AppendChatDebugEvent/AppendChatDebugEvent.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { getAiRequestBody } from '../GetAiRequestBody/GetAiRequestBody.ts'
@@ -35,7 +36,7 @@ interface AiLoopIterationAiRequestOptions {
 const aiLoopIterationToolCall = async (options: AiLoopIterationToolCallOptions): Promise<AiLoopIterationResult> => {
   const { requestId, sessionId, timestamp, toolCalls, turnId } = options
   const resolvedToolCallResults = await getToolCallResults(toolCalls)
-  await appendChatEvent({
+  await appendChatDebugEvent({
     requestId,
     sessionId,
     timestamp,
@@ -58,7 +59,7 @@ const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequestOptions
     model: modelId,
   }
 
-  await appendChatEvent({
+  await appendChatDebugEvent({
     body: requestBody,
     headers: getRedactedHeaders(headers),
     method: 'POST',
@@ -79,7 +80,7 @@ const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequestOptions
   })
 
   if (result.type === 'error') {
-    await appendChatEvent({
+    await appendChatDebugEvent({
       requestId,
       sessionId,
       timestamp,
@@ -93,7 +94,7 @@ const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequestOptions
     }
   }
 
-  await appendChatEvent({
+  await appendChatDebugEvent({
     headers: result.headers,
     requestId,
     sessionId,

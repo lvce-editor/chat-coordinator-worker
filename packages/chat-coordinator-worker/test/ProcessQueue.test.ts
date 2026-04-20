@@ -37,6 +37,7 @@ test('process queue resolves only after the requested session version has been p
   })
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
+    'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.getEvents': getEvents,
   })
   const realDate = globalThis.Date
@@ -111,7 +112,7 @@ test('process queue resolves only after the requested session version has been p
   expect(rpc.invocations).toEqual([
     ['ChatStorage.getEvents', 'session-1'],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         body: {
           input: [
@@ -139,7 +140,7 @@ test('process queue resolves only after the requested session version has been p
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         headers: {
           'content-type': 'application/json',
@@ -159,7 +160,7 @@ test('process queue resolves only after the requested session version has been p
     ],
     ['ChatStorage.getEvents', 'session-1'],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         body: {
           input: [
@@ -187,7 +188,7 @@ test('process queue resolves only after the requested session version has been p
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         headers: {
           'content-type': 'application/json',
@@ -237,6 +238,7 @@ test('process queue requeues the same session after tool calls and resolves afte
   })
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': appendEvent,
+    'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.getEvents': async () => events,
   })
   const realDate = globalThis.Date
@@ -276,7 +278,7 @@ test('process queue requeues the same session after tool calls and resolves afte
   expect(rpc.invocations).toEqual([
     ['ChatStorage.getEvents', 'session-1'],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         requestId: '00000000-0000-4000-8000-000000000010',
         sessionId: 'session-1',
@@ -295,7 +297,7 @@ test('process queue requeues the same session after tool calls and resolves afte
     ],
     ['ChatStorage.getEvents', 'session-1'],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         body: {
           input: [
@@ -323,7 +325,7 @@ test('process queue requeues the same session after tool calls and resolves afte
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         headers: {
           'content-type': 'application/json',

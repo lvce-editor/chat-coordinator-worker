@@ -1,18 +1,29 @@
 import type { SubmitOptions } from '../SubmitOptions/SubmitOptions.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
-import { getTimeStamp } from '../GetTimeStamp/GetTimeStamp.ts'
 import { addPendingSessionWork, processQueue } from '../ProcessQueue/ProcessQueue.ts'
 
 export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
-  const { modelId, openAiKey, requestId, sessionId, systemPrompt, text } = options
+  const { id, modelId, openAiKey, requestId, role, sessionId, systemPrompt, text } = options
+  const date = new Date()
+  const timestamp = date.toISOString()
 
   await appendChatEvent({
+    id,
+    message: {
+      content: [
+        {
+          text,
+          type: 'text',
+        },
+      ],
+      role,
+      timestamp: date.getTime(),
+    },
     requestId,
     sessionId,
-    timestamp: getTimeStamp(),
+    timestamp,
     type: ChatEventType.HandleSubmit,
-    value: text,
   })
 
   addPendingSessionWork({

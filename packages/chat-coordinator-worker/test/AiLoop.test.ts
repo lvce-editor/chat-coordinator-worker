@@ -9,6 +9,7 @@ afterEach(() => {
 test('ai loop returns success and appends the ai response event', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': async () => undefined,
+    'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.getEvents': async (sessionId: string) => [
       {
         sessionId,
@@ -53,7 +54,7 @@ test('ai loop returns success and appends the ai response event', async () => {
   expect(rpc.invocations).toEqual([
     ['ChatStorage.getEvents', 'session-1'],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         body: {
           input: [
@@ -81,7 +82,7 @@ test('ai loop returns success and appends the ai response event', async () => {
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         headers: {
           'content-type': 'application/json',
@@ -108,6 +109,7 @@ test('ai loop returns success and appends the ai response event', async () => {
 test('ai loop returns reschedule after executing tool calls', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': async () => undefined,
+    'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.getEvents': async (sessionId: string) => [
       {
         sessionId,
@@ -152,7 +154,7 @@ test('ai loop returns reschedule after executing tool calls', async () => {
   expect(rpc.invocations).toEqual([
     ['ChatStorage.getEvents', 'session-1'],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         requestId: '00000000-0000-4000-8000-000000000001',
         sessionId: 'session-1',

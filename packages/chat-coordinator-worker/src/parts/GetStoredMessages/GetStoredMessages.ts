@@ -18,8 +18,35 @@ interface StoredAiLoopState {
   readonly toolCallResults: readonly ToolCallResult[]
 }
 
-const isHandleSubmitEvent = (event: StoredEvent): event is StoredEvent & { readonly value: string } => {
-  return event.type === ChatEventType.HandleSubmit
+interface StoredMessageContentPart {
+  readonly text?: string
+  readonly type?: string
+}
+
+interface StoredMessageEvent {
+  readonly message: {
+    readonly content?: readonly StoredMessageContentPart[]
+  }
+  readonly type: typeof ChatEventType.HandleSubmit | 'handle-submit'
+}
+
+const isHandleSubmitEvent = (event: StoredEvent): event is StoredEvent & ({ readonly value: string } | StoredMessageEvent) => {
+  return event.type === ChatEventType.HandleSubmit || event.type === 'handle-submit'
+}
+
+const getStoredMessageText = (event: StoredEvent & ({ readonly value: string } | StoredMessageEvent)): string | undefined => {
+  if ('value' in event && typeof event.value === 'string') {
+    return event.value
+  }
+  if (!('message' in event)) {
+    return undefined
+  }
+  const content = event.message.content || []
+  const text = content
+    .filter((part) => part.type === 'text' && typeof part.text === 'string')
+    .map((part) => part.text)
+    .join('')
+  return text || undefined
 }
 
 const isAiResponseSuccessEvent = (event: StoredEvent): event is StoredEvent & { readonly toolCalls?: readonly ToolCall<unknown>[] } => {
@@ -48,7 +75,10 @@ export const getStoredAiLoopState = async (
 
   for (const event of events as readonly StoredEvent[]) {
     if (isHandleSubmitEvent(event)) {
-      messages.push(event.value)
+      const text = getStoredMessageText(event)
+      if (text) {
+        messages.push(text)
+      }
       continue
     }
     if (isAiResponseSuccessEvent(event)) {

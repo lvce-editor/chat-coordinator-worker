@@ -9,6 +9,7 @@ afterEach(() => {
 test('ai loop iteration stores response headers with the response body', async () => {
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': async () => undefined,
+    'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.getEvents': async (sessionId: string) => [
       {
         sessionId,
@@ -62,7 +63,7 @@ test('ai loop iteration stores response headers with the response body', async (
   expect(appendEventMockRpc.invocations).toEqual([
     ['ChatStorage.getEvents', 'session-1'],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         body: {
           input: [
@@ -87,7 +88,7 @@ test('ai loop iteration stores response headers with the response body', async (
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         headers: {
           'content-type': 'application/json',
@@ -114,6 +115,7 @@ test('ai loop iteration stores response headers with the response body', async (
 test('ai loop iteration executes pending tool calls and stores a resumable checkpoint', async () => {
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': async () => undefined,
+    'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.getEvents': async (sessionId: string) => [
       {
         sessionId,
@@ -172,7 +174,7 @@ test('ai loop iteration executes pending tool calls and stores a resumable check
   expect(appendEventMockRpc.invocations).toEqual([
     ['ChatStorage.getEvents', 'session-1'],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         requestId: 'request-2',
         sessionId: 'session-1',
@@ -198,6 +200,7 @@ test('ai loop iteration executes pending tool calls and stores a resumable check
 test('ai loop iteration resumes from stored tool call results and makes the next ai request', async () => {
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendEvent': async () => undefined,
+    'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.getEvents': async (sessionId: string) => [
       {
         sessionId,
@@ -261,7 +264,7 @@ test('ai loop iteration resumes from stored tool call results and makes the next
   expect(appendEventMockRpc.invocations).toEqual([
     ['ChatStorage.getEvents', 'session-1'],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         body: {
           input: [
@@ -286,7 +289,7 @@ test('ai loop iteration resumes from stored tool call results and makes the next
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         headers: {
           'content-type': 'application/json',
