@@ -18,6 +18,7 @@ export const makeAiRequest = async (options: AiRequestOptions): Promise<AiReques
   if (response.type === 'error') {
     return {
       error: response.error,
+      statusCode: response.statusCode,
       type: 'error',
     }
   }
@@ -25,6 +26,7 @@ export const makeAiRequest = async (options: AiRequestOptions): Promise<AiReques
   return {
     data: response.data,
     headers: response.headers,
+    statusCode: response.statusCode,
     toolCalls,
     type: 'success',
   }

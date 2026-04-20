@@ -18,9 +18,17 @@ export const makeNetworkRequest = async (options: NetworkRequestOptions): Promis
 
   const response = await fetch(url, requestInit)
   const json = await response.json()
+  if (!response.ok) {
+    return {
+      error: json,
+      statusCode: response.status,
+      type: 'error',
+    }
+  }
   return {
     data: json,
     headers: serializeHeaders(response.headers),
+    statusCode: response.status,
     type: 'success',
   }
 }

@@ -82,6 +82,7 @@ const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequestOptions
     await appendChatDebugEvent({
       requestId,
       sessionId,
+      statusCode: result.statusCode,
       timestamp,
       turnId,
       type: ChatEventType.AiResponseError,
@@ -97,6 +98,7 @@ const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequestOptions
     headers: result.headers,
     requestId,
     sessionId,
+    statusCode: result.statusCode,
     timestamp,
     toolCalls: result.toolCalls,
     turnId,

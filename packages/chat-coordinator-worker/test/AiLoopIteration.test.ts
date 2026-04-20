@@ -31,6 +31,8 @@ test('ai loop iteration stores response headers with the response body', async (
       id: 'resp_1',
       status: 'completed',
     }),
+    ok: true,
+    status: 200,
   } as any)
 
   const result = await aiLoopIteration({
@@ -96,6 +98,7 @@ test('ai loop iteration stores response headers with the response body', async (
         },
         requestId: '00000000-0000-4000-8000-000000000101',
         sessionId: 'session-1',
+        statusCode: 200,
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
@@ -237,6 +240,8 @@ test('ai loop iteration resumes from stored tool call results and makes the next
       id: 'resp_2',
       status: 'completed',
     }),
+    ok: true,
+    status: 200,
   } as any)
 
   const result = await aiLoopIteration({
@@ -297,6 +302,7 @@ test('ai loop iteration resumes from stored tool call results and makes the next
         },
         requestId: '00000000-0000-4000-8000-000000000103',
         sessionId: 'session-1',
+        statusCode: 200,
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
@@ -304,6 +310,106 @@ test('ai loop iteration resumes from stored tool call results and makes the next
         value: {
           id: 'resp_2',
           status: 'completed',
+        },
+      },
+    ],
+  ])
+
+  randomUUIDSpy.mockRestore()
+  dateSpy.mockRestore()
+})
+
+test('ai loop iteration stores status code for non-2xx ai responses', async () => {
+  const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendDebugEvent': async () => undefined,
+    'ChatStorage.appendEvent': async () => undefined,
+    'ChatStorage.getEvents': async (sessionId: string) => [
+      {
+        sessionId,
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'handle-submit',
+        value: 'Hello world',
+      },
+    ],
+  })
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000104')
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_429'],
+    ]),
+    json: async () => ({
+      error: {
+        message: 'rate limited',
+      },
+    }),
+    ok: false,
+    status: 429,
+  } as any)
+
+  const result = await aiLoopIteration({
+    headers: {},
+    modelId: 'gpt-5-mini',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
+    toolCallResults: [],
+    toolCalls: [],
+    turnId: 'turn-1',
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    error: {
+      error: {
+        message: 'rate limited',
+      },
+    },
+    type: 'error',
+  })
+  expect(fetchSpy).toHaveBeenCalledTimes(1)
+  expect(appendEventMockRpc.invocations).toEqual([
+    ['ChatStorage.getEvents', 'session-1'],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        body: {
+          input: [
+            {
+              content: 'You are a helpful assistant.',
+              role: 'system',
+            },
+            {
+              content: 'Hello world',
+              role: 'user',
+            },
+          ],
+          model: 'gpt-5-mini',
+        },
+        headers: {},
+        method: 'POST',
+        requestId: '00000000-0000-4000-8000-000000000104',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        turnId: 'turn-1',
+        type: 'ai-request',
+      },
+    ],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        requestId: '00000000-0000-4000-8000-000000000104',
+        sessionId: 'session-1',
+        statusCode: 429,
+        timestamp: '2026-04-19T00:00:00.000Z',
+        turnId: 'turn-1',
+        type: 'ai-response-error',
+        value: {
+          error: {
+            message: 'rate limited',
+          },
         },
       },
     ],
