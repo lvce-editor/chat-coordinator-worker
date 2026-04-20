@@ -4,17 +4,15 @@ import { createMockOpenAiResponse } from '../CreateMockOpenAiResponse/CreateMock
 import * as MockOpenApiStream from '../MockOpenApiStream/MockOpenApiStream.ts'
 import { serializeHeaders } from '../SerializeHeaders/SerializeHeaders.ts'
 
-export const makeNetworkRequest = async (options: NetworkRequestOptions): Promise<NetworkRequestResult> => {
-  const { body, headers, method, url } = options
-  const mockResponseText = await MockOpenApiStream.consumeResponseText()
-  if (mockResponseText !== undefined) {
-    return {
-      data: createMockOpenAiResponse(body, mockResponseText),
-      headers: {},
-      statusCode: 200,
-      type: 'success',
-    }
-  }
+interface ParsedNetworkResponse {
+  readonly headers: Headers
+  readonly json: () => Promise<any>
+  readonly ok: boolean
+  readonly status: number
+}
+
+export const getInitData = (options: NetworkRequestOptions): RequestInit => {
+  const { body, headers, method } = options
   const requestInit: RequestInit = {
     method,
   }
@@ -27,7 +25,25 @@ export const makeNetworkRequest = async (options: NetworkRequestOptions): Promis
     requestInit.headers = headers
   }
 
-  const response = await fetch(url, requestInit)
+  return requestInit
+}
+
+export const getNetworkResponse = async (options: NetworkRequestOptions, requestInit: RequestInit): Promise<ParsedNetworkResponse> => {
+  const { body, url } = options
+  const mockResponseText = await MockOpenApiStream.consumeResponseText()
+  if (mockResponseText !== undefined) {
+    const data = createMockOpenAiResponse(body, mockResponseText)
+    return {
+      headers: new Headers(),
+      json: async () => data,
+      ok: true,
+      status: 200,
+    }
+  }
+  return fetch(url, requestInit)
+}
+
+export const parseNetworkResponse = async (response: ParsedNetworkResponse): Promise<NetworkRequestResult> => {
   const json = await response.json()
   if (!response.ok) {
     return {
@@ -42,4 +58,10 @@ export const makeNetworkRequest = async (options: NetworkRequestOptions): Promis
     statusCode: response.status,
     type: 'success',
   }
+}
+
+export const makeNetworkRequest = async (options: NetworkRequestOptions): Promise<NetworkRequestResult> => {
+  const requestInit = getInitData(options)
+  const response = await getNetworkResponse(options, requestInit)
+  return parseNetworkResponse(response)
 }
