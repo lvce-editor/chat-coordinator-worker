@@ -56,7 +56,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
       statusCode: result.statusCode,
       timestamp,
       turnId,
-      type: ChatEventType.AiResponseError,
+      type: ChatEventType.AiResponse,
       value: result.error,
     })
     return {
@@ -92,7 +92,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     timestamp,
     toolCalls: result.toolCalls,
     turnId,
-    type: ChatEventType.AiResponseSuccess,
+    type: ChatEventType.AiResponse,
     value: result.data,
   })
   return {

@@ -1,5 +1,5 @@
 export const Message = 'message'
 export const AiRequest = 'ai-request'
-export const AiResponseError = 'ai-response-error'
-export const AiResponseSuccess = 'ai-response-success'
+export const AiResponseError = 'ai-response'
+export const AiResponse = 'ai-response'
 export const ToolCallsFinished = 'tool-calls-finished'

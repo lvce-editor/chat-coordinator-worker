@@ -31,7 +31,7 @@ interface LegacyHandleSubmitEvent {
 
 interface StoredAiResponseSuccessEvent {
   readonly toolCalls?: readonly ToolCall<unknown>[]
-  readonly type: typeof ChatEventType.AiResponseSuccess
+  readonly type: typeof ChatEventType.AiResponse
 }
 
 type StoredEvent =
@@ -79,7 +79,7 @@ const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredMessageEvent): 
 }
 
 const isAiResponseSuccessEvent = (event: StoredEvent): event is StoredAiResponseSuccessEvent => {
-  return event.type === ChatEventType.AiResponseSuccess
+  return event.type === ChatEventType.AiResponse
 }
 
 const isToolCallsFinishedEvent = (event: StoredEvent): event is ToolCallsFinishedEvent => {
