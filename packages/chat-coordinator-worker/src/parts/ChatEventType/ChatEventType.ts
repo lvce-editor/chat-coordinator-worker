@@ -1,4 +1,4 @@
-export const HandleSubmit = 'message'
+export const Message = 'message'
 export const AiRequest = 'ai-request'
 export const AiResponseError = 'ai-response-error'
 export const AiResponseSuccess = 'ai-response-success'

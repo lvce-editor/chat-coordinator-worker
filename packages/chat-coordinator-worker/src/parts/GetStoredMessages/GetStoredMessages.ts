@@ -27,11 +27,11 @@ interface StoredMessageEvent {
   readonly message: {
     readonly content?: readonly StoredMessageContentPart[]
   }
-  readonly type: typeof ChatEventType.HandleSubmit | 'handle-submit'
+  readonly type: typeof ChatEventType.Message | 'handle-submit'
 }
 
 const isHandleSubmitEvent = (event: StoredEvent): event is StoredEvent & ({ readonly value: string } | StoredMessageEvent) => {
-  return event.type === ChatEventType.HandleSubmit || event.type === 'handle-submit'
+  return event.type === ChatEventType.Message || event.type === 'handle-submit'
 }
 
 const getStoredMessageText = (event: StoredEvent & ({ readonly value: string } | StoredMessageEvent)): string | undefined => {

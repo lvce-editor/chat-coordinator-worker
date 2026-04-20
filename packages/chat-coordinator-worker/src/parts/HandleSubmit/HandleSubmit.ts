@@ -22,7 +22,7 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
     requestId,
     sessionId,
     timestamp,
-    type: ChatEventType.HandleSubmit,
+    type: ChatEventType.Message,
   })
 
   addPendingSessionWork({
