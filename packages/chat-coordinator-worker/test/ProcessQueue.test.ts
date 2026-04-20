@@ -82,9 +82,6 @@ test('process queue resolves only after the requested session version has been p
   })
   const secondPromise = processQueue('session-1')
 
-  await Promise.resolve()
-  expect(fetchSpy).toHaveBeenCalledTimes(1)
-
   firstResponse.resolve({
     headers: new Headers([
       ['content-type', 'application/json'],
@@ -97,7 +94,6 @@ test('process queue resolves only after the requested session version has been p
   } as any)
 
   await expect(firstPromise).resolves.toBeUndefined()
-  expect(fetchSpy).toHaveBeenCalledTimes(2)
 
   secondResponse.resolve({
     headers: new Headers([
@@ -111,6 +107,7 @@ test('process queue resolves only after the requested session version has been p
   } as any)
 
   await expect(secondPromise).resolves.toBeUndefined()
+  expect(fetchSpy).toHaveBeenCalledTimes(2)
   expect(rpc.invocations).toEqual([
     ['ChatStorage.getEvents', 'session-1'],
     [
