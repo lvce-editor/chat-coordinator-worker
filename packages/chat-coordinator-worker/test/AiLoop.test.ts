@@ -116,7 +116,7 @@ test('ai loop returns success and appends the ai response event', async () => {
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
-        type: 'ai-response-success',
+        type: 'ai-response',
         value: {
           id: 'resp_1',
           output_text: 'Hello from assistant',
@@ -147,7 +147,7 @@ test('ai loop returns reschedule after executing tool calls', async () => {
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [{ args: { query: 'status' }, id: 'tool_1' }],
         turnId: 'turn-1',
-        type: 'ai-response-success',
+        type: 'ai-response',
         value: {
           id: 'resp_0',
           status: 'completed',
@@ -299,7 +299,7 @@ test('ai loop returns reschedule when ai response contains tool calls', async ()
           },
         ],
         turnId: 'turn-1',
-        type: 'ai-response-success',
+        type: 'ai-response',
         value: {
           id: 'resp_2',
           output: [
