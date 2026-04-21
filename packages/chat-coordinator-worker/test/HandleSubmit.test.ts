@@ -131,7 +131,7 @@ test('handle submit stores the openai response headers', async () => {
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'request-1',
-        type: 'ai-response-success',
+        type: 'ai-response',
         value: {
           id: 'resp_1',
           output_text: 'Hello from assistant',

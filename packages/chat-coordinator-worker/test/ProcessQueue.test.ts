@@ -177,7 +177,7 @@ test('process queue resolves only after the requested session version has been p
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
-        type: 'ai-response-success',
+        type: 'ai-response',
         value: {
           id: 'resp_1',
           output_text: 'First answer',
@@ -246,7 +246,7 @@ test('process queue resolves only after the requested session version has been p
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-2',
-        type: 'ai-response-success',
+        type: 'ai-response',
         value: {
           id: 'resp_2',
           output_text: 'Second answer',
@@ -274,7 +274,7 @@ test('process queue requeues the same session after tool calls and resolves afte
       timestamp: '2026-04-19T00:00:00.000Z',
       toolCalls: [{ args: { query: 'status' }, id: 'tool_1' }],
       turnId: 'turn-1',
-      type: 'ai-response-success',
+      type: 'ai-response',
       value: {
         id: 'resp_0',
         status: 'completed',
@@ -410,7 +410,7 @@ test('process queue requeues the same session after tool calls and resolves afte
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
-        type: 'ai-response-success',
+        type: 'ai-response',
         value: {
           id: 'resp_10',
           output_text: 'Tool call follow-up',
