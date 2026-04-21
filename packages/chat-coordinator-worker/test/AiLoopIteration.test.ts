@@ -123,7 +123,7 @@ test('ai loop iteration stores response headers with the response body', async (
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
-        type: 'ai-response-success',
+        type: 'ai-response',
         value: {
           id: 'resp_1',
           output_text: 'Hello from assistant',
@@ -157,7 +157,7 @@ test('ai loop iteration executes pending tool calls and stores a resumable check
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [{ args: { query: 'status' }, id: 'tool_1' }],
         turnId: 'turn-1',
-        type: 'ai-response-success',
+        type: 'ai-response',
         value: {
           id: 'resp_0',
           status: 'completed',
@@ -349,7 +349,7 @@ test('ai loop iteration resumes from stored tool call results and makes the next
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
-        type: 'ai-response-success',
+        type: 'ai-response',
         value: {
           id: 'resp_2',
           output_text: 'Follow-up answer',
@@ -519,7 +519,7 @@ test('ai loop iteration replays stored assistant messages with assistant role', 
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
-        type: 'ai-response-success',
+        type: 'ai-response',
         value: {
           id: 'resp_3',
           output_text: 'Another answer',
@@ -619,7 +619,7 @@ test('ai loop iteration stores status code for non-2xx ai responses', async () =
         statusCode: 429,
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
-        type: 'ai-response-error',
+        type: 'ai-response',
         value: {
           error: {
             message: 'rate limited',
