@@ -52,7 +52,7 @@ test('handle submit stores the openai response headers', async () => {
   })
   expect(rpc.invocations).toEqual([
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         id: 'request-1',
         message: {
@@ -68,6 +68,20 @@ test('handle submit stores the openai response headers', async () => {
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: 'request-1',
+          role: 'user',
+          text: 'Hello world',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
       },
     ],
     ['ChatStorage.getEvents', 'session-1'],
@@ -100,7 +114,7 @@ test('handle submit stores the openai response headers', async () => {
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         id: '00000000-0000-4000-8000-000000000000',
         message: {
@@ -116,6 +130,20 @@ test('handle submit stores the openai response headers', async () => {
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: '00000000-0000-4000-8000-000000000000',
+          role: 'assistant',
+          text: 'Hello from assistant',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
       },
     ],
     [
