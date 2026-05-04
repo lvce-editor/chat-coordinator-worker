@@ -1,4 +1,6 @@
 import type {
+  ChatCoordinatorHandleSubmitOptions,
+  ChatCoordinatorHandleSubmitResult,
   ChatCoordinatorEvent,
   ChatCoordinatorMessage,
   ChatCoordinatorSession,
@@ -6,6 +8,15 @@ import type {
   ChatCoordinatorSubmitOptions,
   ChatCoordinatorSubmitResult,
 } from './CoordinatorTypes.ts'
+import {
+  appendChatViewEvent,
+  deleteChatSession,
+  getChatSession,
+  listChatSessionsWithMessages,
+  saveChatSession,
+  useRpcChatSessionStorage,
+} from '../ChatSessionStorage/ChatSessionStorage.ts'
+import { getAiResponse } from '../GetAiResponse/GetAiResponse.ts'
 
 const sessions: ChatCoordinatorSession[] = []
 const subscriberQueues = new Map<string, ChatCoordinatorEvent[]>()
@@ -14,9 +25,47 @@ const activeRunBySessionId = new Map<string, string>()
 const runById = new Map<string, { readonly assistantMessageId: string; readonly sessionId: string }>()
 const cancelledRunIds = new Set<string>()
 const runPromises = new Map<string, Promise<void>>()
+let hydrated = false
 
 const clone = <T>(value: T): T => {
   return structuredClone(value)
+}
+
+const getStoredSession = async (sessionId: string): Promise<ChatCoordinatorSession | undefined> => {
+  const session = await getChatSession(sessionId)
+  if (!session) {
+    return undefined
+  }
+  return clone(session)
+}
+
+const ensureHydrated = async (): Promise<void> => {
+  if (hydrated) {
+    return
+  }
+  const storedSessions = await listChatSessionsWithMessages()
+  sessions.length = 0
+  for (const session of storedSessions) {
+    sessions.push(clone(session))
+  }
+  hydrated = true
+}
+
+const upsertSession = (session: ChatCoordinatorSession): void => {
+  const index = getSessionIndex(session.id)
+  if (index === -1) {
+    sessions.push(clone(session))
+    return
+  }
+  sessions[index] = clone(session)
+}
+
+const persistSession = async (sessionId: string): Promise<void> => {
+  const session = sessions.find((item) => item.id === sessionId)
+  if (!session) {
+    return
+  }
+  await saveChatSession(clone(session))
 }
 
 const getSessionIndex = (sessionId: string): number => {
@@ -49,7 +98,13 @@ const createMessage = (role: 'assistant' | 'tool' | 'user', text: string): ChatC
   }
 }
 
-const updateMessage = (sessionId: string, messageId: string, text: string, inProgress: boolean): ChatCoordinatorMessage | undefined => {
+const updateMessage = async (
+  sessionId: string,
+  messageId: string,
+  text: string,
+  inProgress: boolean,
+  toolCalls?: ChatCoordinatorMessage['toolCalls'],
+): Promise<ChatCoordinatorMessage | undefined> => {
   const index = getSessionIndex(sessionId)
   if (index === -1) {
     return undefined
@@ -63,6 +118,11 @@ const updateMessage = (sessionId: string, messageId: string, text: string, inPro
       ...message,
       inProgress,
       text,
+      ...(toolCalls === undefined
+        ? {}
+        : {
+            toolCalls,
+          }),
     }
   })
   const updatedMessage = nextMessages.find((message) => message.id === messageId)
@@ -73,10 +133,11 @@ const updateMessage = (sessionId: string, messageId: string, text: string, inPro
     ...session,
     messages: nextMessages,
   }
+  await persistSession(sessionId)
   return updatedMessage
 }
 
-const appendMessage = (sessionId: string, message: ChatCoordinatorMessage): boolean => {
+const appendMessage = async (sessionId: string, message: ChatCoordinatorMessage): Promise<boolean> => {
   const index = getSessionIndex(sessionId)
   if (index === -1) {
     return false
@@ -86,6 +147,7 @@ const appendMessage = (sessionId: string, message: ChatCoordinatorMessage): bool
     ...session,
     messages: [...session.messages, message],
   }
+  await persistSession(sessionId)
   return true
 }
 
@@ -113,7 +175,7 @@ const processRun = async (runId: string, sessionId: string, assistantMessageId: 
 
   for (const chunk of chunks) {
     if (cancelledRunIds.has(runId)) {
-      const cancelledMessage = updateMessage(sessionId, assistantMessageId, currentText, false)
+      const cancelledMessage = await updateMessage(sessionId, assistantMessageId, currentText, false)
       if (cancelledMessage) {
         emitEvent({
           message: clone(cancelledMessage),
@@ -131,7 +193,7 @@ const processRun = async (runId: string, sessionId: string, assistantMessageId: 
       return
     }
     currentText += chunk
-    const updatedMessage = updateMessage(sessionId, assistantMessageId, currentText, true)
+    const updatedMessage = await updateMessage(sessionId, assistantMessageId, currentText, true)
     if (updatedMessage) {
       emitEvent({
         message: clone(updatedMessage),
@@ -143,7 +205,7 @@ const processRun = async (runId: string, sessionId: string, assistantMessageId: 
     await Promise.resolve()
   }
 
-  const doneMessage = updateMessage(sessionId, assistantMessageId, currentText, false)
+  const doneMessage = await updateMessage(sessionId, assistantMessageId, currentText, false)
   if (doneMessage) {
     emitEvent({
       message: clone(doneMessage),
@@ -160,7 +222,146 @@ const processRun = async (runId: string, sessionId: string, assistantMessageId: 
   finalizeRun(runId, sessionId)
 }
 
-export const listSessions = (): readonly ChatCoordinatorSessionSummary[] => {
+const processHandleSubmitRun = async (
+  runId: string,
+  sessionId: string,
+  assistantMessageId: string,
+  aiMessages: readonly ChatCoordinatorMessage[],
+  options: Readonly<ChatCoordinatorHandleSubmitOptions>,
+): Promise<void> => {
+  const {
+    assetDir,
+    mockAiResponseDelay,
+    mockApiCommandId,
+    models,
+    openApiApiBaseUrl,
+    openApiApiKey,
+    openRouterApiBaseUrl,
+    openRouterApiKey,
+    passIncludeObfuscation,
+    platform,
+    selectedModelId,
+    streamingEnabled = true,
+    useChatNetworkWorkerForRequests = false,
+    useMockApi,
+    userText,
+    webSearchEnabled = false,
+  } = options
+  try {
+    const assistantMessage = await getAiResponse({
+      assetDir,
+      messageId: assistantMessageId,
+      messages: aiMessages,
+      ...(mockAiResponseDelay === undefined
+        ? {}
+        : {
+            mockAiResponseDelay,
+          }),
+      mockApiCommandId,
+      models,
+      nextMessageId: aiMessages.length + 1,
+      onDataEvent: async (value: unknown): Promise<void> => {
+        await appendChatViewEvent({
+          sessionId,
+          timestamp: new Date().toISOString(),
+          type: 'sse-response-part',
+          value,
+        })
+      },
+      onEventStreamFinished: async (): Promise<void> => {
+        await appendChatViewEvent({
+          sessionId,
+          timestamp: new Date().toISOString(),
+          type: 'event-stream-finished',
+          value: '[DONE]',
+        })
+      },
+      onTextChunk: async (chunk: string): Promise<void> => {
+        const session = await getSession(sessionId)
+        const message = session?.messages.find((item) => item.id === assistantMessageId)
+        if (!message) {
+          return
+        }
+        const updatedMessage = await updateMessage(sessionId, assistantMessageId, `${message.text}${chunk}`, true)
+        if (updatedMessage) {
+          emitEvent({
+            message: clone(updatedMessage),
+            runId,
+            sessionId,
+            type: 'message-updated',
+          })
+        }
+      },
+      onToolCallsChunk: async (toolCalls): Promise<void> => {
+        const session = await getSession(sessionId)
+        const message = session?.messages.find((item) => item.id === assistantMessageId)
+        if (!message) {
+          return
+        }
+        const updatedMessage = await updateMessage(sessionId, assistantMessageId, message.text, true, toolCalls)
+        if (updatedMessage) {
+          emitEvent({
+            message: clone(updatedMessage),
+            runId,
+            sessionId,
+            type: 'message-updated',
+          })
+        }
+      },
+      openApiApiBaseUrl,
+      openApiApiKey,
+      openRouterApiBaseUrl,
+      openRouterApiKey,
+      ...(passIncludeObfuscation === undefined
+        ? {}
+        : {
+            passIncludeObfuscation,
+          }),
+      platform,
+      selectedModelId,
+      streamingEnabled,
+      useChatNetworkWorkerForRequests,
+      useMockApi,
+      userText,
+      webSearchEnabled,
+    })
+    const doneMessage = await updateMessage(sessionId, assistantMessageId, assistantMessage.text, false, assistantMessage.toolCalls)
+    if (doneMessage) {
+      emitEvent({
+        message: clone(doneMessage),
+        runId,
+        sessionId,
+        type: 'message-updated',
+      })
+    }
+    emitEvent({
+      runId,
+      sessionId,
+      type: 'run-finished',
+    })
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to complete chat request.'
+    const doneMessage = await updateMessage(sessionId, assistantMessageId, errorMessage, false)
+    if (doneMessage) {
+      emitEvent({
+        message: clone(doneMessage),
+        runId,
+        sessionId,
+        type: 'message-updated',
+      })
+    }
+    emitEvent({
+      runId,
+      sessionId,
+      type: 'run-finished',
+    })
+  } finally {
+    finalizeRun(runId, sessionId)
+  }
+}
+
+export const listSessions = async (): Promise<readonly ChatCoordinatorSessionSummary[]> => {
+  await ensureHydrated()
   return sessions.map((session) => ({
     id: session.id,
     messageCount: session.messages.length,
@@ -168,21 +369,29 @@ export const listSessions = (): readonly ChatCoordinatorSessionSummary[] => {
   }))
 }
 
-export const getSession = (sessionId: string): ChatCoordinatorSession | undefined => {
+export const getSession = async (sessionId: string): Promise<ChatCoordinatorSession | undefined> => {
+  await ensureHydrated()
   const session = sessions.find((item) => item.id === sessionId)
   if (!session) {
-    return undefined
+    const storedSession = await getStoredSession(sessionId)
+    if (!storedSession) {
+      return undefined
+    }
+    upsertSession(storedSession)
+    return storedSession
   }
   return clone(session)
 }
 
-export const createSession = (title: string = `Chat ${sessions.length + 1}`): ChatCoordinatorSession => {
+export const createSession = async (title: string = ''): Promise<ChatCoordinatorSession> => {
+  await ensureHydrated()
   const session: ChatCoordinatorSession = {
     id: crypto.randomUUID(),
     messages: [],
-    title,
+    title: title || `Chat ${sessions.length + 1}`,
   }
   sessions.push(session)
+  await persistSession(session.id)
   emitEvent({
     session,
     type: 'session-created',
@@ -190,12 +399,14 @@ export const createSession = (title: string = `Chat ${sessions.length + 1}`): Ch
   return clone(session)
 }
 
-export const deleteSession = (sessionId: string): boolean => {
+export const deleteSession = async (sessionId: string): Promise<boolean> => {
+  await ensureHydrated()
   const index = getSessionIndex(sessionId)
   if (index === -1) {
     return false
   }
   sessions.splice(index, 1)
+  await deleteChatSession(sessionId)
   emitEvent({
     sessionId,
     type: 'session-deleted',
@@ -203,7 +414,8 @@ export const deleteSession = (sessionId: string): boolean => {
   return true
 }
 
-export const submit = (options: Readonly<ChatCoordinatorSubmitOptions>): ChatCoordinatorSubmitResult => {
+export const submit = async (options: Readonly<ChatCoordinatorSubmitOptions>): Promise<ChatCoordinatorSubmitResult> => {
+  await ensureHydrated()
   const text = options.text.trim()
   if (!text) {
     return {
@@ -213,8 +425,15 @@ export const submit = (options: Readonly<ChatCoordinatorSubmitOptions>): ChatCoo
   }
 
   let session = options.sessionId ? sessions.find((item) => item.id === options.sessionId) : undefined
+  if (!session && options.sessionId) {
+    const storedSession = await getStoredSession(options.sessionId)
+    if (storedSession) {
+      upsertSession(storedSession)
+      session = storedSession
+    }
+  }
   if (!session) {
-    session = createSession()
+    session = await createSession()
   }
 
   if (activeRunBySessionId.has(session.id)) {
@@ -229,9 +448,9 @@ export const submit = (options: Readonly<ChatCoordinatorSubmitOptions>): ChatCoo
     ...createMessage('assistant', ''),
     inProgress: true,
   }
-  appendMessage(session.id, userMessage)
-  appendMessage(session.id, assistantMessage)
-  const updatedSession = getSession(session.id)
+  await appendMessage(session.id, userMessage)
+  await appendMessage(session.id, assistantMessage)
+  const updatedSession = await getSession(session.id)
   if (updatedSession) {
     emitEvent({
       session: updatedSession,
@@ -262,6 +481,108 @@ export const submit = (options: Readonly<ChatCoordinatorSubmitOptions>): ChatCoo
     type: 'run-started',
   })
   const runPromise = processRun(runId, session.id, assistantMessage.id, text)
+  runPromises.set(runId, runPromise)
+
+  return {
+    assistantMessageId: assistantMessage.id,
+    runId,
+    sessionId: session.id,
+    type: 'success',
+    userMessageId: userMessage.id,
+  }
+}
+
+export const handleSubmit = async (options: Readonly<ChatCoordinatorHandleSubmitOptions>): Promise<ChatCoordinatorHandleSubmitResult> => {
+  useRpcChatSessionStorage()
+  await ensureHydrated()
+  const text = options.userText.trim()
+  if (!text) {
+    return {
+      message: 'Prompt is empty.',
+      type: 'error',
+    }
+  }
+
+  let session = options.sessionId ? sessions.find((item) => item.id === options.sessionId) : undefined
+  if (!session && options.sessionId) {
+    const storedSession = await getStoredSession(options.sessionId)
+    if (storedSession) {
+      upsertSession(storedSession)
+      session = storedSession
+    }
+  }
+  if (!session) {
+    session = {
+      id: crypto.randomUUID(),
+      messages: [],
+      ...(options.projectId
+        ? {
+            projectId: options.projectId,
+          }
+        : {}),
+      title: `Chat ${sessions.length + 1}`,
+    }
+    sessions.push(clone(session))
+    await persistSession(session.id)
+    emitEvent({
+      session: clone(session),
+      type: 'session-created',
+    })
+  }
+
+  if (activeRunBySessionId.has(session.id)) {
+    return {
+      message: 'Session already has an active run.',
+      type: 'error',
+    }
+  }
+
+  await appendChatViewEvent({
+    sessionId: session.id,
+    timestamp: new Date().toISOString(),
+    type: 'handle-submit',
+    value: text,
+  })
+
+  const userMessage = createMessage('user', text)
+  const assistantMessage: ChatCoordinatorMessage = {
+    ...createMessage('assistant', ''),
+    inProgress: true,
+  }
+  const aiMessages = [...session.messages.filter((message) => !message.inProgress), ...(options.contextMessages || []), userMessage]
+  await appendMessage(session.id, userMessage)
+  await appendMessage(session.id, assistantMessage)
+  const updatedSession = await getSession(session.id)
+  if (updatedSession) {
+    emitEvent({
+      session: updatedSession,
+      type: 'session-updated',
+    })
+  }
+  emitEvent({
+    message: clone(userMessage),
+    sessionId: session.id,
+    type: 'message-appended',
+  })
+  emitEvent({
+    message: clone(assistantMessage),
+    sessionId: session.id,
+    type: 'message-appended',
+  })
+
+  const runId = crypto.randomUUID()
+  activeRunBySessionId.set(session.id, runId)
+  runById.set(runId, {
+    assistantMessageId: assistantMessage.id,
+    sessionId: session.id,
+  })
+  emitEvent({
+    assistantMessageId: assistantMessage.id,
+    runId,
+    sessionId: session.id,
+    type: 'run-started',
+  })
+  const runPromise = processHandleSubmitRun(runId, session.id, assistantMessage.id, aiMessages, options)
   runPromises.set(runId, runPromise)
 
   return {
@@ -333,6 +654,7 @@ export const reset = (): void => {
   cancelledRunIds.clear()
   runPromises.clear()
   subscriberWaiters.clear()
+  hydrated = false
 }
 
 export const awaitRun = async (runId: string): Promise<void> => {

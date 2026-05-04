@@ -10,6 +10,7 @@ export type { Project } from '../Project/Project.ts'
 export type { ChatSession } from '../ChatSession/ChatSession.ts'
 export type { ChatViewFocus } from '../ChatViewFocus/ChatViewFocus.ts'
 export type { ChatViewMode } from '../ChatViewMode/ChatViewMode.ts'
+import type { ComposerAttachment } from '../ComposerAttachment/ComposerAttachment.ts'
 
 export interface ChatState {
   readonly aiSessionTitleGenerationEnabled: boolean
@@ -18,6 +19,7 @@ export interface ChatState {
   readonly chatMessageFontFamily: string
   readonly chatMessageFontSize: number
   readonly chatMessageLineHeight: number
+  readonly composerAttachments: readonly ComposerAttachment[]
   readonly composerDropActive: boolean
   readonly composerDropEnabled: boolean
   readonly composerFontFamily: string

@@ -12,7 +12,7 @@ export interface ChatToolCall {
 export interface ChatMessage {
   readonly id: string
   readonly inProgress?: boolean
-  readonly role: 'user' | 'assistant'
+  readonly role: 'user' | 'assistant' | 'tool'
   readonly text: string
   readonly time: string
   readonly toolCalls?: readonly ChatToolCall[]

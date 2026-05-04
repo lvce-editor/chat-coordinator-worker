@@ -1,14 +1,19 @@
+import type { ChatToolCall } from '../ChatMessage/ChatMessage.ts'
+import type { ChatModel } from '../ChatModel/ChatModel.ts'
+
 export interface ChatCoordinatorMessage {
   readonly id: string
   readonly inProgress?: boolean
   readonly role: 'assistant' | 'tool' | 'user'
   readonly text: string
   readonly time: string
+  readonly toolCalls?: readonly ChatToolCall[]
 }
 
 export interface ChatCoordinatorSession {
   readonly id: string
   readonly messages: readonly ChatCoordinatorMessage[]
+  readonly projectId?: string
   readonly title: string
 }
 
@@ -21,6 +26,29 @@ export interface ChatCoordinatorSessionSummary {
 export interface ChatCoordinatorSubmitOptions {
   readonly sessionId?: string
   readonly text: string
+}
+
+export interface ChatCoordinatorHandleSubmitOptions {
+  readonly aiSessionTitleGenerationEnabled?: boolean
+  readonly assetDir: string
+  readonly contextMessages?: readonly ChatCoordinatorMessage[]
+  readonly mockAiResponseDelay?: number
+  readonly mockApiCommandId: string
+  readonly models: readonly ChatModel[]
+  readonly openApiApiBaseUrl: string
+  readonly openApiApiKey: string
+  readonly openRouterApiBaseUrl: string
+  readonly openRouterApiKey: string
+  readonly passIncludeObfuscation?: boolean
+  readonly platform: number
+  readonly projectId?: string
+  readonly selectedModelId: string
+  readonly sessionId?: string
+  readonly streamingEnabled?: boolean
+  readonly useChatNetworkWorkerForRequests?: boolean
+  readonly useMockApi: boolean
+  readonly userText: string
+  readonly webSearchEnabled?: boolean
 }
 
 export interface ChatCoordinatorSubmitErrorResult {
@@ -36,7 +64,21 @@ export interface ChatCoordinatorSubmitSuccessResult {
   readonly userMessageId: string
 }
 
+export interface ChatCoordinatorHandleSubmitErrorResult {
+  readonly message: string
+  readonly type: 'error'
+}
+
+export interface ChatCoordinatorHandleSubmitSuccessResult {
+  readonly assistantMessageId: string
+  readonly runId: string
+  readonly sessionId: string
+  readonly type: 'success'
+  readonly userMessageId: string
+}
+
 export type ChatCoordinatorSubmitResult = ChatCoordinatorSubmitErrorResult | ChatCoordinatorSubmitSuccessResult
+export type ChatCoordinatorHandleSubmitResult = ChatCoordinatorHandleSubmitErrorResult | ChatCoordinatorHandleSubmitSuccessResult
 
 export interface ChatCoordinatorSessionCreatedEvent {
   readonly session: ChatCoordinatorSession
