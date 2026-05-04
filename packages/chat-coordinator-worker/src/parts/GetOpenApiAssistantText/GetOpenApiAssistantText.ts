@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 import type { ChatMessage } from '../ChatMessage/ChatMessage.ts'
 import type { GetOpenApiAssistantTextErrorResult } from '../GetOpenApiAssistantTextErrorResult/GetOpenApiAssistantTextErrorResult.ts'
 import type { GetOpenApiAssistantTextOptions } from '../GetOpenApiAssistantTextOptions/GetOpenApiAssistantTextOptions.ts'

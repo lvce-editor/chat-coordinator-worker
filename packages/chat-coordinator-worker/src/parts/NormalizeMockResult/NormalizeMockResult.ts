@@ -1,6 +1,6 @@
-import {
-  type GetOpenRouterAssistantTextErrorResult,
-  type GetOpenRouterAssistantTextSuccessResult,
+import type {
+  GetOpenRouterAssistantTextErrorResult,
+  GetOpenRouterAssistantTextSuccessResult,
 } from '../GetOpenRouterAssistantText/GetOpenRouterAssistantText.ts'
 import { normalizeLimitInfo } from '../NormalizeLimitInfo/NormalizeLimitInfo.ts'
 

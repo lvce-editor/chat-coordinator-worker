@@ -13,7 +13,7 @@ export const getDroppedFiles = async (fileHandles: readonly number[]): Promise<r
           return item
         },
       }
-    }) as any as readonly FileSystemFileHandle[]
+    })
   }
   const actualHandles = await RendererWorker.getFileHandles(fileHandles)
   return actualHandles

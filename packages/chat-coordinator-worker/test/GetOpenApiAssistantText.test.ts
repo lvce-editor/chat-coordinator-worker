@@ -21,14 +21,14 @@ const getRequestBodyFromInit = (init: unknown): Record<string, unknown> => {
 test('getOpenApiAssistantText should include x-client-request-id header', async () => {
   const originalFetch = globalThis.fetch
   let fetchInvocation: readonly unknown[] | undefined
-  globalThis.fetch = (async (...args: readonly unknown[]) => {
+  globalThis.fetch = async (...args: readonly unknown[]) => {
     fetchInvocation = args
     return {
       json: async () => ({ output_text: 'hello from openai' }),
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     const result = await getOpenApiAssistantText(
@@ -62,9 +62,9 @@ test('getOpenApiAssistantText should include x-client-request-id header', async 
       method: 'POST',
     })
 
-    const requestId = getRequestIdFromInit(fetchInvocation?.[1] as RequestInit | undefined)
+    const requestId = getRequestIdFromInit(fetchInvocation?.[1])
     expect(requestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
-    const requestBody = getRequestBodyFromInit(fetchInvocation?.[1] as RequestInit | undefined)
+    const requestBody = getRequestBodyFromInit(fetchInvocation?.[1])
     expect(requestBody.include_obfuscation).toBeUndefined()
     expect(requestBody.stream_options).toBeUndefined()
   } finally {
@@ -76,7 +76,7 @@ test('getOpenApiAssistantText should send follow-up request when streaming funct
   const originalFetch = globalThis.fetch
   const fetchInvocations: Array<readonly unknown[]> = []
   let requestCount = 0
-  globalThis.fetch = (async (...args: readonly unknown[]) => {
+  globalThis.fetch = async (...args: readonly unknown[]) => {
     fetchInvocations.push(args)
     requestCount += 1
     const firstResponseChunks = [
@@ -108,7 +108,7 @@ test('getOpenApiAssistantText should send follow-up request when streaming funct
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     const result = await getOpenApiAssistantText(
@@ -135,7 +135,7 @@ test('getOpenApiAssistantText should send follow-up request when streaming funct
       type: 'success',
     })
     expect(fetchInvocations).toHaveLength(2)
-    const secondRequestBody = getRequestBodyFromInit(fetchInvocations[1][1] as RequestInit | undefined)
+    const secondRequestBody = getRequestBodyFromInit(fetchInvocations[1][1])
     expect(secondRequestBody.previous_response_id).toBe('resp_item_id')
     expect(secondRequestBody.input).toEqual([
       {
@@ -151,14 +151,14 @@ test('getOpenApiAssistantText should send follow-up request when streaming funct
 test('getOpenApiAssistantText should include include_obfuscation in stream_options when streaming and includeObfuscation is false', async () => {
   const originalFetch = globalThis.fetch
   let fetchInvocation: readonly unknown[] | undefined
-  globalThis.fetch = (async (...args: readonly unknown[]) => {
+  globalThis.fetch = async (...args: readonly unknown[]) => {
     fetchInvocation = args
     return {
       json: async () => ({ output_text: 'hello from openai' }),
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     await getOpenApiAssistantText(
@@ -180,7 +180,7 @@ test('getOpenApiAssistantText should include include_obfuscation in stream_optio
         stream: true,
       },
     )
-    const requestBody = getRequestBodyFromInit(fetchInvocation?.[1] as RequestInit | undefined)
+    const requestBody = getRequestBodyFromInit(fetchInvocation?.[1])
     expect(requestBody.include_obfuscation).toBeUndefined()
     expect(requestBody.stream_options).toEqual({
       include_obfuscation: false,
@@ -193,14 +193,14 @@ test('getOpenApiAssistantText should include include_obfuscation in stream_optio
 test('getOpenApiAssistantText should not include include_obfuscation when includeObfuscation is true', async () => {
   const originalFetch = globalThis.fetch
   let fetchInvocation: readonly unknown[] | undefined
-  globalThis.fetch = (async (...args: readonly unknown[]) => {
+  globalThis.fetch = async (...args: readonly unknown[]) => {
     fetchInvocation = args
     return {
       json: async () => ({ output_text: 'hello from openai' }),
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     await getOpenApiAssistantText(
@@ -222,7 +222,7 @@ test('getOpenApiAssistantText should not include include_obfuscation when includ
         stream: true,
       },
     )
-    const requestBody = getRequestBodyFromInit(fetchInvocation?.[1] as RequestInit | undefined)
+    const requestBody = getRequestBodyFromInit(fetchInvocation?.[1])
     expect(requestBody.include_obfuscation).toBeUndefined()
     expect(requestBody.stream_options).toBeUndefined()
   } finally {
@@ -233,14 +233,14 @@ test('getOpenApiAssistantText should not include include_obfuscation when includ
 test('getOpenApiAssistantText should include web_search tool when webSearchEnabled is true', async () => {
   const originalFetch = globalThis.fetch
   let fetchInvocation: readonly unknown[] | undefined
-  globalThis.fetch = (async (...args: readonly unknown[]) => {
+  globalThis.fetch = async (...args: readonly unknown[]) => {
     fetchInvocation = args
     return {
       json: async () => ({ output_text: 'hello from openai' }),
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     await getOpenApiAssistantText(
@@ -262,7 +262,7 @@ test('getOpenApiAssistantText should include web_search tool when webSearchEnabl
         webSearchEnabled: true,
       },
     )
-    const requestBody = getRequestBodyFromInit(fetchInvocation?.[1] as RequestInit | undefined)
+    const requestBody = getRequestBodyFromInit(fetchInvocation?.[1])
     const tools = Array.isArray(requestBody.tools) ? requestBody.tools : []
     expect(tools).toContainEqual({ type: 'web_search' })
   } finally {
@@ -273,14 +273,14 @@ test('getOpenApiAssistantText should include web_search tool when webSearchEnabl
 test('getOpenApiAssistantText should not include web_search tool when webSearchEnabled is false', async () => {
   const originalFetch = globalThis.fetch
   let fetchInvocation: readonly unknown[] | undefined
-  globalThis.fetch = (async (...args: readonly unknown[]) => {
+  globalThis.fetch = async (...args: readonly unknown[]) => {
     fetchInvocation = args
     return {
       json: async () => ({ output_text: 'hello from openai' }),
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     await getOpenApiAssistantText(
@@ -302,7 +302,7 @@ test('getOpenApiAssistantText should not include web_search tool when webSearchE
         webSearchEnabled: false,
       },
     )
-    const requestBody = getRequestBodyFromInit(fetchInvocation?.[1] as RequestInit | undefined)
+    const requestBody = getRequestBodyFromInit(fetchInvocation?.[1])
     const tools = Array.isArray(requestBody.tools) ? requestBody.tools : []
     expect(tools).not.toContainEqual({ type: 'web_search' })
   } finally {
@@ -314,7 +314,7 @@ test('getOpenApiAssistantText should execute streaming tool calls and send autom
   const originalFetch = globalThis.fetch
   const fetchInvocations: Array<readonly unknown[]> = []
   let requestCount = 0
-  globalThis.fetch = (async (...args: readonly unknown[]) => {
+  globalThis.fetch = async (...args: readonly unknown[]) => {
     fetchInvocations.push(args)
     requestCount += 1
     const firstResponseChunks = [
@@ -346,7 +346,7 @@ test('getOpenApiAssistantText should execute streaming tool calls and send autom
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   const dataEvents: unknown[] = []
   const toolCallsChunks: unknown[] = []
@@ -386,7 +386,7 @@ test('getOpenApiAssistantText should execute streaming tool calls and send autom
       type: 'success',
     })
     expect(fetchInvocations).toHaveLength(2)
-    const secondRequestBody = getRequestBodyFromInit(fetchInvocations[1][1] as RequestInit | undefined)
+    const secondRequestBody = getRequestBodyFromInit(fetchInvocations[1][1])
     expect(secondRequestBody.previous_response_id).toBe('resp_1')
     expect(secondRequestBody.input).toEqual([
       {
@@ -422,7 +422,7 @@ test('getOpenApiAssistantText should include error stack in failed tool call chu
   const originalFetch = globalThis.fetch
   const fetchInvocations: Array<readonly unknown[]> = []
   let requestCount = 0
-  globalThis.fetch = (async (...args: readonly unknown[]) => {
+  globalThis.fetch = async (...args: readonly unknown[]) => {
     fetchInvocations.push(args)
     requestCount += 1
     const firstResponseChunks = [
@@ -454,7 +454,7 @@ test('getOpenApiAssistantText should include error stack in failed tool call chu
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   const toolCallsChunks: unknown[] = []
   try {
@@ -486,7 +486,7 @@ test('getOpenApiAssistantText should include error stack in failed tool call chu
     })
     expect(mockRendererRpc.invocations).toEqual([['FileSystem.readFile', 'file:///workspace/src/main.ts']])
     expect(fetchInvocations).toHaveLength(2)
-    const secondRequestBody = getRequestBodyFromInit(fetchInvocations[1][1] as RequestInit | undefined)
+    const secondRequestBody = getRequestBodyFromInit(fetchInvocations[1][1])
     const input = secondRequestBody.input as readonly Record<string, unknown>[]
     const firstOutput = JSON.parse(String(input[0].output)) as Record<string, unknown>
     expect(firstOutput.errorStack).toBe("TypeError: Cannot read properties of undefined (reading 'invoke')\n    at test:1:1")

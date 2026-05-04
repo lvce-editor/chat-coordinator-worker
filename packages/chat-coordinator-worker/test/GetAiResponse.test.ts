@@ -11,7 +11,7 @@ import * as MockOpenApiStream from '../src/parts/MockOpenApiStream/MockOpenApiSt
 
 test('getAiResponse should include OpenRouter raw 429 metadata message in assistant text', async () => {
   const originalFetch = globalThis.fetch
-  globalThis.fetch = (async (input: unknown) => {
+  globalThis.fetch = async (input: unknown) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input instanceof Request ? input.url : ''
     if (url.endsWith('/chat/completions')) {
       return {
@@ -32,7 +32,7 @@ test('getAiResponse should include OpenRouter raw 429 metadata message in assist
       ok: false,
       status: 500,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     const result = await getAiResponse({
@@ -263,7 +263,7 @@ test('getAiResponse should use mock streaming chunks for OpenAPI model when mock
 
 test('getAiResponse should include OpenAI 429 quota error message details in assistant text', async () => {
   const originalFetch = globalThis.fetch
-  globalThis.fetch = (async () => {
+  globalThis.fetch = async () => {
     return {
       json: async () => ({
         error: {
@@ -277,7 +277,7 @@ test('getAiResponse should include OpenAI 429 quota error message details in ass
       ok: false,
       status: 429,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     const result = await getAiResponse({
@@ -313,7 +313,7 @@ test('getAiResponse should include OpenAI 429 quota error message details in ass
 
 test('getAiResponse should include OpenAI http error details for non-429 responses', async () => {
   const originalFetch = globalThis.fetch
-  globalThis.fetch = (async () => {
+  globalThis.fetch = async () => {
     return {
       json: async () => ({
         error: {
@@ -325,7 +325,7 @@ test('getAiResponse should include OpenAI http error details for non-429 respons
       ok: false,
       status: 401,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     const result = await getAiResponse({
@@ -360,13 +360,13 @@ test('getAiResponse should include OpenAI http error details for non-429 respons
 
 test('getAiResponse should fall back to generic OpenAI request failed message when no error payload is returned', async () => {
   const originalFetch = globalThis.fetch
-  globalThis.fetch = (async () => {
+  globalThis.fetch = async () => {
     return {
       json: async () => ({}),
       ok: false,
       status: 500,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     const result = await getAiResponse({
@@ -403,7 +403,7 @@ test('getAiResponse should fall back to generic OpenAI request failed message wh
 test('getAiResponse should stream OpenAI chunks when enabled', async () => {
   const originalFetch = globalThis.fetch
   let requestedUrl = ''
-  globalThis.fetch = (async (input: unknown) => {
+  globalThis.fetch = async (input: unknown) => {
     requestedUrl = typeof input === 'string' ? input : input instanceof URL ? input.href : input instanceof Request ? input.url : ''
     const chunks = [
       'data: {"type":"response.output_text.delta","delta":"Hello"}\n\n',
@@ -427,7 +427,7 @@ test('getAiResponse should stream OpenAI chunks when enabled', async () => {
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   const streamedChunks: string[] = []
   try {

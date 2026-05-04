@@ -15,7 +15,7 @@ const getReadableStream = (chunks: readonly string[]): ReadableStream<Uint8Array
 
 test('makeApiRequest should return parsed json on success', async () => {
   const originalFetch = globalThis.fetch
-  globalThis.fetch = (async () => {
+  globalThis.fetch = async () => {
     return {
       headers: new Headers({
         'content-type': 'application/json',
@@ -24,7 +24,7 @@ test('makeApiRequest should return parsed json on success', async () => {
       status: 200,
       text: async () => '{"message":"ok"}',
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     const result = await makeApiRequest({
@@ -51,7 +51,7 @@ test('makeApiRequest should return parsed json on success', async () => {
 
 test('makeApiRequest should return error object when http request fails', async () => {
   const originalFetch = globalThis.fetch
-  globalThis.fetch = (async () => {
+  globalThis.fetch = async () => {
     return {
       headers: new Headers({
         'content-type': 'text/plain',
@@ -60,7 +60,7 @@ test('makeApiRequest should return error object when http request fails', async 
       status: 401,
       text: async () => 'unauthorized',
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     const result = await makeApiRequest({
@@ -82,9 +82,9 @@ test('makeApiRequest should return error object when http request fails', async 
 
 test('makeApiRequest should return error object when fetch throws', async () => {
   const originalFetch = globalThis.fetch
-  globalThis.fetch = (async () => {
+  globalThis.fetch = async () => {
     throw new Error('network failure')
-  }) as typeof globalThis.fetch
+  }
 
   try {
     const result = await makeApiRequest({
@@ -104,7 +104,7 @@ test('makeApiRequest should return error object when fetch throws', async () => 
 
 test('makeStreamingApiRequest should parse server side events', async () => {
   const originalFetch = globalThis.fetch
-  globalThis.fetch = (async () => {
+  globalThis.fetch = async () => {
     return {
       body: getReadableStream(['data: {"id":"1"}\n\n', 'event: ping\n', 'data: plain text\n\n', 'data: [DONE]\n\n']),
       headers: new Headers({
@@ -113,7 +113,7 @@ test('makeStreamingApiRequest should parse server side events', async () => {
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     const result = await makeStreamingApiRequest({
@@ -138,7 +138,7 @@ test('makeStreamingApiRequest should parse server side events', async () => {
 
 test('makeStreamingApiRequest should return error object for non-ok status', async () => {
   const originalFetch = globalThis.fetch
-  globalThis.fetch = (async () => {
+  globalThis.fetch = async () => {
     return {
       headers: new Headers({
         'content-type': 'application/json',
@@ -147,7 +147,7 @@ test('makeStreamingApiRequest should return error object for non-ok status', asy
       status: 500,
       text: async () => '{"error":"failed"}',
     } as Response
-  }) as typeof globalThis.fetch
+  }
 
   try {
     const result = await makeStreamingApiRequest({
