@@ -92,7 +92,7 @@ test('ai loop iteration stores response headers with the response body', async (
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         id: '00000000-0000-4000-8000-000000000101',
         message: {
@@ -108,6 +108,20 @@ test('ai loop iteration stores response headers with the response body', async (
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: '00000000-0000-4000-8000-000000000101',
+          role: 'assistant',
+          text: 'Hello from assistant',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
       },
     ],
     [
@@ -318,7 +332,7 @@ test('ai loop iteration resumes from stored tool call results and makes the next
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         id: '00000000-0000-4000-8000-000000000103',
         message: {
@@ -334,6 +348,20 @@ test('ai loop iteration resumes from stored tool call results and makes the next
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: '00000000-0000-4000-8000-000000000103',
+          role: 'assistant',
+          text: 'Follow-up answer',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
       },
     ],
     [
@@ -488,7 +516,7 @@ test('ai loop iteration replays stored assistant messages with assistant role', 
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         id: '00000000-0000-4000-8000-000000000105',
         message: {
@@ -504,6 +532,20 @@ test('ai loop iteration replays stored assistant messages with assistant role', 
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: '00000000-0000-4000-8000-000000000105',
+          role: 'assistant',
+          text: 'Another answer',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
       },
     ],
     [
