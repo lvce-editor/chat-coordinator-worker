@@ -32,7 +32,7 @@ test('getAiResponse should include OpenRouter raw 429 metadata message in assist
       ok: false,
       status: 500,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await getAiResponse({
@@ -277,7 +277,7 @@ test('getAiResponse should include OpenAI 429 quota error message details in ass
       ok: false,
       status: 429,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await getAiResponse({
@@ -325,7 +325,7 @@ test('getAiResponse should include OpenAI http error details for non-429 respons
       ok: false,
       status: 401,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await getAiResponse({
@@ -366,7 +366,7 @@ test('getAiResponse should fall back to generic OpenAI request failed message wh
       ok: false,
       status: 500,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await getAiResponse({
@@ -427,7 +427,7 @@ test('getAiResponse should stream OpenAI chunks when enabled', async () => {
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   const streamedChunks: string[] = []
   try {

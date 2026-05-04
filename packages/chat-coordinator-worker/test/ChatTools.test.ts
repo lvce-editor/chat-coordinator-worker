@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
+ 
 import { expect, test } from '@jest/globals'
 import { RendererWorker } from '@lvce-editor/rpc-registry'
 import { executeChatTool, getBasicChatTools } from '../src/parts/ChatTools/ChatTools.ts'

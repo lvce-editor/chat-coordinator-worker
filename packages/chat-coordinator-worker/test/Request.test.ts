@@ -24,7 +24,7 @@ test('makeApiRequest should return parsed json on success', async () => {
       status: 200,
       text: async () => '{"message":"ok"}',
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await makeApiRequest({
@@ -60,7 +60,7 @@ test('makeApiRequest should return error object when http request fails', async 
       status: 401,
       text: async () => 'unauthorized',
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await makeApiRequest({
@@ -84,7 +84,7 @@ test('makeApiRequest should return error object when fetch throws', async () => 
   const originalFetch = globalThis.fetch
   globalThis.fetch = (async () => {
     throw new Error('network failure')
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await makeApiRequest({
@@ -113,7 +113,7 @@ test('makeStreamingApiRequest should parse server side events', async () => {
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await makeStreamingApiRequest({
@@ -147,7 +147,7 @@ test('makeStreamingApiRequest should return error object for non-ok status', asy
       status: 500,
       text: async () => '{"error":"failed"}',
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await makeStreamingApiRequest({

@@ -27,7 +27,7 @@ test('getOpenRouterAssistantText should return success result when response is o
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await getOpenRouterAssistantText(
@@ -71,7 +71,7 @@ test('getOpenRouterAssistantText should return success result when response is o
       },
       method: 'POST',
     })
-    const requestId = getRequestIdFromInit(fetchInvocation?.[1] as RequestInit | undefined)
+    const requestId = getRequestIdFromInit(fetchInvocation?.[1])
     expect(requestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
     const payload = parseJsonRequestBody((fetchInvocation?.[1] as RequestInit | undefined)?.body)
     expect(payload.messages).toEqual([
@@ -106,7 +106,7 @@ test('getOpenRouterAssistantText should return request-failed error result when 
   const originalFetch = globalThis.fetch
   globalThis.fetch = (async () => {
     throw new Error('network failure')
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await getOpenRouterAssistantText(
@@ -140,7 +140,7 @@ test('getOpenRouterAssistantText should return too-many-requests error result fo
       ok: false,
       status: 429,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await getOpenRouterAssistantText(
@@ -202,7 +202,7 @@ test('getOpenRouterAssistantText should include limit info for 429 when auth key
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await getOpenRouterAssistantText(
@@ -263,7 +263,7 @@ test('getOpenRouterAssistantText should include raw metadata message for 429', a
       ok: false,
       status: 500,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await getOpenRouterAssistantText(
@@ -337,7 +337,7 @@ test('getOpenRouterAssistantText should execute read_file tool calls and continu
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await getOpenRouterAssistantText(
@@ -404,7 +404,7 @@ test('getOpenRouterAssistantText should block tool paths outside workspace', asy
       ok: true,
       status: 200,
     } as Response
-  }) as typeof globalThis.fetch
+  })
 
   try {
     const result = await getOpenRouterAssistantText(
