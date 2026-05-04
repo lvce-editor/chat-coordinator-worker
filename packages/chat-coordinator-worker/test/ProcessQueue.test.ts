@@ -257,7 +257,7 @@ test('process queue resolves only after the requested session version has been p
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         id: '00000000-0000-4000-8000-000000000001',
         message: {
@@ -273,6 +273,20 @@ test('process queue resolves only after the requested session version has been p
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: '00000000-0000-4000-8000-000000000001',
+          role: 'assistant',
+          text: 'First answer',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
       },
     ],
     [
@@ -326,7 +340,7 @@ test('process queue resolves only after the requested session version has been p
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         id: '00000000-0000-4000-8000-000000000002',
         message: {
@@ -342,6 +356,20 @@ test('process queue resolves only after the requested session version has been p
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: '00000000-0000-4000-8000-000000000002',
+          role: 'assistant',
+          text: 'Second answer',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
       },
     ],
     [
@@ -490,7 +518,7 @@ test('process queue requeues the same session after tool calls and resolves afte
       },
     ],
     [
-      'ChatStorage.appendEvent',
+      'ChatStorage.appendDebugEvent',
       {
         id: '00000000-0000-4000-8000-000000000011',
         message: {
@@ -506,6 +534,20 @@ test('process queue requeues the same session after tool calls and resolves afte
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
         type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: '00000000-0000-4000-8000-000000000011',
+          role: 'assistant',
+          text: 'Tool call follow-up',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
       },
     ],
     [
