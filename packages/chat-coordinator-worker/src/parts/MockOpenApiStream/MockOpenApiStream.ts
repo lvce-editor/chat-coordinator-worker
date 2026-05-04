@@ -39,6 +39,18 @@ export const setHttpErrorResponse = (statusCode: number, body: unknown): void =>
   }
 }
 
+export const setRequestFailedResponse = (isOffline: boolean = false): void => {
+  errorResult = {
+    details: 'request-failed',
+    ...(isOffline
+      ? {
+          isOffline: true,
+        }
+      : {}),
+    type: 'error',
+  }
+}
+
 export const takeErrorResponse = (): GetOpenApiAssistantTextErrorResult | undefined => {
   const error = errorResult
   errorResult = undefined
@@ -76,4 +88,20 @@ export const readNextChunk = async (): Promise<string | undefined> => {
   const { promise, resolve } = Promise.withResolvers<string | undefined>()
   waiters.push(resolve)
   return promise
+}
+
+export const consumeResponseText = async (): Promise<string | undefined> => {
+  if (queue.length === 0 && !finished) {
+    return undefined
+  }
+  const chunks: string[] = []
+  while (true) {
+    const chunk = await readNextChunk()
+    if (chunk === undefined) {
+      break
+    }
+    chunks.push(chunk)
+  }
+  reset()
+  return chunks.join('')
 }
