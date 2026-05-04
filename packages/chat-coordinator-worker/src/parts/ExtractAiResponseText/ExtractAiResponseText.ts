@@ -7,8 +7,8 @@ interface ResponseContentPart {
 
 interface ResponseOutputItem {
   readonly arguments?: string
-  readonly content?: readonly ResponseContentPart[]
   readonly call_id?: string
+  readonly content?: readonly ResponseContentPart[]
   readonly id?: string
   readonly type?: string
 }
