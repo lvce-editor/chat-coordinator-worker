@@ -1,11 +1,7 @@
 import { aiLoop } from '../AiLoop/AiLoop.ts'
 import { enqueueSessionId } from '../EnqueueSessionId/EnqueueSessionId.ts'
 import { getError } from '../GetError/GetError.ts'
-import {
-  pendingSessionIds,
-  pendingSessionWorkBySessionId,
-  setPendingWorkPromise,
-} from '../ProcessQueueState/ProcessQueueState.ts'
+import { pendingSessionIds, pendingSessionWorkBySessionId, setPendingWorkPromise } from '../ProcessQueueState/ProcessQueueState.ts'
 import { settleRejectedWaiters } from '../SettleRejectedWaiters/SettleRejectedWaiters.ts'
 import { settleResolvedWaiters } from '../SettleResolvedWaiters/SettleResolvedWaiters.ts'
 
