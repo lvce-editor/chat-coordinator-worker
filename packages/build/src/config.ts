@@ -3,7 +3,7 @@ import { root } from './root.ts'
 
 export const threshold = 620_000
 
-export const instantiations = 200_000
+export const instantiations = 300_000
 
 export const instantiationsPath = join(root, 'packages', 'chat-coordinator-worker')
 
