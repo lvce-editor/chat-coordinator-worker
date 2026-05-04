@@ -23,6 +23,117 @@ afterEach(() => {
   resetProcessQueue()
 })
 
+test('process queue returns immediately when no session work exists', async () => {
+  await expect(processQueue('missing-session')).resolves.toBeUndefined()
+})
+
+test('process queue returns immediately when no newer version is pending', async () => {
+  const appendEvent = jest.fn(async (_event: unknown) => undefined)
+  const getEvents = jest.fn(async () => {
+    return [
+      {
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'handle-submit',
+        value: 'Hello world',
+      },
+    ]
+  })
+  ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
+    'ChatStorage.appendEvent': appendEvent,
+    'ChatStorage.getEvents': getEvents,
+  })
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_1'],
+    ]),
+    json: async () => ({
+      id: 'resp_1',
+      output_text: 'First answer',
+      status: 'completed',
+    }),
+    ok: true,
+    status: 200,
+  } as any)
+
+  addPendingSessionWork({
+    headers: {
+      Authorization: 'Bearer test-key',
+      'Content-Type': 'application/json',
+    },
+    modelId: 'gpt-4.1-mini',
+    providerId: 'openai',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
+    turnId: 'turn-1',
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  await expect(processQueue('session-1')).resolves.toBeUndefined()
+  await expect(processQueue('session-1')).resolves.toBeUndefined()
+  expect(fetchSpy).toHaveBeenCalledTimes(1)
+
+  randomUUIDSpy.mockRestore()
+  dateSpy.mockRestore()
+})
+
+test('process queue rejects when ai loop returns an error', async () => {
+  const getEvents = jest.fn(async () => {
+    return [
+      {
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'handle-submit',
+        value: 'Hello world',
+      },
+    ]
+  })
+  ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
+    'ChatStorage.appendEvent': async (_event: unknown) => undefined,
+    'ChatStorage.getEvents': getEvents,
+  })
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000010')
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([['content-type', 'application/json']]),
+    json: async () => ({
+      error: {
+        message: 'rate limited',
+      },
+    }),
+    ok: false,
+    status: 429,
+  } as any)
+
+  addPendingSessionWork({
+    headers: {
+      Authorization: 'Bearer test-key',
+      'Content-Type': 'application/json',
+    },
+    modelId: 'gpt-4.1-mini',
+    providerId: 'openai',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
+    turnId: 'turn-1',
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  await expect(processQueue('session-1')).rejects.toEqual(new Error('[object Object]'))
+  expect(fetchSpy).toHaveBeenCalledTimes(1)
+
+  randomUUIDSpy.mockRestore()
+  dateSpy.mockRestore()
+})
+
 test('process queue resolves only after the requested session version has been processed', async () => {
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
   const getEvents = jest.fn(async () => {
