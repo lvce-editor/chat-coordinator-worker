@@ -41,7 +41,7 @@ test('process queue resolves only after the requested session version has been p
     'ChatStorage.getEvents': getEvents,
   })
   const realDate = globalThis.Date
-  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest
     .spyOn(crypto, 'randomUUID')
     .mockReturnValueOnce('00000000-0000-4000-8000-000000000001')
@@ -293,7 +293,7 @@ test('process queue requeues the same session after tool calls and resolves afte
     'ChatStorage.getEvents': async () => events,
   })
   const realDate = globalThis.Date
-  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z') as any)
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest
     .spyOn(crypto, 'randomUUID')
     .mockReturnValueOnce('00000000-0000-4000-8000-000000000010')
