@@ -3,8 +3,27 @@ import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { addPendingSessionWork, processQueue } from '../ProcessQueue/ProcessQueue.ts'
 
-export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
-  const { id, modelId, openAiKey, requestId, role, sessionId, systemPrompt, text } = options
+interface BaseSubmitOptions {
+  readonly id: string
+  readonly modelId: string
+  readonly providerId: string
+  readonly requestId: string
+  readonly role: 'user' | 'assistant'
+  readonly sessionId: string
+  readonly systemPrompt: string
+  readonly text: string
+}
+
+interface OpenAiSubmitOptions extends BaseSubmitOptions {
+  readonly openAiKey: string
+  readonly providerId: 'openai'
+  readonly url: 'https://api.openai.com/v1/responses'
+}
+
+type SubmitOptions = OpenAiSubmitOptions
+
+export const handleSubmit = async <T extends BaseSubmitOptions>(options: T): Promise<void> => {
+  const { id, modelId, requestId, role, sessionId, systemPrompt, text, ...rest } = options
   const date = new Date()
   const timestamp = date.toISOString()
 
@@ -26,17 +45,12 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
   })
 
   addPendingSessionWork({
-    headers: {
-      Authorization: `Bearer ${openAiKey}`,
-      'Content-Type': 'application/json',
-    },
     modelId,
-    providerId: 'openai',
     sessionId,
     systemPrompt,
     text,
     turnId: requestId,
-    url: 'https://api.openai.com/v1/responses',
+    ...rest,
   })
   await processQueue(sessionId)
 }
