@@ -10,15 +10,6 @@ const imageAttachment = {
   size: 67,
 } as const
 
-const textFileAttachment = {
-  attachmentId: 'attachment-2',
-  displayType: 'text-file',
-  mimeType: 'text/plain',
-  name: 'notes.txt',
-  size: 20,
-  textContent: 'hello from text file',
-} as const
-
 test('getAiRequestBody includes the system prompt and submit text', () => {
   expect(getAiRequestBody('You are a helpful assistant.', 'Hello world')).toEqual({
     input: [
