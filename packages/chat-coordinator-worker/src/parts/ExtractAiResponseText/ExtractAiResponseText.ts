@@ -19,8 +19,8 @@ interface ResponseWithOutputText {
 }
 
 interface ExtractAiResponseResult {
+  readonly newToolCalls: readonly ToolCall<unknown>[]
   readonly text: string | undefined
-  readonly toolCalls: readonly ToolCall<unknown>[]
 }
 
 const getOutputText = (outputText: string | readonly string[] | undefined): string | undefined => {
@@ -69,29 +69,29 @@ const getToolCall = (item: ResponseOutputItem): ToolCall<unknown> | undefined =>
 export const extractAiResponse = (data: unknown): ExtractAiResponseResult => {
   if (!data || typeof data !== 'object') {
     return {
+      newToolCalls: [],
       text: undefined,
-      toolCalls: [],
     }
   }
   const response = data as ResponseWithOutputText
   const outputText = getOutputText(response.output_text)
   if (outputText) {
     return {
+      newToolCalls: [],
       text: outputText,
-      toolCalls: [],
     }
   }
   if (!Array.isArray(response.output)) {
     return {
+      newToolCalls: [],
       text: undefined,
-      toolCalls: [],
     }
   }
   const text = response.output.map(getOutputItemText).join('')
   const toolCalls = response.output.map(getToolCall).filter((toolCall): toolCall is ToolCall<unknown> => !!toolCall)
   return {
+    newToolCalls: toolCalls,
     text: text || undefined,
-    toolCalls,
   }
 }
 
