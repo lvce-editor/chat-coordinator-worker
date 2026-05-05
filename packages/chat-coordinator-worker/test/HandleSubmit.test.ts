@@ -1,5 +1,6 @@
-import { expect, jest, test } from '@jest/globals'
+import { afterEach, expect, jest, test } from '@jest/globals'
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
+import { resetProcessQueue } from '../src/parts/ProcessQueue/ProcessQueue.ts'
 import { handleSubmit } from '../src/parts/HandleSubmit/HandleSubmit.ts'
 
 const imageAttachment = {
@@ -19,6 +20,11 @@ const textFileAttachment = {
   size: 20,
   textContent: 'hello from text file',
 } as const
+
+afterEach(() => {
+  jest.restoreAllMocks()
+  resetProcessQueue()
+})
 
 test('handle submit stores the openai response headers', async () => {
   const events: any[] = []
@@ -61,7 +67,7 @@ test('handle submit stores the openai response headers', async () => {
   })
 
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"model":"gpt-4.1-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"}],"model":"gpt-4.1-mini"}',
     headers: {
       Authorization: 'Bearer test-key',
       'Content-Type': 'application/json',
@@ -113,7 +119,12 @@ test('handle submit stores the openai response headers', async () => {
               role: 'system',
             },
             {
-              content: 'Hello world',
+              content: [
+                {
+                  text: 'Hello world',
+                  type: 'input_text',
+                },
+              ],
               role: 'user',
             },
           ],
@@ -186,9 +197,6 @@ test('handle submit stores the openai response headers', async () => {
       },
     ],
   ])
-  randomUUIDSpy.mockRestore()
-  dateSpy.mockRestore()
-  fetchSpy.mockRestore()
 })
 
 test('handle submit should append a missing key message instead of calling openai when the api key is empty', async () => {
@@ -289,9 +297,6 @@ test('handle submit should append a missing key message instead of calling opena
       },
     ],
   ])
-
-  dateSpy.mockRestore()
-  fetchSpy.mockRestore()
 })
 
 test('handle submit should persist attachments and send attachment-aware request input', async () => {
@@ -500,10 +505,6 @@ test('handle submit should persist attachments and send attachment-aware request
       },
     ],
   ])
-
-  randomUUIDSpy.mockRestore()
-  dateSpy.mockRestore()
-  fetchSpy.mockRestore()
 })
 
 test('handle submit should resolve after handled openai http errors', async () => {
@@ -596,7 +597,12 @@ test('handle submit should resolve after handled openai http errors', async () =
               role: 'system',
             },
             {
-              content: 'Hello world',
+              content: [
+                {
+                  text: 'Hello world',
+                  type: 'input_text',
+                },
+              ],
               role: 'user',
             },
           ],
@@ -666,10 +672,6 @@ test('handle submit should resolve after handled openai http errors', async () =
       },
     ],
   ])
-
-  randomUUIDSpy.mockRestore()
-  dateSpy.mockRestore()
-  fetchSpy.mockRestore()
 })
 
 test('handle submit should use backend requests when own backend is enabled', async () => {
@@ -715,7 +717,7 @@ test('handle submit should use backend requests when own backend is enabled', as
   ).resolves.toBeUndefined()
 
   expect(fetchSpy).toHaveBeenCalledWith('https://backend.example.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"model":"gpt-4.1-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"}],"model":"gpt-4.1-mini"}',
     headers: {
       Authorization: 'Bearer backend-token',
       'Content-Type': 'application/json',
@@ -767,7 +769,12 @@ test('handle submit should use backend requests when own backend is enabled', as
               role: 'system',
             },
             {
-              content: 'Hello world',
+              content: [
+                {
+                  text: 'Hello world',
+                  type: 'input_text',
+                },
+              ],
               role: 'user',
             },
           ],
@@ -837,8 +844,4 @@ test('handle submit should use backend requests when own backend is enabled', as
       },
     ],
   ])
-
-  randomUUIDSpy.mockRestore()
-  dateSpy.mockRestore()
-  fetchSpy.mockRestore()
 })
