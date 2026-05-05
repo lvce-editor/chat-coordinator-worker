@@ -1,10 +1,10 @@
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
 import type { AiRequestInput, AiRequestPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
-import { getAttachmentParts } from '../GetAttachmentParts/GetAttachmentParts.ts'
 import type { SubmitAttachment } from '../SubmitOptions/SubmitOptions.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
+import { getAttachmentParts } from '../GetAttachmentParts/GetAttachmentParts.ts'
 
 interface ToolCallsFinishedEvent {
   readonly sessionId: string

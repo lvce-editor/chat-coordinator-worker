@@ -1,8 +1,8 @@
 import type { AiRequestInput, AiRequestPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
-import { getAttachmentParts } from '../GetAttachmentParts/GetAttachmentParts.ts'
 import type { SubmitOptions } from '../SubmitOptions/SubmitOptions.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
+import { getAttachmentParts } from '../GetAttachmentParts/GetAttachmentParts.ts'
 import { addPendingSessionWork, processQueue } from '../ProcessQueue/ProcessQueue.ts'
 
 const openApiApiKeyRequiredMessage = 'OpenAI API key is not configured. Enter your OpenAI API key below and click Save.'
