@@ -83,7 +83,7 @@ test('process queue returns immediately when no newer version is pending', async
   dateSpy.mockRestore()
 })
 
-test('process queue rejects when ai loop returns an error', async () => {
+test('process queue resolves when ai loop returns an error', async () => {
   const getEvents = jest.fn(async () => {
     return [
       {
@@ -94,7 +94,7 @@ test('process queue rejects when ai loop returns an error', async () => {
       },
     ]
   })
-  ChatStorageWorker.registerMockRpc({
+  const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.appendEvent': async (_event: unknown) => undefined,
     'ChatStorage.getEvents': getEvents,
@@ -127,8 +127,88 @@ test('process queue rejects when ai loop returns an error', async () => {
     url: 'https://api.openai.com/v1/responses',
   })
 
-  await expect(processQueue('session-1')).rejects.toEqual(new Error('[object Object]'))
+  await expect(processQueue('session-1')).resolves.toBeUndefined()
   expect(fetchSpy).toHaveBeenCalledTimes(1)
+  expect(rpc.invocations).toEqual([
+    ['ChatStorage.getEvents', 'session-1'],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        body: {
+          input: [
+            {
+              content: 'You are a helpful assistant.',
+              role: 'system',
+            },
+            {
+              content: 'Hello world',
+              role: 'user',
+            },
+          ],
+          model: 'gpt-4.1-mini',
+        },
+        headers: {
+          Authorization: 'Bearer [redacted]',
+          'Content-Type': 'application/json',
+        },
+        method: 'POST',
+        requestId: '00000000-0000-4000-8000-000000000010',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        turnId: 'turn-1',
+        type: 'ai-request',
+      },
+    ],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        id: '00000000-0000-4000-8000-000000000010',
+        message: {
+          content: [
+            {
+              text: 'The AI request was rate limited. Please try again.',
+              type: 'text',
+            },
+          ],
+          role: 'assistant',
+        },
+        requestId: '00000000-0000-4000-8000-000000000010',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: '00000000-0000-4000-8000-000000000010',
+          role: 'assistant',
+          text: 'The AI request was rate limited. Please try again.',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
+      },
+    ],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        requestId: '00000000-0000-4000-8000-000000000010',
+        sessionId: 'session-1',
+        statusCode: 429,
+        timestamp: '2026-04-19T00:00:00.000Z',
+        turnId: 'turn-1',
+        type: 'ai-response',
+        value: {
+          error: {
+            message: 'rate limited',
+          },
+        },
+      },
+    ],
+  ])
 
   randomUUIDSpy.mockRestore()
   dateSpy.mockRestore()
