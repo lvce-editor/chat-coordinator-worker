@@ -656,6 +656,39 @@ test('ai loop iteration stores status code for non-2xx ai responses', async () =
     [
       'ChatStorage.appendDebugEvent',
       {
+        id: '00000000-0000-4000-8000-000000000104',
+        message: {
+          content: [
+            {
+              text: 'The AI request was rate limited. Please try again.',
+              type: 'text',
+            },
+          ],
+          role: 'assistant',
+        },
+        requestId: '00000000-0000-4000-8000-000000000104',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: '00000000-0000-4000-8000-000000000104',
+          role: 'assistant',
+          text: 'The AI request was rate limited. Please try again.',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
+      },
+    ],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
         requestId: '00000000-0000-4000-8000-000000000104',
         sessionId: 'session-1',
         statusCode: 429,
@@ -667,6 +700,118 @@ test('ai loop iteration stores status code for non-2xx ai responses', async () =
             message: 'rate limited',
           },
         },
+      },
+    ],
+  ])
+
+  randomUUIDSpy.mockRestore()
+  dateSpy.mockRestore()
+})
+
+test('ai loop iteration appends a visible assistant message when the ai request throws', async () => {
+  const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendDebugEvent': async () => undefined,
+    'ChatStorage.appendEvent': async () => undefined,
+    'ChatStorage.getEvents': async (sessionId: string) => [
+      {
+        sessionId,
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'handle-submit',
+        value: 'Hello world',
+      },
+    ],
+  })
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000105')
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('request failed'))
+
+  const result = await aiLoopIteration({
+    headers: {},
+    modelId: 'gpt-5-mini',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
+    toolCallResults: [],
+    toolCalls: [],
+    turnId: 'turn-1',
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    error: new Error('request failed'),
+    type: 'error',
+  })
+  expect(fetchSpy).toHaveBeenCalledTimes(1)
+  expect(appendEventMockRpc.invocations).toEqual([
+    ['ChatStorage.getEvents', 'session-1'],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        body: {
+          input: [
+            {
+              content: 'You are a helpful assistant.',
+              role: 'system',
+            },
+            {
+              content: 'Hello world',
+              role: 'user',
+            },
+          ],
+          model: 'gpt-5-mini',
+        },
+        headers: {},
+        method: 'POST',
+        requestId: '00000000-0000-4000-8000-000000000105',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        turnId: 'turn-1',
+        type: 'ai-request',
+      },
+    ],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        id: '00000000-0000-4000-8000-000000000105',
+        message: {
+          content: [
+            {
+              text: 'The AI request failed. Please try again.',
+              type: 'text',
+            },
+          ],
+          role: 'assistant',
+        },
+        requestId: '00000000-0000-4000-8000-000000000105',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: '00000000-0000-4000-8000-000000000105',
+          role: 'assistant',
+          text: 'The AI request failed. Please try again.',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
+      },
+    ],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        requestId: '00000000-0000-4000-8000-000000000105',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        turnId: 'turn-1',
+        type: 'ai-response',
+        value: new Error('request failed'),
       },
     ],
   ])

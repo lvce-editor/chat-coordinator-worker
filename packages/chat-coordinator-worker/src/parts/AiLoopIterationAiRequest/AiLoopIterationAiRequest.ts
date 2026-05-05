@@ -6,7 +6,9 @@ import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { extractAiResponse } from '../ExtractAiResponseText/ExtractAiResponseText.ts'
 import { getAiRequestBody } from '../GetAiRequestBody/GetAiRequestBody.ts'
+import { getError } from '../GetError/GetError.ts'
 import { getRedactedHeaders } from '../GetRedactedHeaders/GetRedactedHeaders.ts'
+import { getVisibleAiErrorMessage } from '../GetVisibleAiErrorMessage/GetVisibleAiErrorMessage.ts'
 import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 
 interface AiLoopIterationAiRequestOptions {
@@ -21,6 +23,57 @@ interface AiLoopIterationAiRequestOptions {
   readonly toolCalls: AiLoopIterationOptions['toolCalls']
   readonly turnId: string
   readonly url: string
+}
+
+interface AppendVisibleAiErrorMessageOptions {
+  readonly error: unknown
+  readonly requestId: string
+  readonly sessionId: string
+  readonly statusCode?: number
+  readonly timestamp: string
+}
+
+interface AppendAiErrorResponseOptions {
+  readonly error: unknown
+  readonly requestId: string
+  readonly sessionId: string
+  readonly statusCode?: number
+  readonly timestamp: string
+  readonly turnId: string
+}
+
+const appendVisibleAiErrorMessage = async (options: AppendVisibleAiErrorMessageOptions): Promise<void> => {
+  const { error, requestId, sessionId, statusCode, timestamp } = options
+  const text = getVisibleAiErrorMessage(error, statusCode)
+  await appendChatEvent({
+    id: requestId,
+    message: {
+      content: [
+        {
+          text,
+          type: 'text',
+        },
+      ],
+      role: 'assistant',
+    },
+    requestId,
+    sessionId,
+    timestamp,
+    type: ChatEventType.Message,
+  })
+}
+
+const appendAiErrorResponse = async (options: AppendAiErrorResponseOptions): Promise<void> => {
+  const { error, requestId, sessionId, statusCode, timestamp, turnId } = options
+  await appendChatDebugEvent({
+    ...(typeof statusCode === 'number' ? { statusCode } : {}),
+    requestId,
+    sessionId,
+    timestamp,
+    turnId,
+    type: ChatEventType.AiResponse,
+    value: error,
+  })
 }
 
 export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequestOptions): Promise<AiLoopIterationResult> => {
@@ -40,25 +93,53 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     turnId,
     type: ChatEventType.AiRequest,
   })
-  const result = await makeAiRequest({
-    headers,
-    modelId,
-    systemPrompt,
-    text: messages,
-    toolCallResults,
-    toolCalls,
-    url,
-  })
+  let result
+  try {
+    result = await makeAiRequest({
+      headers,
+      modelId,
+      systemPrompt,
+      text: messages,
+      toolCallResults,
+      toolCalls,
+      url,
+    })
+  } catch (error) {
+    const normalizedError = getError(error)
+    await appendVisibleAiErrorMessage({
+      error: normalizedError,
+      requestId,
+      sessionId,
+      timestamp,
+    })
+    await appendAiErrorResponse({
+      error: normalizedError,
+      requestId,
+      sessionId,
+      timestamp,
+      turnId,
+    })
+    return {
+      error: normalizedError,
+      type: 'error',
+    }
+  }
 
   if (result.type === 'error') {
-    await appendChatDebugEvent({
+    await appendVisibleAiErrorMessage({
+      error: result.error,
+      requestId,
+      sessionId,
+      statusCode: result.statusCode,
+      timestamp,
+    })
+    await appendAiErrorResponse({
+      error: result.error,
       requestId,
       sessionId,
       statusCode: result.statusCode,
       timestamp,
       turnId,
-      type: ChatEventType.AiResponse,
-      value: result.error,
     })
     return {
       error: result.error,
