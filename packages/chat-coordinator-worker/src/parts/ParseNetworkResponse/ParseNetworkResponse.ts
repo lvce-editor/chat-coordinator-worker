@@ -7,6 +7,7 @@ export const parseNetworkResponse = async (response: ParsedNetworkResponse): Pro
   if (!response.ok) {
     return {
       error: json,
+      headers: serializeHeaders(response.headers),
       statusCode: response.status,
       type: 'error',
     }
