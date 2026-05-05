@@ -26,10 +26,7 @@ const isTestModel = (modelId: string): boolean => {
   return modelId === 'test'
 }
 
-const getQueuedText = (text: string, role: SubmitOptions['role'], attachments: SubmitOptions['attachments']): string | readonly AiRequestInput[] => {
-  if (attachments.length === 0) {
-    return text
-  }
+const getQueuedText = (text: string, role: SubmitOptions['role'], attachments: SubmitOptions['attachments']): readonly AiRequestInput[] => {
   const content: AiRequestPart[] = []
   if (text) {
     content.push({
