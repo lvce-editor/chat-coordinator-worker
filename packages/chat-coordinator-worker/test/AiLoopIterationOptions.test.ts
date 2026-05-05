@@ -5,6 +5,7 @@ test('AiLoopIterationOptions type is importable', () => {
   const options: AiLoopIterationOptions = {
     headers: {},
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     text: 'hello',
@@ -17,6 +18,7 @@ test('AiLoopIterationOptions type is importable', () => {
   expect(options).toEqual({
     headers: {},
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     text: 'hello',
