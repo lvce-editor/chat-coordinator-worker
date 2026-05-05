@@ -1,6 +1,5 @@
 import type { AiRequestOptions } from '../AiRequestOptions/AiRequestOptions.ts'
 import type { AiRequestResult } from '../AiRequestResult/AiRequestResult.ts'
-import { extractAiResponse } from '../ExtractAiResponseText/ExtractAiResponseText.ts'
 import { getAiRequestOptions } from '../GetAiRequestOptions/GetAiRequestOptions.ts'
 import { makeNetworkRequest } from '../MakeNetworkRequest/MakeNetworkRequest.ts'
 
@@ -21,13 +20,10 @@ export const makeAiRequest = async (options: AiRequestOptions): Promise<AiReques
       type: 'error',
     }
   }
-  const { text, toolCalls } = extractAiResponse(response.data)
   return {
     data: response.data,
     headers: response.headers,
     statusCode: response.statusCode,
-    text,
-    toolCalls,
     type: 'success',
   }
 }

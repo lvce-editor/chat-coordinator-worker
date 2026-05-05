@@ -4,6 +4,7 @@ import type { AiRequestInput } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import { appendChatDebugEvent } from '../AppendChatDebugEvent/AppendChatDebugEvent.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
+import { extractAiResponse } from '../ExtractAiResponseText/ExtractAiResponseText.ts'
 import { getAiRequestBody } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import { getRedactedHeaders } from '../GetRedactedHeaders/GetRedactedHeaders.ts'
 import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
@@ -65,13 +66,15 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     }
   }
 
-  if (result.text) {
+  const { newToolCalls, text } = extractAiResponse(result.data)
+
+  if (text) {
     await appendChatEvent({
       id: requestId,
       message: {
         content: [
           {
-            text: result.text,
+            text: text,
             type: 'text',
           },
         ],
@@ -90,7 +93,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     sessionId,
     statusCode: result.statusCode,
     timestamp,
-    toolCalls: result.toolCalls,
+    toolCalls: newToolCalls,
     turnId,
     type: ChatEventType.AiResponse,
     value: result.data,
@@ -98,7 +101,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
   return {
     data: result.data,
     toolCallResults: [],
-    toolCalls: result.toolCalls,
+    toolCalls: newToolCalls,
     type: 'success',
   }
 }
