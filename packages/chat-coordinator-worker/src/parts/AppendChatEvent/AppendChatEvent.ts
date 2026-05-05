@@ -1,4 +1,5 @@
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
+import type { SubmitAttachment } from '../SubmitOptions/SubmitOptions.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 
 interface TextPart {
@@ -7,6 +8,7 @@ interface TextPart {
 }
 
 interface MessagePayload {
+  readonly attachments?: readonly SubmitAttachment[]
   readonly content?: readonly TextPart[]
   readonly role?: 'assistant' | 'user'
 }
@@ -45,6 +47,11 @@ export const appendChatEvent = async (event: any): Promise<void> => {
     await ChatStorageWorker.invoke('ChatStorage.appendDebugEvent', event)
     await ChatStorageWorker.appendEvent({
       message: {
+        ...(event.message.attachments && event.message.attachments.length > 0
+          ? {
+              attachments: event.message.attachments,
+            }
+          : {}),
         id: event.id,
         role: event.message.role || 'assistant',
         text: getMessageText(event.message),

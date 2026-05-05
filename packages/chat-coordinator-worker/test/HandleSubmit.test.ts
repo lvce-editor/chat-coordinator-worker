@@ -2,6 +2,24 @@ import { expect, jest, test } from '@jest/globals'
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
 import { handleSubmit } from '../src/parts/HandleSubmit/HandleSubmit.ts'
 
+const imageAttachment = {
+  attachmentId: 'attachment-1',
+  displayType: 'image',
+  mimeType: 'image/svg+xml',
+  name: 'photo.svg',
+  previewSrc: 'data:image/svg+xml;base64,PHN2Zw==',
+  size: 67,
+} as const
+
+const textFileAttachment = {
+  attachmentId: 'attachment-2',
+  displayType: 'text-file',
+  mimeType: 'text/plain',
+  name: 'notes.txt',
+  size: 20,
+  textContent: 'hello from text file',
+} as const
+
 test('handle submit stores the openai response headers', async () => {
   const events: any[] = []
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
@@ -272,6 +290,218 @@ test('handle submit should append a missing key message instead of calling opena
     ],
   ])
 
+  dateSpy.mockRestore()
+  fetchSpy.mockRestore()
+})
+
+test('handle submit should persist attachments and send attachment-aware request input', async () => {
+  const events: any[] = []
+  const appendEvent = jest.fn(async (_event: unknown) => undefined)
+  appendEvent.mockImplementation(async (event: unknown) => {
+    events.push(event)
+  })
+  const rpc = ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
+    'ChatStorage.appendEvent': appendEvent,
+    'ChatStorage.getEvents': async () => events,
+  })
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000123')
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_attachments'],
+    ]),
+    json: async () => ({
+      id: 'resp_attachments',
+      output_text: 'Hello from assistant',
+      status: 'completed',
+    }),
+    ok: true,
+    status: 200,
+  } as any)
+
+  await handleSubmit({
+    attachments: [imageAttachment, textFileAttachment],
+    id: 'request-attachments',
+    modelId: 'openapi/gpt-4.1-mini',
+    openAiKey: 'test-key',
+    requestId: 'request-attachments',
+    role: 'user',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Please review the attachments',
+  })
+
+  expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
+    body: JSON.stringify({
+      input: [
+        {
+          content: 'You are a helpful assistant.',
+          role: 'system',
+        },
+        {
+          content: [
+            {
+              text: 'Please review the attachments',
+              type: 'input_text',
+            },
+            {
+              image_url: imageAttachment.previewSrc,
+              type: 'input_image',
+            },
+            {
+              text: 'Attached text file "notes.txt" (text/plain):\n\nhello from text file',
+              type: 'input_text',
+            },
+          ],
+          role: 'user',
+        },
+      ],
+      model: 'gpt-4.1-mini',
+    }),
+    headers: {
+      Authorization: 'Bearer test-key',
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+  })
+  expect(rpc.invocations).toEqual([
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        id: 'request-attachments',
+        message: {
+          attachments: [imageAttachment, textFileAttachment],
+          content: [
+            {
+              text: 'Please review the attachments',
+              type: 'text',
+            },
+          ],
+          role: 'user',
+        },
+        requestId: 'request-attachments',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          attachments: [imageAttachment, textFileAttachment],
+          id: 'request-attachments',
+          role: 'user',
+          text: 'Please review the attachments',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
+      },
+    ],
+    ['ChatStorage.getEvents', 'session-1'],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        body: {
+          input: [
+            {
+              content: 'You are a helpful assistant.',
+              role: 'system',
+            },
+            {
+              content: [
+                {
+                  text: 'Please review the attachments',
+                  type: 'input_text',
+                },
+                {
+                  image_url: imageAttachment.previewSrc,
+                  type: 'input_image',
+                },
+                {
+                  text: 'Attached text file "notes.txt" (text/plain):\n\nhello from text file',
+                  type: 'input_text',
+                },
+              ],
+              role: 'user',
+            },
+          ],
+          model: 'gpt-4.1-mini',
+        },
+        headers: {
+          Authorization: 'Bearer [redacted]',
+          'Content-Type': 'application/json',
+        },
+        method: 'POST',
+        requestId: '00000000-0000-4000-8000-000000000123',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        turnId: 'request-attachments',
+        type: 'ai-request',
+      },
+    ],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        id: '00000000-0000-4000-8000-000000000123',
+        message: {
+          content: [
+            {
+              text: 'Hello from assistant',
+              type: 'text',
+            },
+          ],
+          role: 'assistant',
+        },
+        requestId: '00000000-0000-4000-8000-000000000123',
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'message',
+      },
+    ],
+    [
+      'ChatStorage.appendEvent',
+      {
+        message: {
+          id: '00000000-0000-4000-8000-000000000123',
+          role: 'assistant',
+          text: 'Hello from assistant',
+          time: '00:00',
+        },
+        sessionId: 'session-1',
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
+      },
+    ],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        headers: {
+          'content-type': 'application/json',
+          'x-request-id': 'req_attachments',
+        },
+        requestId: '00000000-0000-4000-8000-000000000123',
+        sessionId: 'session-1',
+        statusCode: 200,
+        timestamp: '2026-04-19T00:00:00.000Z',
+        toolCalls: [],
+        turnId: 'request-attachments',
+        type: 'ai-response',
+        value: {
+          id: 'resp_attachments',
+          output_text: 'Hello from assistant',
+          status: 'completed',
+        },
+      },
+    ],
+  ])
+
+  randomUUIDSpy.mockRestore()
   dateSpy.mockRestore()
   fetchSpy.mockRestore()
 })

@@ -1,3 +1,5 @@
+import type { AiRequestInput, AiRequestPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
+import { getAttachmentParts } from '../GetAttachmentParts/GetAttachmentParts.ts'
 import type { SubmitOptions } from '../SubmitOptions/SubmitOptions.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
@@ -24,8 +26,29 @@ const isTestModel = (modelId: string): boolean => {
   return modelId === 'test'
 }
 
+const getQueuedText = (text: string, role: SubmitOptions['role'], attachments: SubmitOptions['attachments']): string | readonly AiRequestInput[] => {
+  if (attachments.length === 0) {
+    return text
+  }
+  const content: AiRequestPart[] = []
+  if (text) {
+    content.push({
+      text,
+      type: 'input_text',
+    })
+  }
+  content.push(...getAttachmentParts(attachments))
+  return [
+    {
+      content,
+      role,
+    },
+  ]
+}
+
 export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
   const {
+    attachments = [],
     authAccessToken = '',
     backendUrl = '',
     id,
@@ -44,6 +67,11 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
   await appendChatEvent({
     id,
     message: {
+      ...(attachments.length > 0
+        ? {
+            attachments,
+          }
+        : {}),
       content: [
         {
           text,
@@ -87,7 +115,7 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
     providerId: useOwnBackend ? 'backend' : 'openai',
     sessionId,
     systemPrompt,
-    text,
+    text: getQueuedText(text, role, attachments),
     turnId: requestId,
     url: useOwnBackend ? getBackendResponsesEndpoint(backendUrl) : 'https://api.openai.com/v1/responses',
   })
