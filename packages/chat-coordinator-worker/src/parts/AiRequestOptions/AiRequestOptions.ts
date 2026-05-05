@@ -5,6 +5,7 @@ import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 export interface AiRequestOptions {
   readonly headers: Readonly<Record<string, string>>
   readonly modelId: string
+  readonly providerId: string
   readonly systemPrompt: string
   readonly text: string | readonly string[] | readonly AiRequestInput[]
   readonly toolCallResults: readonly ToolCallResult[]

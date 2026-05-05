@@ -5,6 +5,10 @@ import { addPendingSessionWork, processQueue } from '../ProcessQueue/ProcessQueu
 
 const openApiApiKeyRequiredMessage = 'OpenAI API key is not configured. Enter your OpenAI API key below and click Save.'
 
+const getBackendResponsesEndpoint = (backendUrl: string): string => {
+  return backendUrl.endsWith('/') ? `${backendUrl}v1/responses` : `${backendUrl}/v1/responses`
+}
+
 const normalizeOpenAiModelId = (modelId: string): string => {
   const normalizedModelId = modelId.toLowerCase()
   if (normalizedModelId.startsWith('openapi/')) {
@@ -21,7 +25,19 @@ const isTestModel = (modelId: string): boolean => {
 }
 
 export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
-  const { id, modelId, openAiKey, requestId, role, sessionId, systemPrompt, text } = options
+  const {
+    authAccessToken = '',
+    backendUrl = '',
+    id,
+    modelId,
+    openAiKey,
+    requestId,
+    role,
+    sessionId,
+    systemPrompt,
+    text,
+    useOwnBackend = false,
+  } = options
   const date = new Date()
   const timestamp = date.toISOString()
 
@@ -42,7 +58,7 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
     type: ChatEventType.Message,
   })
 
-  if (!isTestModel(modelId) && !openAiKey.trim()) {
+  if (!isTestModel(modelId) && !useOwnBackend && !openAiKey.trim()) {
     await appendChatEvent({
       id: requestId,
       message: {
@@ -64,16 +80,16 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
 
   addPendingSessionWork({
     headers: {
-      Authorization: `Bearer ${openAiKey}`,
+      Authorization: `Bearer ${useOwnBackend ? authAccessToken : openAiKey}`,
       'Content-Type': 'application/json',
     },
     modelId: normalizeOpenAiModelId(modelId),
-    providerId: 'openai',
+    providerId: useOwnBackend ? 'backend' : 'openai',
     sessionId,
     systemPrompt,
     text,
     turnId: requestId,
-    url: 'https://api.openai.com/v1/responses',
+    url: useOwnBackend ? getBackendResponsesEndpoint(backendUrl) : 'https://api.openai.com/v1/responses',
   })
   await processQueue(sessionId)
 }

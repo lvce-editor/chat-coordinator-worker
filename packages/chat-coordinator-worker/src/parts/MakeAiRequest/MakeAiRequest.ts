@@ -4,10 +4,11 @@ import { getAiRequestOptions } from '../GetAiRequestOptions/GetAiRequestOptions.
 import { makeNetworkRequest } from '../MakeNetworkRequest/MakeNetworkRequest.ts'
 
 export const makeAiRequest = async (options: AiRequestOptions): Promise<AiRequestResult> => {
-  const { headers, modelId, systemPrompt, text: inputText, url } = options
+  const { headers, modelId, providerId, systemPrompt, text: inputText, url } = options
   const requestOptions = getAiRequestOptions({
     headers,
     modelId,
+    providerId,
     systemPrompt,
     text: inputText,
     url,

@@ -39,6 +39,7 @@ test('ai loop iteration stores response headers with the response body', async (
   const result = await aiLoopIteration({
     headers: {},
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
@@ -187,6 +188,7 @@ test('ai loop iteration executes pending tool calls and stores a resumable check
   const result = await aiLoopIteration({
     headers: {},
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
@@ -284,6 +286,7 @@ test('ai loop iteration resumes from stored tool call results and makes the next
   const result = await aiLoopIteration({
     headers: {},
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
@@ -466,6 +469,7 @@ test('ai loop iteration replays stored assistant messages with assistant role', 
   await aiLoopIteration({
     headers: {},
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Ignored fallback text',
@@ -608,6 +612,7 @@ test('ai loop iteration stores status code for non-2xx ai responses', async () =
   const result = await aiLoopIteration({
     headers: {},
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
@@ -729,6 +734,7 @@ test('ai loop iteration appends a visible assistant message when the ai request 
   const result = await aiLoopIteration({
     headers: {},
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',

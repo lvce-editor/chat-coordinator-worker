@@ -19,6 +19,7 @@ test('make ai request uses registered mock response text', async () => {
       Authorization: 'Bearer test-key',
     },
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
@@ -81,6 +82,7 @@ test('make ai request forwards the system prompt and returns response data', asy
       Authorization: 'Bearer test-key',
     },
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
@@ -144,6 +146,7 @@ test('make ai request extracts assistant text from output items', async () => {
   const result = await makeAiRequest({
     headers: {},
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
@@ -207,6 +210,7 @@ test('make ai request extracts tool calls from response output items', async () 
   const result = await makeAiRequest({
     headers: {},
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
@@ -266,6 +270,7 @@ test('make ai request returns error result for non-2xx responses', async () => {
       Authorization: 'Bearer test-key',
     },
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
@@ -300,6 +305,7 @@ test('make ai request propagates network failures', async () => {
     makeAiRequest({
       headers: {},
       modelId: 'gpt-5-mini',
+      providerId: 'openai',
       systemPrompt: 'You are a helpful assistant.',
       text: 'Hello world',
       toolCallResults: [],
