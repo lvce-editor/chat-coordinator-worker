@@ -1,3 +1,5 @@
+import { getBackendErrorMessage } from '../GetBackendErrorMessage/GetBackendErrorMessage.ts'
+
 const getStatusCodeMessage = (statusCode: number): string => {
   switch (statusCode) {
     case 401:
@@ -16,7 +18,52 @@ const getStatusCodeMessage = (statusCode: number): string => {
   }
 }
 
-export const getVisibleAiErrorMessage = (_error: unknown, statusCode?: number): string => {
+const getBackendErrorCodeFromBody = (body: unknown): string | undefined => {
+  if (!body || typeof body !== 'object') {
+    return undefined
+  }
+  const code = Reflect.get(body, 'code')
+  return typeof code === 'string' ? code : undefined
+}
+
+const getBackendErrorMessageFromBody = (body: unknown): string | undefined => {
+  if (!body || typeof body !== 'object') {
+    return undefined
+  }
+  const error = Reflect.get(body, 'error')
+  return typeof error === 'string' ? error : undefined
+}
+
+export const getVisibleAiErrorMessage = (_error: unknown, statusCode?: number, providerId = 'openai'): string => {
+  if (providerId === 'backend') {
+    const errorCode = getBackendErrorCodeFromBody(_error)
+    const errorMessage =
+      _error instanceof Error ? _error.message : typeof _error === 'object' && _error ? getBackendErrorMessageFromBody(_error) : undefined
+    if (typeof statusCode === 'number') {
+      return getBackendErrorMessage({
+        details: 'http-error',
+        ...(errorCode
+          ? {
+              errorCode,
+            }
+          : {}),
+        ...(errorMessage
+          ? {
+              errorMessage,
+            }
+          : {}),
+        statusCode,
+      })
+    }
+    return getBackendErrorMessage({
+      details: 'request-failed',
+      ...(errorMessage
+        ? {
+            errorMessage,
+          }
+        : {}),
+    })
+  }
   if (typeof statusCode === 'number') {
     return getStatusCodeMessage(statusCode)
   }

@@ -1,5 +1,6 @@
 import type { NetworkRequestOptions } from '../NetworkRequestOptions/NetworkRequestOptions.ts'
 import { createMockOpenAiResponse } from '../CreateMockOpenAiResponse/CreateMockOpenAiResponse.ts'
+import * as MockBackendCompletion from '../MockBackendCompletion/MockBackendCompletion.ts'
 import * as MockOpenApiStream from '../MockOpenApiStream/MockOpenApiStream.ts'
 
 export interface ParsedNetworkResponse {
@@ -9,17 +10,31 @@ export interface ParsedNetworkResponse {
   readonly status: number
 }
 
+const createParsedResponse = (ok: boolean, status: number, body: unknown): ParsedNetworkResponse => {
+  return {
+    headers: new Headers(),
+    json: async () => body,
+    ok,
+    status,
+  }
+}
+
 export const getNetworkResponse = async (options: NetworkRequestOptions, requestInit: RequestInit): Promise<ParsedNetworkResponse> => {
-  const { body, url } = options
+  const { body, providerId, url } = options
+  if (providerId === 'backend') {
+    const mockErrorResponse = MockBackendCompletion.takeErrorResponse()
+    if (mockErrorResponse) {
+      return createParsedResponse(false, mockErrorResponse.statusCode, mockErrorResponse.body)
+    }
+    const mockResponse = MockBackendCompletion.takeResponse()
+    if (mockResponse) {
+      return createParsedResponse(true, 200, mockResponse.body)
+    }
+  }
   const mockResponseText = await MockOpenApiStream.consumeResponseText()
   if (mockResponseText !== undefined) {
     const data = createMockOpenAiResponse(body, mockResponseText)
-    return {
-      headers: new Headers(),
-      json: async () => data,
-      ok: true,
-      status: 200,
-    }
+    return createParsedResponse(true, 200, data)
   }
   return fetch(url, requestInit)
 }

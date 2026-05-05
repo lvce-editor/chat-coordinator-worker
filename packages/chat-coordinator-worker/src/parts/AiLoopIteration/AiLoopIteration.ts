@@ -10,6 +10,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
   const {
     headers,
     modelId,
+    providerId,
     sessionId,
     systemPrompt,
     text,
@@ -37,6 +38,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
     headers,
     messages,
     modelId,
+    providerId,
     requestId,
     sessionId,
     systemPrompt,

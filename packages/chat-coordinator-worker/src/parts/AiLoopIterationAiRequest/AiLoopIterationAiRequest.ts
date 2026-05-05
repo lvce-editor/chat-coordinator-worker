@@ -6,6 +6,7 @@ import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { extractAiResponse } from '../ExtractAiResponseText/ExtractAiResponseText.ts'
 import { getAiRequestBody } from '../GetAiRequestBody/GetAiRequestBody.ts'
+import { getBackendErrorMessage } from '../GetBackendErrorMessage/GetBackendErrorMessage.ts'
 import { getError } from '../GetError/GetError.ts'
 import { getRedactedHeaders } from '../GetRedactedHeaders/GetRedactedHeaders.ts'
 import { getVisibleAiErrorMessage } from '../GetVisibleAiErrorMessage/GetVisibleAiErrorMessage.ts'
@@ -15,6 +16,7 @@ interface AiLoopIterationAiRequestOptions {
   readonly headers: AiLoopIterationOptions['headers']
   readonly messages: readonly AiRequestInput[]
   readonly modelId: string
+  readonly providerId: string
   readonly requestId: string
   readonly sessionId: string
   readonly systemPrompt: string
@@ -27,6 +29,7 @@ interface AiLoopIterationAiRequestOptions {
 
 interface AppendVisibleAiErrorMessageOptions {
   readonly error: unknown
+  readonly providerId: string
   readonly requestId: string
   readonly sessionId: string
   readonly statusCode?: number
@@ -43,8 +46,8 @@ interface AppendAiErrorResponseOptions {
 }
 
 const appendVisibleAiErrorMessage = async (options: AppendVisibleAiErrorMessageOptions): Promise<void> => {
-  const { error, requestId, sessionId, statusCode, timestamp } = options
-  const text = getVisibleAiErrorMessage(error, statusCode)
+  const { error, providerId, requestId, sessionId, statusCode, timestamp } = options
+  const text = getVisibleAiErrorMessage(error, statusCode, providerId)
   await appendChatEvent({
     id: requestId,
     message: {
@@ -63,6 +66,17 @@ const appendVisibleAiErrorMessage = async (options: AppendVisibleAiErrorMessageO
   })
 }
 
+const getBackendInvalidResponseDetails = (data: unknown): string => {
+  if (!data || typeof data !== 'object') {
+    return 'Unexpected backend response format: no assistant text or tool calls were returned.'
+  }
+  const output = Reflect.get(data, 'output')
+  if (Array.isArray(output) && output.length === 0) {
+    return 'Unexpected backend response format: no assistant text or tool calls were returned.'
+  }
+  return 'Unexpected backend response format.'
+}
+
 const appendAiErrorResponse = async (options: AppendAiErrorResponseOptions): Promise<void> => {
   const { error, requestId, sessionId, statusCode, timestamp, turnId } = options
   await appendChatDebugEvent({
@@ -77,7 +91,7 @@ const appendAiErrorResponse = async (options: AppendAiErrorResponseOptions): Pro
 }
 
 export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequestOptions): Promise<AiLoopIterationResult> => {
-  const { headers, messages, modelId, requestId, sessionId, systemPrompt, timestamp, toolCallResults, toolCalls, turnId, url } = options
+  const { headers, messages, modelId, providerId, requestId, sessionId, systemPrompt, timestamp, toolCallResults, toolCalls, turnId, url } = options
   const requestBody = {
     ...getAiRequestBody(systemPrompt, messages),
     model: modelId,
@@ -98,6 +112,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     result = await makeAiRequest({
       headers,
       modelId,
+      providerId,
       systemPrompt,
       text: messages,
       toolCallResults,
@@ -108,6 +123,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     const normalizedError = getError(error)
     await appendVisibleAiErrorMessage({
       error: normalizedError,
+      providerId,
       requestId,
       sessionId,
       timestamp,
@@ -128,6 +144,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
   if (result.type === 'error') {
     await appendVisibleAiErrorMessage({
       error: result.error,
+      providerId,
       requestId,
       sessionId,
       statusCode: result.statusCode,
@@ -148,6 +165,46 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
   }
 
   const { newToolCalls, text } = extractAiResponse(result.data)
+
+  if (!text && newToolCalls.length === 0 && providerId === 'backend') {
+    const error = new Error(
+      getBackendErrorMessage({
+        details: 'invalid-response',
+        errorMessage: getBackendInvalidResponseDetails(result.data),
+      }),
+    )
+    await appendChatEvent({
+      id: requestId,
+      message: {
+        content: [
+          {
+            text: error.message,
+            type: 'text',
+          },
+        ],
+        role: 'assistant',
+      },
+      requestId,
+      sessionId,
+      timestamp,
+      type: ChatEventType.Message,
+    })
+    await appendChatDebugEvent({
+      headers: result.headers,
+      requestId,
+      sessionId,
+      statusCode: result.statusCode,
+      timestamp,
+      toolCalls: newToolCalls,
+      turnId,
+      type: ChatEventType.AiResponse,
+      value: result.data,
+    })
+    return {
+      error,
+      type: 'error',
+    }
+  }
 
   if (text) {
     await appendChatEvent({

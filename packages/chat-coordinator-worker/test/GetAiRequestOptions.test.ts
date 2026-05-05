@@ -7,6 +7,7 @@ test('get ai request options returns network request options for ai requests', (
       Authorization: 'Bearer test-key',
     },
     modelId: 'gpt-5-mini',
+    providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     url: 'https://api.openai.com/v1/responses',
@@ -30,6 +31,7 @@ test('get ai request options returns network request options for ai requests', (
       Authorization: 'Bearer test-key',
     },
     method: 'POST',
+    providerId: 'openai',
     url: 'https://api.openai.com/v1/responses',
   })
 })

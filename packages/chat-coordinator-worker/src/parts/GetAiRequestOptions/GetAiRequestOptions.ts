@@ -5,13 +5,14 @@ import { getAiRequestBody } from '../GetAiRequestBody/GetAiRequestBody.ts'
 interface GetAiRequestOptionsOptions {
   readonly headers: AiRequestOptions['headers']
   readonly modelId: AiRequestOptions['modelId']
+  readonly providerId: AiRequestOptions['providerId']
   readonly systemPrompt: AiRequestOptions['systemPrompt']
   readonly text: AiRequestOptions['text']
   readonly url: AiRequestOptions['url']
 }
 
 export const getAiRequestOptions = (options: GetAiRequestOptionsOptions): NetworkRequestOptions => {
-  const { headers, modelId, systemPrompt, text: inputText, url } = options
+  const { headers, modelId, providerId, systemPrompt, text: inputText, url } = options
   return {
     body: {
       ...getAiRequestBody(systemPrompt, inputText),
@@ -19,6 +20,7 @@ export const getAiRequestOptions = (options: GetAiRequestOptionsOptions): Networ
     },
     headers,
     method: 'POST',
+    providerId,
     url,
   }
 }
