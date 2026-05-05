@@ -155,6 +155,9 @@ test('make network request returns error result for non-2xx responses', async ()
         message: 'rate limited',
       },
     },
+    headers: {
+      'content-type': 'application/json',
+    },
     statusCode: 429,
     type: 'error',
   })

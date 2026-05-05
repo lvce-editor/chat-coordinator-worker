@@ -7,6 +7,7 @@ interface NetworkRequestSuccessResult {
 
 interface NetworkRequestErrorResult {
   error: any
+  headers: Readonly<Record<string, string>>
   statusCode: number
   type: 'error'
 }
