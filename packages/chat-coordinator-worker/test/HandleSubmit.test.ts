@@ -37,9 +37,9 @@ test('handle submit stores the openai response headers', async () => {
     'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.getEvents': async () => events,
   })
-  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
+  jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
   const realDate = globalThis.Date
-  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
+  jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
       ['content-type', 'application/json'],
@@ -211,7 +211,7 @@ test('handle submit should append a missing key message instead of calling opena
     'ChatStorage.getEvents': async () => events,
   })
   const realDate = globalThis.Date
-  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
+  jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const fetchSpy = jest.spyOn(globalThis, 'fetch')
 
   await expect(
@@ -310,9 +310,9 @@ test('handle submit should persist attachments and send attachment-aware request
     'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.getEvents': async () => events,
   })
-  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000123')
+  jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000123')
   const realDate = globalThis.Date
-  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
+  jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
       ['content-type', 'application/json'],
@@ -518,9 +518,9 @@ test('handle submit should resolve after handled openai http errors', async () =
     'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.getEvents': async () => events,
   })
-  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000111')
+  jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000111')
   const realDate = globalThis.Date
-  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
+  jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
       ['content-type', 'application/json'],
@@ -685,9 +685,9 @@ test('handle submit should use backend requests when own backend is enabled', as
     'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.getEvents': async () => events,
   })
-  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000112')
+  jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000112')
   const realDate = globalThis.Date
-  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
+  jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers(),
     json: async () => ({
