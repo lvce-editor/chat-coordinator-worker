@@ -1,5 +1,17 @@
+export interface AiRequestTextPart {
+  readonly text: string
+  readonly type: 'input_text'
+}
+
+export interface AiRequestImagePart {
+  readonly image_url: string
+  readonly type: 'input_image'
+}
+
+export type AiRequestPart = AiRequestImagePart | AiRequestTextPart
+
 export interface AiRequestInput {
-  readonly content: string
+  readonly content: string | readonly AiRequestPart[]
   readonly role: 'assistant' | 'system' | 'user'
 }
 

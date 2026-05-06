@@ -1,8 +1,10 @@
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
-import type { AiRequestInput } from '../GetAiRequestBody/GetAiRequestBody.ts'
+import type { AiRequestInput, AiRequestPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
+import type { SubmitAttachment } from '../SubmitOptions/SubmitOptions.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
+import { getAttachmentParts } from '../GetAttachmentParts/GetAttachmentParts.ts'
 
 interface ToolCallsFinishedEvent {
   readonly sessionId: string
@@ -18,6 +20,7 @@ interface StoredMessageContentPart {
 
 interface StoredMessageEvent {
   readonly message: {
+    readonly attachments?: readonly SubmitAttachment[]
     readonly content?: readonly StoredMessageContentPart[]
     readonly role?: 'assistant' | 'user'
   }
@@ -61,7 +64,7 @@ const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredMessageEvent): 
   if (!('message' in event)) {
     return undefined
   }
-  const { content = [], role } = event.message
+  const { attachments = [], content = [], role } = event.message
   if (role !== 'assistant' && role !== 'user') {
     return undefined
   }
@@ -69,11 +72,28 @@ const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredMessageEvent): 
     .filter((part: StoredMessageContentPart) => part.type === 'text' && typeof part.text === 'string')
     .map((part: StoredMessageContentPart) => part.text)
     .join('')
-  if (!text) {
+  if (attachments.length === 0) {
+    if (!text) {
+      return undefined
+    }
+    return {
+      content: text,
+      role,
+    }
+  }
+  const parts: AiRequestPart[] = []
+  if (text) {
+    parts.push({
+      text,
+      type: 'input_text',
+    })
+  }
+  parts.push(...getAttachmentParts(attachments))
+  if (parts.length === 0) {
     return undefined
   }
   return {
-    content: text,
+    content: parts,
     role,
   }
 }
@@ -93,7 +113,7 @@ export const getStoredMessages = async (sessionId: string, fallbackText: string)
 
 export const getStoredAiLoopState = async (
   sessionId: string,
-  fallbackText: string,
+  fallbackText: string | readonly AiRequestInput[],
   fallbackToolCalls: readonly ToolCall<unknown>[],
   fallbackToolCallResults: readonly ToolCallResult[],
 ): Promise<StoredAiLoopState> => {
@@ -123,10 +143,14 @@ export const getStoredAiLoopState = async (
   }
 
   if (messages.length === 0) {
-    messages.push({
-      content: fallbackText,
-      role: 'user',
-    })
+    if (typeof fallbackText === 'string') {
+      messages.push({
+        content: fallbackText,
+        role: 'user',
+      })
+    } else {
+      messages.push(...fallbackText)
+    }
   }
 
   return {

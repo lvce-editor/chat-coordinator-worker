@@ -1,10 +1,12 @@
+import type { AiRequestInput } from '../GetAiRequestBody/GetAiRequestBody.ts'
+
 export interface AiLoopOptions {
   readonly headers: Readonly<Record<string, string>>
   readonly modelId: string
   readonly providerId: string
   readonly sessionId: string
   readonly systemPrompt: string
-  readonly text: string
+  readonly text: string | readonly AiRequestInput[]
   readonly turnId: string
   readonly url: string
 }
