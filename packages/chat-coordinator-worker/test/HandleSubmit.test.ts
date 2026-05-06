@@ -1,7 +1,7 @@
 import { afterEach, expect, jest, test } from '@jest/globals'
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
-import { resetProcessQueue } from '../src/parts/ProcessQueue/ProcessQueue.ts'
 import { handleSubmit } from '../src/parts/HandleSubmit/HandleSubmit.ts'
+import { resetProcessQueue } from '../src/parts/ProcessQueue/ProcessQueue.ts'
 
 const imageAttachment = {
   attachmentId: 'attachment-1',
