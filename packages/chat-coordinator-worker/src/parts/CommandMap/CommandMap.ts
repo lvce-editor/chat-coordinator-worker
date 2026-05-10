@@ -1,3 +1,4 @@
+import { createSession } from '../CreateSession/CreateSession.ts'
 import { handleMessagePort } from '../HandleMessagePort/HandleMessagePort.ts'
 import { handleSubmit } from '../HandleSubmit/HandleSubmit.ts'
 import { mockBackendSetHttpErrorResponse } from '../MockBackendSetHttpErrorResponse/MockBackendSetHttpErrorResponse.ts'
@@ -6,6 +7,7 @@ import * as MockOpenApiStream from '../MockOpenApiStream/MockOpenApiStream.ts'
 import { registerMockResponse } from '../RegisterMockResponse/RegisterMockResponse.ts'
 
 export const commandMap = {
+  'ChatCoordinator.createSession': createSession,
   'ChatCoordinator.handleSubmit': handleSubmit,
   'ChatCoordinator.mockBackendSetHttpErrorResponse': mockBackendSetHttpErrorResponse,
   'ChatCoordinator.mockBackendSetResponse': mockBackendSetResponse,
