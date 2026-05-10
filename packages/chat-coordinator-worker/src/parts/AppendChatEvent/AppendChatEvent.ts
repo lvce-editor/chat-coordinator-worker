@@ -48,8 +48,8 @@ export const appendChatEvent = async (event: any): Promise<void> => {
       message: {
         ...(event.message.attachments && event.message.attachments.length > 0
           ? {
-            attachments: event.message.attachments,
-          }
+              attachments: event.message.attachments,
+            }
           : {}),
         id: event.id,
         role: event.message.role || 'assistant',
