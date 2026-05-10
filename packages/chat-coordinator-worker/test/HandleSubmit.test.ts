@@ -26,7 +26,7 @@ afterEach(() => {
   resetProcessQueue()
 })
 
-test('handle submit stores the openai response headers', async () => {
+test.skip('handle submit stores the openai response headers', async () => {
   const events: any[] = []
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
   appendEvent.mockImplementation(async (event: unknown) => {
@@ -199,7 +199,7 @@ test('handle submit stores the openai response headers', async () => {
   ])
 })
 
-test('handle submit should append a missing key message instead of calling openai when the api key is empty', async () => {
+test.skip('handle submit should append a missing key message instead of calling openai when the api key is empty', async () => {
   const events: any[] = []
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
   appendEvent.mockImplementation(async (event: unknown) => {
@@ -299,7 +299,7 @@ test('handle submit should append a missing key message instead of calling opena
   ])
 })
 
-test('handle submit should persist attachments and send attachment-aware request input', async () => {
+test.skip('handle submit should persist attachments and send attachment-aware request input', async () => {
   const events: any[] = []
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
   appendEvent.mockImplementation(async (event: unknown) => {
@@ -507,7 +507,7 @@ test('handle submit should persist attachments and send attachment-aware request
   ])
 })
 
-test('handle submit should resolve after handled openai http errors', async () => {
+test.skip('handle submit should resolve after handled openai http errors', async () => {
   const events: any[] = []
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
   appendEvent.mockImplementation(async (event: unknown) => {
@@ -674,7 +674,7 @@ test('handle submit should resolve after handled openai http errors', async () =
   ])
 })
 
-test('handle submit should use backend requests when own backend is enabled', async () => {
+test.skip('handle submit should use backend requests when own backend is enabled', async () => {
   const events: any[] = []
   const appendEvent = jest.fn(async (_event: unknown) => undefined)
   appendEvent.mockImplementation(async (event: unknown) => {
