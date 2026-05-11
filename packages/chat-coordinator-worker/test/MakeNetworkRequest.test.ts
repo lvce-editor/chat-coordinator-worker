@@ -56,6 +56,45 @@ test('make network request returns registered mock response without calling fetc
   expect(fetchSpy).not.toHaveBeenCalled()
 })
 
+test('make network request parses SSE mock responses with response.completed tool calls', async () => {
+  MockOpenApiStream.pushChunk(
+    'data: {"type":"response.completed","response":{"id":"resp_01","output":[{"type":"function_call","id":"fc_01","call_id":"call_01","name":"write_file","arguments":"{\\"content\\":\\"alpha\\nbeta\\ngamma\\",\\"uri\\":\\"file:///workspace/notes.txt\\"}","status":"completed"}],"status":"completed"}}\n\n',
+  )
+  MockOpenApiStream.pushChunk('data: [DONE]\n\n')
+  MockOpenApiStream.finish()
+  const fetchSpy = jest.spyOn(globalThis, 'fetch')
+
+  const result = await makeNetworkRequest({
+    body: { input: [] },
+    headers: {
+      Authorization: 'Bearer test-key',
+    },
+    method: 'POST',
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    data: {
+      id: 'resp_01',
+      output: [
+        {
+          arguments: '{"content":"alpha\nbeta\ngamma","uri":"file:///workspace/notes.txt"}',
+          call_id: 'call_01',
+          id: 'fc_01',
+          name: 'write_file',
+          status: 'completed',
+          type: 'function_call',
+        },
+      ],
+      status: 'completed',
+    },
+    headers: {},
+    statusCode: 200,
+    type: 'success',
+  })
+  expect(fetchSpy).not.toHaveBeenCalled()
+})
+
 test('make network request returns response headers', async () => {
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
