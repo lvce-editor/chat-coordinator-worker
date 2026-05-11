@@ -1,3 +1,5 @@
+import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
+
 export interface AiRequestTextPart {
   readonly text: string
   readonly type: 'input_text'
@@ -10,18 +12,60 @@ export interface AiRequestImagePart {
 
 export type AiRequestPart = AiRequestImagePart | AiRequestTextPart
 
-export interface AiRequestInput {
+export interface AiRequestMessageInput {
   readonly content: string | readonly AiRequestPart[]
   readonly role: 'assistant' | 'system' | 'user'
 }
 
-const isAiRequestInput = (value: unknown): value is AiRequestInput => {
+export interface AiRequestFunctionCallOutput {
+  readonly call_id: string
+  readonly output: string
+  readonly type: 'function_call_output'
+}
+
+export type AiRequestInput = AiRequestMessageInput | AiRequestFunctionCallOutput
+
+const isAiRequestInput = (value: unknown): value is AiRequestMessageInput => {
   return !!value && typeof value === 'object' && 'content' in value && 'role' in value
+}
+
+const serializeToolCallOutput = (value: unknown): string => {
+  if (typeof value === 'string') {
+    return value
+  }
+  if (typeof value === 'number' || typeof value === 'boolean' || value === null) {
+    return JSON.stringify(value)
+  }
+  if (typeof value === 'bigint') {
+    return value.toString()
+  }
+  if (value === undefined) {
+    return 'null'
+  }
+  if (typeof value === 'symbol') {
+    return value.description ? `Symbol(${value.description})` : 'Symbol()'
+  }
+  if (typeof value === 'function') {
+    return '[function]'
+  }
+  const serialized = JSON.stringify(value)
+  if (typeof serialized === 'string') {
+    return serialized
+  }
+  return '[unserializable]'
+}
+
+const getToolCallOutput = (toolCallResult: ToolCallResult): string => {
+  if (toolCallResult.type === 'success') {
+    return serializeToolCallOutput(toolCallResult.value)
+  }
+  return serializeToolCallOutput({ error: toolCallResult.error })
 }
 
 export const getAiRequestBody = (
   systemPrompt: string,
-  text: string | readonly string[] | readonly AiRequestInput[],
+  text: string | readonly string[] | readonly AiRequestMessageInput[],
+  toolCallResults: readonly ToolCallResult[] = [],
 ): Readonly<{ input: readonly AiRequestInput[] }> => {
   const messages =
     typeof text === 'string'
@@ -39,6 +83,11 @@ export const getAiRequestBody = (
                 role: 'user' as const,
               },
         )
+  const outputs = toolCallResults.map((toolCallResult) => ({
+    call_id: toolCallResult.callId,
+    output: getToolCallOutput(toolCallResult),
+    type: 'function_call_output' as const,
+  }))
   return {
     input: [
       {
@@ -46,6 +95,7 @@ export const getAiRequestBody = (
         role: 'system',
       },
       ...messages,
+      ...outputs,
     ],
   }
 }

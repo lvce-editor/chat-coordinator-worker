@@ -1,6 +1,6 @@
 import type { AiLoopIterationOptions } from '../AiLoopIterationOptions/AiLoopIterationOptions.ts'
 import type { AiLoopIterationResult } from '../AiLoopIterationResult/AiLoopIterationResult.ts'
-import type { AiRequestInput } from '../GetAiRequestBody/GetAiRequestBody.ts'
+import type { AiRequestMessageInput } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import { appendChatDebugEvent } from '../AppendChatDebugEvent/AppendChatDebugEvent.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
@@ -14,7 +14,7 @@ import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 
 interface AiLoopIterationAiRequestOptions {
   readonly headers: AiLoopIterationOptions['headers']
-  readonly messages: readonly AiRequestInput[]
+  readonly messages: readonly AiRequestMessageInput[]
   readonly modelId: string
   readonly providerId: string
   readonly requestId: string
@@ -93,7 +93,7 @@ const appendAiErrorResponse = async (options: AppendAiErrorResponseOptions): Pro
 export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequestOptions): Promise<AiLoopIterationResult> => {
   const { headers, messages, modelId, providerId, requestId, sessionId, systemPrompt, timestamp, toolCallResults, toolCalls, turnId, url } = options
   const requestBody = {
-    ...getAiRequestBody(systemPrompt, messages),
+    ...getAiRequestBody(systemPrompt, messages, toolCallResults),
     model: modelId,
   }
 

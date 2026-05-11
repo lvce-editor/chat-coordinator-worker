@@ -1,4 +1,4 @@
-import type { AiRequestInput, AiRequestPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
+import type { AiRequestMessageInput, AiRequestPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import type { SubmitOptions } from '../SubmitOptions/SubmitOptions.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
@@ -26,7 +26,7 @@ const isTestModel = (modelId: string): boolean => {
   return modelId === 'test'
 }
 
-const getQueuedText = (text: string, role: SubmitOptions['role'], attachments: SubmitOptions['attachments']): readonly AiRequestInput[] => {
+const getQueuedText = (text: string, role: SubmitOptions['role'], attachments: SubmitOptions['attachments']): readonly AiRequestMessageInput[] => {
   const content: AiRequestPart[] = []
   if (text) {
     content.push({

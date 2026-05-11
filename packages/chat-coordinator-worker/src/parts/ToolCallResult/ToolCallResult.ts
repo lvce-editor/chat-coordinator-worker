@@ -1,11 +1,13 @@
 interface ToolCallSuccessResult {
-  type: 'success'
-  value: any
+  readonly callId: string
+  readonly type: 'success'
+  readonly value: any
 }
 
 interface ToolCallErrorResult {
-  error: any
-  type: 'error'
+  readonly callId: string
+  readonly error: any
+  readonly type: 'error'
 }
 
 export type ToolCallResult = ToolCallSuccessResult | ToolCallErrorResult

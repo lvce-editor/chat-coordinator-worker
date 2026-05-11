@@ -1,5 +1,5 @@
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
-import type { AiRequestInput, AiRequestPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
+import type { AiRequestMessageInput, AiRequestPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import type { SubmitAttachment } from '../SubmitOptions/SubmitOptions.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
@@ -45,7 +45,7 @@ type StoredEvent =
   | ToolCallsFinishedEvent
 
 interface StoredAiLoopState {
-  readonly messages: readonly AiRequestInput[]
+  readonly messages: readonly AiRequestMessageInput[]
   readonly toolCallResults: readonly ToolCallResult[]
   readonly toolCalls: readonly ToolCall<unknown>[]
 }
@@ -54,7 +54,7 @@ const isHandleSubmitEvent = (event: StoredEvent): event is LegacyHandleSubmitEve
   return event.type === ChatEventType.Message || event.type === 'handle-submit'
 }
 
-const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredMessageEvent): AiRequestInput | undefined => {
+const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredMessageEvent): AiRequestMessageInput | undefined => {
   if ('value' in event && typeof event.value === 'string') {
     return {
       content: event.value,
@@ -106,19 +106,19 @@ const isToolCallsFinishedEvent = (event: StoredEvent): event is ToolCallsFinishe
   return event.type === ChatEventType.ToolCallsFinished
 }
 
-export const getStoredMessages = async (sessionId: string, fallbackText: string): Promise<readonly AiRequestInput[]> => {
+export const getStoredMessages = async (sessionId: string, fallbackText: string): Promise<readonly AiRequestMessageInput[]> => {
   const state = await getStoredAiLoopState(sessionId, fallbackText, [], [])
   return state.messages
 }
 
 export const getStoredAiLoopState = async (
   sessionId: string,
-  fallbackText: string | readonly AiRequestInput[],
+  fallbackText: string | readonly AiRequestMessageInput[],
   fallbackToolCalls: readonly ToolCall<unknown>[],
   fallbackToolCallResults: readonly ToolCallResult[],
 ): Promise<StoredAiLoopState> => {
   const events = await ChatStorageWorker.getEvents(sessionId)
-  const messages: AiRequestInput[] = []
+  const messages: AiRequestMessageInput[] = []
   let toolCalls = fallbackToolCalls
   let toolCallResults = fallbackToolCallResults
 
