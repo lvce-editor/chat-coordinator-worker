@@ -140,6 +140,87 @@ test('ai loop iteration stores exposed response headers with the response body',
   dateSpy.mockRestore()
 })
 
+test('ai loop iteration replays stored chat messages when continuing a session', async () => {
+  const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendDebugEvent': async () => undefined,
+    'ChatStorage.appendEvent': async () => undefined,
+    'ChatStorage.getEvents': async (sessionId: string) => [
+      {
+        message: {
+          id: 'message-1',
+          role: 'user',
+          text: 'Hello world',
+          time: '00:00',
+        },
+        sessionId,
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
+      },
+      {
+        message: {
+          id: 'message-2',
+          role: 'assistant',
+          text: 'Hi there',
+          time: '00:01',
+        },
+        sessionId,
+        timestamp: '2026-04-19T00:01:00.000Z',
+        type: 'chat-message-added',
+      },
+      {
+        message: {
+          id: 'message-3',
+          role: 'user',
+          text: 'Follow up question',
+          time: '00:02',
+        },
+        sessionId,
+        timestamp: '2026-04-19T00:02:00.000Z',
+        type: 'chat-message-added',
+      },
+    ],
+  })
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:03:00.000Z'))
+  const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000106')
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_106'],
+    ]),
+    json: async () => ({
+      id: 'resp_106',
+      output_text: 'Another answer',
+      status: 'completed',
+    }),
+    ok: true,
+    status: 200,
+  } as any)
+
+  await aiLoopIteration({
+    headers: {},
+    modelId: 'gpt-5-mini',
+    providerId: 'openai',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Ignored fallback text',
+    toolCallResults: [],
+    toolCalls: [],
+    turnId: 'turn-2',
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"},{"content":"Hi there","role":"assistant"},{"content":"Follow up question","role":"user"}],"model":"gpt-5-mini"}',
+    headers: {},
+    method: 'POST',
+  })
+  expect(appendEventMockRpc.invocations[0]).toEqual(['ChatStorage.getEvents', 'session-1'])
+
+  randomUUIDSpy.mockRestore()
+  dateSpy.mockRestore()
+})
+
 test.skip('ai loop iteration executes pending tool calls and stores a resumable checkpoint', async () => {
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,

@@ -27,6 +27,15 @@ interface StoredMessageEvent {
   readonly type: typeof ChatEventType.Message
 }
 
+interface StoredChatMessageAddedEvent {
+  readonly message: {
+    readonly attachments?: readonly SubmitAttachment[]
+    readonly role?: 'assistant' | 'user'
+    readonly text?: string
+  }
+  readonly type: 'chat-message-added'
+}
+
 interface LegacyHandleSubmitEvent {
   readonly type: 'handle-submit'
   readonly value: string
@@ -41,6 +50,7 @@ type StoredEvent =
   | Awaited<ReturnType<typeof ChatStorageWorker.getEvents>>[number]
   | LegacyHandleSubmitEvent
   | StoredAiResponseSuccessEvent
+  | StoredChatMessageAddedEvent
   | StoredMessageEvent
   | ToolCallsFinishedEvent
 
@@ -50,11 +60,11 @@ interface StoredAiLoopState {
   readonly toolCalls: readonly ToolCall<unknown>[]
 }
 
-const isHandleSubmitEvent = (event: StoredEvent): event is LegacyHandleSubmitEvent | StoredMessageEvent => {
-  return event.type === ChatEventType.Message || event.type === 'handle-submit'
+const isStoredMessageEvent = (event: StoredEvent): event is LegacyHandleSubmitEvent | StoredChatMessageAddedEvent | StoredMessageEvent => {
+  return event.type === ChatEventType.Message || event.type === 'chat-message-added' || event.type === 'handle-submit'
 }
 
-const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredMessageEvent): AiRequestMessageInput | undefined => {
+const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredChatMessageAddedEvent | StoredMessageEvent): AiRequestMessageInput | undefined => {
   if ('value' in event && typeof event.value === 'string') {
     return {
       content: event.value,
@@ -64,14 +74,19 @@ const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredMessageEvent): 
   if (!('message' in event)) {
     return undefined
   }
-  const { attachments = [], content = [], role } = event.message
+  const { attachments = [], role } = event.message
   if (role !== 'assistant' && role !== 'user') {
     return undefined
   }
-  const text = content
-    .filter((part: StoredMessageContentPart) => part.type === 'text' && typeof part.text === 'string')
-    .map((part: StoredMessageContentPart) => part.text)
-    .join('')
+  const text =
+    'content' in event.message
+      ? (event.message.content || [])
+          .filter((part: StoredMessageContentPart) => part.type === 'text' && typeof part.text === 'string')
+          .map((part: StoredMessageContentPart) => part.text)
+          .join('')
+      : 'text' in event.message && typeof event.message.text === 'string'
+        ? event.message.text
+        : ''
   if (attachments.length === 0) {
     if (!text) {
       return undefined
@@ -123,7 +138,7 @@ export const getStoredAiLoopState = async (
   let toolCallResults = fallbackToolCallResults
 
   for (const event of events as readonly StoredEvent[]) {
-    if (isHandleSubmitEvent(event)) {
+    if (isStoredMessageEvent(event)) {
       const message = getStoredMessage(event)
       if (message) {
         messages.push(message)
