@@ -10,6 +10,7 @@ test('get ai request options returns network request options for ai requests', (
     providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
+    toolCallResults: [],
     url: 'https://api.openai.com/v1/responses',
   })
 

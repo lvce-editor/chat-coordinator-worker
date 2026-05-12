@@ -129,3 +129,53 @@ test('getAiRequestBody preserves attachment-aware user content', () => {
     ],
   })
 })
+
+test('getAiRequestBody appends function_call_output items for tool call results', () => {
+  expect(
+    getAiRequestBody(
+      'You are a helpful assistant.',
+      [
+        {
+          content: 'Hello world',
+          role: 'user',
+        },
+      ],
+      [
+        {
+          callId: 'tool_1',
+          type: 'success',
+          value: {
+            content: 'alpha\nbeta\ngamma',
+            uri: 'file:///workspace/notes.txt',
+          },
+        },
+        {
+          callId: 'tool_2',
+          error: 'Unknown tool: invalid_tool',
+          type: 'error',
+        },
+      ],
+    ),
+  ).toEqual({
+    input: [
+      {
+        content: 'You are a helpful assistant.',
+        role: 'system',
+      },
+      {
+        content: 'Hello world',
+        role: 'user',
+      },
+      {
+        call_id: 'tool_1',
+        output: '{"content":"alpha\\nbeta\\ngamma","uri":"file:///workspace/notes.txt"}',
+        type: 'function_call_output',
+      },
+      {
+        call_id: 'tool_2',
+        output: '{"error":"Unknown tool: invalid_tool"}',
+        type: 'function_call_output',
+      },
+    ],
+  })
+})

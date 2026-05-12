@@ -24,6 +24,8 @@ interface MockOpenAiResponse {
   readonly tools: readonly []
 }
 
+type ParsedMockOpenAiResponse = MockOpenAiResponse | Record<string, unknown>
+
 const lastRequestSummaryToken = '__MOCK_OPENAPI_LAST_REQUEST_SUMMARY__'
 
 const getLastRequestSummary = (body: unknown): string => {
@@ -76,7 +78,118 @@ const getModel = (body: unknown): string => {
   return model
 }
 
-export const createMockOpenAiResponse = (body: unknown, text: string): MockOpenAiResponse => {
+const parseSseDataLines = (text: string): readonly string[] => {
+  const rawEvents = text.split('\n\n')
+  const dataLines: string[] = []
+  for (const rawEvent of rawEvents) {
+    if (!rawEvent) {
+      continue
+    }
+    const lines = rawEvent.split('\n')
+    for (const line of lines) {
+      if (!line.startsWith('data:')) {
+        continue
+      }
+      dataLines.push(line.slice(5).trimStart())
+    }
+  }
+  return dataLines
+}
+
+const isSseMockResponse = (text: string): boolean => {
+  return text.includes('\ndata:') || text.startsWith('data:')
+}
+
+const getOutputTextFromResponse = (response: Record<string, unknown>): string | undefined => {
+  const outputText = Reflect.get(response, 'output_text')
+  if (typeof outputText === 'string' && outputText) {
+    return outputText
+  }
+  const output = Reflect.get(response, 'output')
+  if (!Array.isArray(output)) {
+    return undefined
+  }
+  const parts: string[] = []
+  for (const item of output) {
+    if (!item || typeof item !== 'object') {
+      continue
+    }
+    const content = Reflect.get(item, 'content')
+    if (!Array.isArray(content)) {
+      continue
+    }
+    for (const part of content) {
+      if (!part || typeof part !== 'object') {
+        continue
+      }
+      const text = Reflect.get(part, 'text')
+      if (typeof text === 'string' && text) {
+        parts.push(text)
+      }
+    }
+  }
+  const joined = parts.join('')
+  return joined || undefined
+}
+
+const parseSseMockResponse = (body: unknown, text: string): ParsedMockOpenAiResponse | undefined => {
+  const dataLines = parseSseDataLines(text)
+  if (dataLines.length === 0) {
+    return undefined
+  }
+  let accumulatedText = ''
+  let completedResponse: Record<string, unknown> | undefined
+  for (const line of dataLines) {
+    if (line === '[DONE]') {
+      continue
+    }
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(line) as unknown
+    } catch {
+      continue
+    }
+    if (!parsed || typeof parsed !== 'object') {
+      continue
+    }
+    const eventType = Reflect.get(parsed, 'type')
+    if (eventType === 'response.output_text.delta') {
+      const delta = Reflect.get(parsed, 'delta')
+      if (typeof delta === 'string') {
+        accumulatedText += delta
+      }
+      continue
+    }
+    if (eventType === 'response.completed') {
+      const response = Reflect.get(parsed, 'response')
+      if (response && typeof response === 'object') {
+        completedResponse = response as Record<string, unknown>
+      }
+    }
+  }
+  if (completedResponse) {
+    const completedOutputText = getOutputTextFromResponse(completedResponse)
+    if (completedOutputText && !Reflect.has(completedResponse, 'output_text')) {
+      return {
+        ...completedResponse,
+        output_text: completedOutputText,
+      }
+    }
+    return completedResponse
+  }
+  if (accumulatedText) {
+    return createMockOpenAiResponse(body, accumulatedText)
+  }
+  return undefined
+}
+
+export const createMockOpenAiResponse = (body: unknown, text: string): ParsedMockOpenAiResponse => {
+  if (isSseMockResponse(text)) {
+    const parsedSseResponse = parseSseMockResponse(body, text)
+    if (parsedSseResponse) {
+      return parsedSseResponse
+    }
+  }
   const model = getModel(body)
   const resolvedText = text === lastRequestSummaryToken ? getLastRequestSummary(body) : text
   return {

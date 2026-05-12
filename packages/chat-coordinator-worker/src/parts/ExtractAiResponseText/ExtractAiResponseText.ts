@@ -10,6 +10,7 @@ interface ResponseOutputItem {
   readonly call_id?: string
   readonly content?: readonly ResponseContentPart[]
   readonly id?: string
+  readonly name?: string
   readonly type?: string
 }
 
@@ -52,8 +53,13 @@ const getToolCallArgs = (serializedArguments: string): unknown => {
 
 const isResponseToolCallItem = (
   item: ResponseOutputItem,
-): item is ResponseOutputItem & { readonly arguments: string; readonly call_id?: string; readonly id?: string } => {
-  return item.type === 'function_call' && typeof item.arguments === 'string' && (typeof item.call_id === 'string' || typeof item.id === 'string')
+): item is ResponseOutputItem & { readonly arguments: string; readonly call_id?: string; readonly id?: string; readonly name: string } => {
+  return (
+    item.type === 'function_call' &&
+    typeof item.arguments === 'string' &&
+    typeof item.name === 'string' &&
+    (typeof item.call_id === 'string' || typeof item.id === 'string')
+  )
 }
 
 const getToolCall = (item: ResponseOutputItem): ToolCall<unknown> | undefined => {
@@ -63,6 +69,7 @@ const getToolCall = (item: ResponseOutputItem): ToolCall<unknown> | undefined =>
   return {
     args: getToolCallArgs(item.arguments),
     id: item.call_id || item.id || '',
+    name: item.name,
   }
 }
 

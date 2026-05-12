@@ -8,14 +8,15 @@ interface GetAiRequestOptionsOptions {
   readonly providerId: AiRequestOptions['providerId']
   readonly systemPrompt: AiRequestOptions['systemPrompt']
   readonly text: AiRequestOptions['text']
+  readonly toolCallResults: AiRequestOptions['toolCallResults']
   readonly url: AiRequestOptions['url']
 }
 
 export const getAiRequestOptions = (options: GetAiRequestOptionsOptions): NetworkRequestOptions => {
-  const { headers, modelId, providerId, systemPrompt, text: inputText, url } = options
+  const { headers, modelId, providerId, systemPrompt, text: inputText, toolCallResults, url } = options
   return {
     body: {
-      ...getAiRequestBody(systemPrompt, inputText),
+      ...getAiRequestBody(systemPrompt, inputText, toolCallResults),
       model: modelId,
     },
     headers,
