@@ -1,32 +1,194 @@
+// cspell:ignore logprobs
+
 interface MockOpenAiResponseContentItem {
   readonly annotations: readonly []
+  readonly logprobs: readonly []
   readonly text: string
   readonly type: 'output_text'
 }
 
 interface MockOpenAiResponseOutputItem {
   readonly content: readonly [MockOpenAiResponseContentItem]
-  readonly id: 'msg_mock_0001'
+  readonly id: string
   readonly role: 'assistant'
   readonly status: 'completed'
   readonly type: 'message'
 }
 
+interface MockOpenAiResponseUsage {
+  readonly input_tokens: number
+  readonly input_tokens_details: {
+    readonly cached_tokens: 0
+  }
+  readonly output_tokens: number
+  readonly output_tokens_details: {
+    readonly reasoning_tokens: 0
+  }
+  readonly total_tokens: number
+}
+
 interface MockOpenAiResponse {
-  readonly created_at: 0
-  readonly id: 'resp_mock_0001'
+  readonly background: false
+  readonly billing: {
+    readonly payer: 'openai'
+  }
+  readonly completed_at: number
+  readonly created_at: number
+  readonly error: null
+  readonly frequency_penalty: 0
+  readonly id: string
+  readonly incomplete_details: null
+  readonly instructions: null
+  readonly max_output_tokens: null
+  readonly max_tool_calls: null
+  readonly metadata: Record<string, never>
   readonly model: string
+  readonly moderation: null
   readonly object: 'response'
   readonly output: readonly [MockOpenAiResponseOutputItem]
-  readonly output_text: string
-  readonly parallel_tool_calls: boolean
+  readonly parallel_tool_calls: true
+  readonly presence_penalty: 0
+  readonly previous_response_id: null
+  readonly prompt_cache_key: null
+  readonly prompt_cache_retention: 'in_memory'
+  readonly reasoning: {
+    readonly effort: null
+    readonly summary: null
+  }
+  readonly safety_identifier: null
+  readonly service_tier: 'default'
   readonly status: 'completed'
+  readonly store: true
+  readonly temperature: 1
+  readonly text: {
+    readonly format: {
+      readonly type: 'text'
+    }
+    readonly verbosity: 'medium'
+  }
+  readonly tool_choice: 'auto'
   readonly tools: readonly []
+  readonly top_logprobs: 0
+  readonly top_p: 1
+  readonly truncation: 'disabled'
+  readonly usage: MockOpenAiResponseUsage
+  readonly user: null
 }
 
 type ParsedMockOpenAiResponse = MockOpenAiResponse | Record<string, unknown>
 
 const lastRequestSummaryToken = '__MOCK_OPENAPI_LAST_REQUEST_SUMMARY__'
+const mockCreatedAtBase = 1_778_610_258
+
+const getHashRound = (value: string): string => {
+  let hash = 2_166_136_261
+  for (const character of value) {
+    hash ^= character.codePointAt(0) ?? 0
+    hash = Math.imul(hash, 16_777_619)
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0')
+}
+
+const getDeterministicHex = (seed: string, length: number): string => {
+  let result = ''
+  let index = 0
+  while (result.length < length) {
+    result += getHashRound(`${seed}:${index}`)
+    index++
+  }
+  return result.slice(0, length)
+}
+
+const getInputTexts = (body: unknown): readonly string[] => {
+  if (!body || typeof body !== 'object') {
+    return []
+  }
+  const input = Reflect.get(body, 'input')
+  if (!Array.isArray(input)) {
+    return []
+  }
+  const parts: string[] = []
+  for (const item of input) {
+    if (typeof item === 'string') {
+      parts.push(item)
+      continue
+    }
+    if (!item || typeof item !== 'object') {
+      continue
+    }
+    const content = Reflect.get(item, 'content')
+    if (typeof content === 'string') {
+      parts.push(content)
+      continue
+    }
+    if (!Array.isArray(content)) {
+      continue
+    }
+    for (const contentPart of content) {
+      if (typeof contentPart === 'string') {
+        parts.push(contentPart)
+        continue
+      }
+      if (!contentPart || typeof contentPart !== 'object') {
+        continue
+      }
+      const text = Reflect.get(contentPart, 'text')
+      if (typeof text !== 'string' || !text) {
+        continue
+      }
+      const type = Reflect.get(contentPart, 'type')
+      if (type === undefined || type === 'input_text') {
+        parts.push(text)
+      }
+    }
+  }
+  return parts
+}
+
+const estimateTokens = (text: string): number => {
+  const trimmedText = text.trim()
+  if (!trimmedText) {
+    return 0
+  }
+  return Math.max(1, Math.ceil(trimmedText.length / 5))
+}
+
+const getUsage = (body: unknown, outputText: string): MockOpenAiResponseUsage => {
+  const inputText = getInputTexts(body).join('\n')
+  const inputTokens = estimateTokens(inputText)
+  const outputTokens = estimateTokens(outputText)
+  return {
+    input_tokens: inputTokens,
+    input_tokens_details: {
+      cached_tokens: 0,
+    },
+    output_tokens: outputTokens,
+    output_tokens_details: {
+      reasoning_tokens: 0,
+    },
+    total_tokens: inputTokens + outputTokens,
+  }
+}
+
+const getResponseSeed = (body: unknown, text: string): string => {
+  const serializedBody = body === undefined ? 'undefined' : JSON.stringify(body)
+  return `${serializedBody}:${text}`
+}
+
+const getResponseId = (seed: string): string => {
+  const responseSeed = `response:${seed}`
+  return `resp_${getDeterministicHex(responseSeed, 32)}`
+}
+
+const getMessageId = (seed: string): string => {
+  const messageSeed = `message:${seed}`
+  return `msg_${getDeterministicHex(messageSeed, 32)}`
+}
+
+const getCreatedAt = (seed: string): number => {
+  const suffix = Number.parseInt(getDeterministicHex(`created:${seed}`, 6), 16)
+  return mockCreatedAtBase + (suffix % 1000)
+}
 
 const getLastRequestSummary = (body: unknown): string => {
   if (!body || typeof body !== 'object') {
@@ -100,38 +262,6 @@ const isSseMockResponse = (text: string): boolean => {
   return text.includes('\ndata:') || text.startsWith('data:')
 }
 
-const getOutputTextFromResponse = (response: Record<string, unknown>): string | undefined => {
-  const outputText = Reflect.get(response, 'output_text')
-  if (typeof outputText === 'string' && outputText) {
-    return outputText
-  }
-  const output = Reflect.get(response, 'output')
-  if (!Array.isArray(output)) {
-    return undefined
-  }
-  const parts: string[] = []
-  for (const item of output) {
-    if (!item || typeof item !== 'object') {
-      continue
-    }
-    const content = Reflect.get(item, 'content')
-    if (!Array.isArray(content)) {
-      continue
-    }
-    for (const part of content) {
-      if (!part || typeof part !== 'object') {
-        continue
-      }
-      const text = Reflect.get(part, 'text')
-      if (typeof text === 'string' && text) {
-        parts.push(text)
-      }
-    }
-  }
-  const joined = parts.join('')
-  return joined || undefined
-}
-
 const parseSseMockResponse = (body: unknown, text: string): ParsedMockOpenAiResponse | undefined => {
   const dataLines = parseSseDataLines(text)
   if (dataLines.length === 0) {
@@ -168,13 +298,6 @@ const parseSseMockResponse = (body: unknown, text: string): ParsedMockOpenAiResp
     }
   }
   if (completedResponse) {
-    const completedOutputText = getOutputTextFromResponse(completedResponse)
-    if (completedOutputText && !Reflect.has(completedResponse, 'output_text')) {
-      return {
-        ...completedResponse,
-        output_text: completedOutputText,
-      }
-    }
     return completedResponse
   }
   if (accumulatedText) {
@@ -192,29 +315,68 @@ export const createMockOpenAiResponse = (body: unknown, text: string): ParsedMoc
   }
   const model = getModel(body)
   const resolvedText = text === lastRequestSummaryToken ? getLastRequestSummary(body) : text
+  const seed = getResponseSeed(body, resolvedText)
+  const createdAt = getCreatedAt(seed)
   return {
-    created_at: 0,
-    id: 'resp_mock_0001',
+    background: false,
+    billing: {
+      payer: 'openai',
+    },
+    completed_at: createdAt + 2,
+    created_at: createdAt,
+    error: null,
+    frequency_penalty: 0,
+    id: getResponseId(seed),
+    incomplete_details: null,
+    instructions: null,
+    max_output_tokens: null,
+    max_tool_calls: null,
+    metadata: {},
     model,
+    moderation: null,
     object: 'response',
     output: [
       {
         content: [
           {
             annotations: [],
+            logprobs: [],
             text: resolvedText,
             type: 'output_text',
           },
         ],
-        id: 'msg_mock_0001',
+        id: getMessageId(seed),
         role: 'assistant',
         status: 'completed',
         type: 'message',
       },
     ],
-    output_text: resolvedText,
     parallel_tool_calls: true,
+    presence_penalty: 0,
+    previous_response_id: null,
+    prompt_cache_key: null,
+    prompt_cache_retention: 'in_memory',
+    reasoning: {
+      effort: null,
+      summary: null,
+    },
+    safety_identifier: null,
+    service_tier: 'default',
     status: 'completed',
+    store: true,
+    temperature: 1,
+    text: {
+      format: {
+        type: 'text',
+      },
+      verbosity: 'medium',
+    },
+    tool_choice: 'auto',
     tools: [],
+    top_logprobs: 0,
+    top_p: 1,
+    truncation: 'disabled',
+    usage: getUsage(body, resolvedText),
+    user: null,
   }
 }
