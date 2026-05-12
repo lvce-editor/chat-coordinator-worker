@@ -140,6 +140,7 @@ test.skip('handle submit stores the openai response headers', async () => {
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'request-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
@@ -448,6 +449,7 @@ test.skip('handle submit should persist attachments and send attachment-aware re
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'request-attachments',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
@@ -618,6 +620,7 @@ test.skip('handle submit should resolve after handled openai http errors', async
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'request-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
@@ -790,6 +793,7 @@ test.skip('handle submit should use backend requests when own backend is enabled
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'request-1',
         type: 'ai-request',
+        url: 'https://backend.example.com/v1/responses',
       },
     ],
     [

@@ -82,6 +82,7 @@ test.skip('ai loop returns success and appends the ai response event', async () 
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
@@ -291,6 +292,7 @@ test.skip('ai loop returns reschedule when ai response contains tool calls', asy
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [

@@ -90,6 +90,7 @@ test.skip('ai loop iteration stores response headers with the response body', as
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
@@ -332,6 +333,7 @@ test.skip('ai loop iteration resumes from stored tool call results and makes the
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
@@ -517,6 +519,7 @@ test.skip('ai loop iteration replays stored assistant messages with assistant ro
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
@@ -656,6 +659,7 @@ test.skip('ai loop iteration stores status code for non-2xx ai responses', async
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
@@ -774,6 +778,7 @@ test.skip('ai loop iteration appends a visible assistant message when the ai req
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
