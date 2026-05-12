@@ -157,6 +157,7 @@ test.skip('process queue resolves when ai loop returns an error', async () => {
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
@@ -334,6 +335,7 @@ test.skip('process queue resolves only after the requested session version has b
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
@@ -417,6 +419,7 @@ test.skip('process queue resolves only after the requested session version has b
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-2',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [
@@ -595,6 +598,7 @@ test.skip('process queue requeues the same session after tool calls and resolves
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-request',
+        url: 'https://api.openai.com/v1/responses',
       },
     ],
     [

@@ -106,6 +106,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     timestamp,
     turnId,
     type: ChatEventType.AiRequest,
+    url,
   })
   let result
   try {
