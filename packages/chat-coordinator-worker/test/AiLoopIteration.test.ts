@@ -6,7 +6,7 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-test.skip('ai loop iteration stores response headers with the response body', async () => {
+test('ai loop iteration stores exposed response headers with the response body', async () => {
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
@@ -25,7 +25,10 @@ test.skip('ai loop iteration stores response headers with the response body', as
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
       ['content-type', 'application/json'],
+      ['cf-ray', '9fabab9edec4c7f0-DUS'],
       ['x-request-id', 'req_123'],
+      ['x-ratelimit-limit-requests', '500'],
+      ['x-ratelimit-remaining-tokens', '199758'],
     ]),
     json: async () => ({
       id: 'resp_1',
@@ -94,25 +97,6 @@ test.skip('ai loop iteration stores response headers with the response body', as
       },
     ],
     [
-      'ChatStorage.appendDebugEvent',
-      {
-        id: '00000000-0000-4000-8000-000000000101',
-        message: {
-          content: [
-            {
-              text: 'Hello from assistant',
-              type: 'text',
-            },
-          ],
-          role: 'assistant',
-        },
-        requestId: '00000000-0000-4000-8000-000000000101',
-        sessionId: 'session-1',
-        timestamp: '2026-04-19T00:00:00.000Z',
-        type: 'message',
-      },
-    ],
-    [
       'ChatStorage.appendEvent',
       {
         message: {
@@ -130,7 +114,10 @@ test.skip('ai loop iteration stores response headers with the response body', as
       'ChatStorage.appendDebugEvent',
       {
         headers: {
+          'cf-ray': '9fabab9edec4c7f0-DUS',
           'content-type': 'application/json',
+          'x-ratelimit-limit-requests': '500',
+          'x-ratelimit-remaining-tokens': '199758',
           'x-request-id': 'req_123',
         },
         requestId: '00000000-0000-4000-8000-000000000101',
