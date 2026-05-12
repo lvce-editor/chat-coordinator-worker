@@ -1,3 +1,5 @@
+// cspell:ignore logprobs
+
 import { afterEach, expect, jest, test } from '@jest/globals'
 import { makeNetworkRequest } from '../src/parts/MakeNetworkRequest/MakeNetworkRequest.ts'
 import * as MockOpenApiStream from '../src/parts/MockOpenApiStream/MockOpenApiStream.ts'
@@ -24,35 +26,87 @@ test('make network request returns registered mock response without calling fetc
   })
 
   expect(result).toEqual({
-    data: {
-      created_at: 0,
-      id: 'resp_mock_0001',
+    data: expect.objectContaining({
+      background: false,
+      billing: {
+        payer: 'openai',
+      },
+      completed_at: expect.any(Number),
+      created_at: expect.any(Number),
+      error: null,
+      frequency_penalty: 0,
+      id: expect.stringMatching(/^resp_[a-z0-9]+$/),
+      incomplete_details: null,
+      instructions: null,
+      max_output_tokens: null,
+      max_tool_calls: null,
+      metadata: {},
       model: 'mock-model',
+      moderation: null,
       object: 'response',
       output: [
         {
           content: [
             {
               annotations: [],
+              logprobs: [],
               text: 'Hello from mock assistant',
               type: 'output_text',
             },
           ],
-          id: 'msg_mock_0001',
+          id: expect.stringMatching(/^msg_[a-z0-9]+$/),
           role: 'assistant',
           status: 'completed',
           type: 'message',
         },
       ],
-      output_text: 'Hello from mock assistant',
       parallel_tool_calls: true,
+      presence_penalty: 0,
+      previous_response_id: null,
+      prompt_cache_key: null,
+      prompt_cache_retention: 'in_memory',
+      reasoning: {
+        effort: null,
+        summary: null,
+      },
+      safety_identifier: null,
+      service_tier: 'default',
       status: 'completed',
+      store: true,
+      temperature: 1,
+      text: {
+        format: {
+          type: 'text',
+        },
+        verbosity: 'medium',
+      },
+      tool_choice: 'auto',
       tools: [],
-    },
+      top_logprobs: 0,
+      top_p: 1,
+      truncation: 'disabled',
+      usage: {
+        input_tokens: 0,
+        input_tokens_details: {
+          cached_tokens: 0,
+        },
+        output_tokens: 5,
+        output_tokens_details: {
+          reasoning_tokens: 0,
+        },
+        total_tokens: 5,
+      },
+      user: null,
+    }),
     headers: {},
     statusCode: 200,
     type: 'success',
   })
+  if (result.type !== 'success') {
+    throw new Error('expected success result')
+  }
+  expect(result.data).not.toHaveProperty('output_text')
+  expect(result.data.completed_at).toBeGreaterThanOrEqual(result.data.created_at)
   expect(fetchSpy).not.toHaveBeenCalled()
 })
 
