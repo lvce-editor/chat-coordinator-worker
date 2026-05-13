@@ -105,9 +105,14 @@ test('ai loop iteration stores exposed response headers with the response body',
       'ChatStorage.appendEvent',
       {
         message: {
+          content: [
+            {
+              text: 'Hello from assistant',
+              type: 'text',
+            },
+          ],
           id: '00000000-0000-4000-8000-000000000101',
           role: 'assistant',
-          text: 'Hello from assistant',
           time: '00:00',
         },
         sessionId: 'session-1',

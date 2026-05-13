@@ -63,6 +63,7 @@ interface StoredMessageEvent {
 interface StoredChatMessageAddedEvent {
   readonly message: {
     readonly attachments?: readonly SubmitAttachment[]
+    readonly content?: readonly StoredMessageContentPart[]
     readonly role?: 'assistant' | 'user'
     readonly text?: string
   }

@@ -31,11 +31,8 @@ const isRawMessageEvent = (event: unknown): event is RawMessageEvent => {
   )
 }
 
-const getMessageText = (message: MessagePayload): string => {
-  return (message.content || [])
-    .filter((part) => part.type === 'text' && typeof part.text === 'string')
-    .map((part) => part.text || '')
-    .join('')
+const getMessageContent = (message: MessagePayload): readonly TextPart[] => {
+  return (message.content || []).filter((part) => (part.type === 'text' || part.type === 'input_text') && typeof part.text === 'string')
 }
 
 const getMessageTime = (timestamp: string): string => {
@@ -44,16 +41,21 @@ const getMessageTime = (timestamp: string): string => {
 
 export const appendChatEvent = async (event: any): Promise<void> => {
   if (isRawMessageEvent(event)) {
-    await ChatStorageWorker.appendEvent({
+    const content = getMessageContent(event.message)
+    await ChatStorageWorker.invoke('ChatStorage.appendEvent', {
       message: {
         ...(event.message.attachments && event.message.attachments.length > 0
           ? {
               attachments: event.message.attachments,
             }
           : {}),
+        ...(content.length > 0
+          ? {
+              content,
+            }
+          : {}),
         id: event.id,
         role: event.message.role || 'assistant',
-        text: getMessageText(event.message),
         time: getMessageTime(event.timestamp),
       },
       sessionId: event.sessionId,

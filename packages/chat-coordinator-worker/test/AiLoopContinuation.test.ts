@@ -123,9 +123,14 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
       'ChatStorage.appendEvent',
       {
         message: {
+          content: [
+            {
+              text: 'Done',
+              type: 'text',
+            },
+          ],
           id: '00000000-0000-4000-8000-000000000201',
           role: 'assistant',
-          text: 'Done',
           time: '00:00',
         },
         sessionId: 'session-1',
