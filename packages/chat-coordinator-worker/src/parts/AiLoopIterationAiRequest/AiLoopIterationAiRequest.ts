@@ -121,19 +121,20 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
       url,
     })
   } catch (error) {
+    const endTimestamp = new Date().toISOString()
     const normalizedError = getError(error)
     await appendVisibleAiErrorMessage({
       error: normalizedError,
       providerId,
       requestId,
       sessionId,
-      timestamp,
+      timestamp: endTimestamp,
     })
     await appendAiErrorResponse({
       error: normalizedError,
       requestId,
       sessionId,
-      timestamp,
+      timestamp: endTimestamp,
       turnId,
     })
     return {
@@ -142,21 +143,24 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     }
   }
 
+  const endTimestamp = new Date().toISOString()
+
   if (result.type === 'error') {
+    // TODO do this in parallel
     await appendVisibleAiErrorMessage({
       error: result.error,
       providerId,
       requestId,
       sessionId,
       statusCode: result.statusCode,
-      timestamp,
+      timestamp: endTimestamp,
     })
     await appendAiErrorResponse({
       error: result.error,
       requestId,
       sessionId,
       statusCode: result.statusCode,
-      timestamp,
+      timestamp: endTimestamp,
       turnId,
     })
     return {
@@ -187,7 +191,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
       },
       requestId,
       sessionId,
-      timestamp,
+      timestamp: endTimestamp,
       type: ChatEventType.Message,
     })
     await appendChatDebugEvent({
@@ -195,7 +199,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
       requestId,
       sessionId,
       statusCode: result.statusCode,
-      timestamp,
+      timestamp: endTimestamp,
       toolCalls: newToolCalls,
       turnId,
       type: ChatEventType.AiResponse,
@@ -221,7 +225,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
       },
       requestId,
       sessionId,
-      timestamp,
+      timestamp: endTimestamp,
       type: ChatEventType.Message,
     })
   }
@@ -231,7 +235,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     requestId,
     sessionId,
     statusCode: result.statusCode,
-    timestamp,
+    timestamp: endTimestamp,
     toolCalls: newToolCalls,
     turnId,
     type: ChatEventType.AiResponse,
