@@ -18,6 +18,39 @@ interface StoredMessageContentPart {
   readonly type?: string
 }
 
+const getStoredMessageText = (message: { readonly content?: readonly StoredMessageContentPart[]; readonly text?: string }): string => {
+  const contentText = (message.content || [])
+    .filter(
+      (part: StoredMessageContentPart) =>
+        (part.type === 'text' || part.type === 'input_text') && typeof part.text === 'string' && part.text.length > 0,
+    )
+    .map((part: StoredMessageContentPart) => part.text)
+    .join('')
+  if (contentText) {
+    return contentText
+  }
+  if (typeof message.text === 'string') {
+    return message.text
+  }
+  return ''
+}
+
+const getStoredMessageParts = (message: {
+  readonly content?: readonly StoredMessageContentPart[]
+  readonly text?: string
+}): readonly AiRequestPart[] => {
+  const text = getStoredMessageText(message)
+  if (!text) {
+    return []
+  }
+  return [
+    {
+      text,
+      type: 'input_text',
+    },
+  ]
+}
+
 interface StoredMessageEvent {
   readonly message: {
     readonly attachments?: readonly SubmitAttachment[]
@@ -67,7 +100,12 @@ const isStoredMessageEvent = (event: StoredEvent): event is LegacyHandleSubmitEv
 const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredChatMessageAddedEvent | StoredMessageEvent): AiRequestMessageInput | undefined => {
   if ('value' in event && typeof event.value === 'string') {
     return {
-      content: event.value,
+      content: [
+        {
+          text: event.value,
+          type: 'input_text',
+        },
+      ],
       role: 'user',
     }
   }
@@ -78,32 +116,17 @@ const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredChatMessageAdde
   if (role !== 'assistant' && role !== 'user') {
     return undefined
   }
-  const text =
-    'content' in event.message
-      ? (event.message.content || [])
-          .filter((part: StoredMessageContentPart) => part.type === 'text' && typeof part.text === 'string')
-          .map((part: StoredMessageContentPart) => part.text)
-          .join('')
-      : 'text' in event.message && typeof event.message.text === 'string'
-        ? event.message.text
-        : ''
+  const textParts = getStoredMessageParts(event.message)
   if (attachments.length === 0) {
-    if (!text) {
+    if (textParts.length === 0) {
       return undefined
     }
     return {
-      content: text,
+      content: textParts,
       role,
     }
   }
-  const parts: AiRequestPart[] = []
-  if (text) {
-    parts.push({
-      text,
-      type: 'input_text',
-    })
-  }
-  parts.push(...getAttachmentParts(attachments))
+  const parts: readonly AiRequestPart[] = [...textParts, ...getAttachmentParts(attachments)]
   if (parts.length === 0) {
     return undefined
   }
@@ -160,7 +183,12 @@ export const getStoredAiLoopState = async (
   if (messages.length === 0) {
     if (typeof fallbackText === 'string') {
       messages.push({
-        content: fallbackText,
+        content: [
+          {
+            text: fallbackText,
+            type: 'input_text',
+          },
+        ],
         role: 'user',
       })
     } else {
