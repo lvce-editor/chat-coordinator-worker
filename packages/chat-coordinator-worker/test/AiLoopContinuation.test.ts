@@ -77,7 +77,7 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
     type: 'success',
   })
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"add one line to notes.txt","role":"user"},{"call_id":"call_1","output":"{\\"content\\":\\"alpha\\\\nbeta\\\\ngamma\\",\\"uri\\":\\"file:///workspace/notes.txt\\"}","type":"function_call_output"}],"model":"gpt-4.1-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"add one line to notes.txt","type":"input_text"}],"role":"user"},{"call_id":"call_1","output":"{\\"content\\":\\"alpha\\\\nbeta\\\\ngamma\\",\\"uri\\":\\"file:///workspace/notes.txt\\"}","type":"function_call_output"}],"model":"gpt-4.1-mini"}',
     headers: {},
     method: 'POST',
   })
@@ -93,7 +93,12 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
               role: 'system',
             },
             {
-              content: 'add one line to notes.txt',
+              content: [
+                {
+                  text: 'add one line to notes.txt',
+                  type: 'input_text',
+                },
+              ],
               role: 'user',
             },
             {

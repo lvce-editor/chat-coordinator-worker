@@ -48,15 +48,30 @@ test('getAiRequestBody preserves stored assistant messages', () => {
   expect(
     getAiRequestBody('You are a helpful assistant.', [
       {
-        content: 'Hello world',
+        content: [
+          {
+            text: 'Hello world',
+            type: 'input_text',
+          },
+        ],
         role: 'user',
       },
       {
-        content: 'Hi there',
+        content: [
+          {
+            text: 'Hi there',
+            type: 'input_text',
+          },
+        ],
         role: 'assistant',
       },
       {
-        content: 'Follow up question',
+        content: [
+          {
+            text: 'Follow up question',
+            type: 'input_text',
+          },
+        ],
         role: 'user',
       },
     ]),
@@ -67,15 +82,134 @@ test('getAiRequestBody preserves stored assistant messages', () => {
         role: 'system',
       },
       {
-        content: 'Hello world',
+        content: [
+          {
+            text: 'Hello world',
+            type: 'input_text',
+          },
+        ],
         role: 'user',
       },
       {
-        content: 'Hi there',
+        content: [
+          {
+            text: 'Hi there',
+            type: 'input_text',
+          },
+        ],
         role: 'assistant',
       },
       {
-        content: 'Follow up question',
+        content: [
+          {
+            text: 'Follow up question',
+            type: 'input_text',
+          },
+        ],
+        role: 'user',
+      },
+    ],
+  })
+})
+
+test('getAiRequestBody preserves multi-turn structured history exactly', () => {
+  expect(
+    getAiRequestBody('You are a helpful assistant.', [
+      {
+        content: [
+          {
+            text: 'user 1',
+            type: 'input_text',
+          },
+        ],
+        role: 'user',
+      },
+      {
+        content: [
+          {
+            text: 'assistant 1',
+            type: 'input_text',
+          },
+        ],
+        role: 'assistant',
+      },
+      {
+        content: [
+          {
+            text: 'user 2',
+            type: 'input_text',
+          },
+        ],
+        role: 'user',
+      },
+      {
+        content: [
+          {
+            text: 'assistant 2',
+            type: 'input_text',
+          },
+        ],
+        role: 'assistant',
+      },
+      {
+        content: [
+          {
+            text: 'user 3',
+            type: 'input_text',
+          },
+        ],
+        role: 'user',
+      },
+    ]),
+  ).toEqual({
+    input: [
+      {
+        content: 'You are a helpful assistant.',
+        role: 'system',
+      },
+      {
+        content: [
+          {
+            text: 'user 1',
+            type: 'input_text',
+          },
+        ],
+        role: 'user',
+      },
+      {
+        content: [
+          {
+            text: 'assistant 1',
+            type: 'input_text',
+          },
+        ],
+        role: 'assistant',
+      },
+      {
+        content: [
+          {
+            text: 'user 2',
+            type: 'input_text',
+          },
+        ],
+        role: 'user',
+      },
+      {
+        content: [
+          {
+            text: 'assistant 2',
+            type: 'input_text',
+          },
+        ],
+        role: 'assistant',
+      },
+      {
+        content: [
+          {
+            text: 'user 3',
+            type: 'input_text',
+          },
+        ],
         role: 'user',
       },
     ],

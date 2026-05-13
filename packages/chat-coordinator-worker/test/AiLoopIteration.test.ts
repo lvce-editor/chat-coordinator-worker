@@ -64,7 +64,7 @@ test('ai loop iteration stores exposed response headers with the response body',
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"model":"gpt-5-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"}],"model":"gpt-5-mini"}',
     headers: {},
     method: 'POST',
   })
@@ -80,7 +80,12 @@ test('ai loop iteration stores exposed response headers with the response body',
               role: 'system',
             },
             {
-              content: 'Hello world',
+              content: [
+                {
+                  text: 'Hello world',
+                  type: 'input_text',
+                },
+              ],
               role: 'user',
             },
           ],
@@ -211,7 +216,7 @@ test('ai loop iteration replays stored chat messages when continuing a session',
   })
 
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"},{"content":"Hi there","role":"assistant"},{"content":"Follow up question","role":"user"}],"model":"gpt-5-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"},{"content":[{"text":"Hi there","type":"input_text"}],"role":"assistant"},{"content":[{"text":"Follow up question","type":"input_text"}],"role":"user"}],"model":"gpt-5-mini"}',
     headers: {},
     method: 'POST',
   })
