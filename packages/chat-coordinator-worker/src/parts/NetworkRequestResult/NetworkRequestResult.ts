@@ -1,6 +1,7 @@
 interface NetworkRequestSuccessResult {
   data: any
   headers: Readonly<Record<string, string>>
+  size: number
   statusCode: number
   type: 'success'
 }
@@ -8,6 +9,7 @@ interface NetworkRequestSuccessResult {
 interface NetworkRequestErrorResult {
   error: any
   headers: Readonly<Record<string, string>>
+  size: number
   statusCode: number
   type: 'error'
 }

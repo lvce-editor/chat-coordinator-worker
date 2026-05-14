@@ -8,6 +8,7 @@ export const parseNetworkResponse = async (response: ParsedNetworkResponse): Pro
     return {
       error: json,
       headers: serializeHeaders(response.headers),
+      size: response.size,
       statusCode: response.status,
       type: 'error',
     }
@@ -15,6 +16,7 @@ export const parseNetworkResponse = async (response: ParsedNetworkResponse): Pro
   return {
     data: json,
     headers: serializeHeaders(response.headers),
+    size: response.size,
     statusCode: response.status,
     type: 'success',
   }
