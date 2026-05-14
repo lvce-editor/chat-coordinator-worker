@@ -35,10 +35,6 @@ const getMessageContent = (message: MessagePayload): readonly TextPart[] => {
   return (message.content || []).filter((part) => (part.type === 'text' || part.type === 'input_text') && typeof part.text === 'string')
 }
 
-const getMessageTime = (timestamp: string): string => {
-  return timestamp.slice(11, 16)
-}
-
 export const appendChatEvent = async (event: any): Promise<void> => {
   if (isRawMessageEvent(event)) {
     const content = getMessageContent(event.message)
@@ -56,7 +52,6 @@ export const appendChatEvent = async (event: any): Promise<void> => {
           : {}),
         id: event.id,
         role: event.message.role || 'assistant',
-        time: getMessageTime(event.timestamp),
       },
       sessionId: event.sessionId,
       timestamp: event.timestamp,
