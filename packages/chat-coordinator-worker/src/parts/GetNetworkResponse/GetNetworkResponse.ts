@@ -39,11 +39,12 @@ export const getNetworkResponse = async (options: NetworkRequestOptions, request
     return createParsedResponse(true, 200, data)
   }
   const response = await fetch(url, requestInit)
+  const size = Reflect.get(response, 'size')
   return {
     headers: response.headers,
     json: response.json.bind(response),
     ok: response.ok,
-    size: typeof response.size === 'number' ? response.size : 0,
+    size: typeof size === 'number' ? size : 0,
     status: response.status,
   }
 }
