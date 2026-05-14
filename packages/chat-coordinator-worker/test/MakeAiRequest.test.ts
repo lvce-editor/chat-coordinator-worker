@@ -118,6 +118,7 @@ test('make ai request uses registered mock response text', async () => {
 test('make ai request forwards the system prompt and returns response data', async () => {
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
+      ['content-length', '321'],
       ['content-type', 'application/json'],
       ['x-request-id', 'req_123'],
     ]),
@@ -127,7 +128,6 @@ test('make ai request forwards the system prompt and returns response data', asy
       status: 'completed',
     }),
     ok: true,
-    size: 321,
     status: 200,
   } as any)
 
@@ -151,6 +151,7 @@ test('make ai request forwards the system prompt and returns response data', asy
       status: 'completed',
     },
     headers: {
+      'content-length': '321',
       'content-type': 'application/json',
       'x-request-id': 'req_123',
     },
