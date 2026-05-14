@@ -131,7 +131,6 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
           ],
           id: '00000000-0000-4000-8000-000000000201',
           role: 'assistant',
-          time: '00:00',
         },
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',

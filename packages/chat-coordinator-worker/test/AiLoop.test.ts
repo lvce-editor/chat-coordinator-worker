@@ -111,7 +111,6 @@ test.skip('ai loop returns success and appends the ai response event', async () 
           id: '00000000-0000-4000-8000-000000000000',
           role: 'assistant',
           text: 'Hello from assistant',
-          time: '00:00',
         },
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
