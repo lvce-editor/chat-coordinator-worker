@@ -242,6 +242,50 @@ test('make ai request extracts assistant text from output items', async () => {
   expect(fetchSpy).toHaveBeenCalledTimes(1)
 })
 
+test('make ai request computes response size when content-length header is missing', async () => {
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    clone: () => ({
+      blob: async () => new Blob(['{"id":"resp_3","status":"completed"}']),
+    }),
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_125'],
+    ]),
+    json: jest.fn<() => Promise<unknown>>().mockResolvedValue({
+      id: 'resp_3',
+      status: 'completed',
+    }),
+    ok: true,
+    status: 200,
+  } as any)
+
+  const result = await makeAiRequest({
+    headers: {},
+    modelId: 'gpt-5-mini',
+    providerId: 'openai',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
+    toolCallResults: [],
+    toolCalls: [],
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    data: {
+      id: 'resp_3',
+      status: 'completed',
+    },
+    headers: {
+      'content-type': 'application/json',
+      'x-request-id': 'req_125',
+    },
+    size: 36,
+    statusCode: 200,
+    type: 'success',
+  })
+  expect(fetchSpy).toHaveBeenCalledTimes(1)
+})
+
 test('make ai request extracts tool calls from response output items', async () => {
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
