@@ -197,11 +197,11 @@ test.skip('process queue resolves when ai loop returns an error', async () => {
       {
         requestId: '00000000-0000-4000-8000-000000000010',
         sessionId: 'session-1',
+        size: 0,
         statusCode: 429,
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-response',
-        size: 0,
         value: {
           error: {
             message: 'rate limited',
@@ -379,12 +379,12 @@ test.skip('process queue resolves only after the requested session version has b
         },
         requestId: '00000000-0000-4000-8000-000000000001',
         sessionId: 'session-1',
+        size: 0,
         statusCode: 200,
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response',
-        size: 0,
         value: {
           id: 'resp_1',
           output_text: 'First answer',
@@ -463,12 +463,12 @@ test.skip('process queue resolves only after the requested session version has b
         },
         requestId: '00000000-0000-4000-8000-000000000002',
         sessionId: 'session-1',
+        size: 0,
         statusCode: 200,
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-2',
         type: 'ai-response',
-        size: 0,
         value: {
           id: 'resp_2',
           output_text: 'Second answer',
@@ -493,11 +493,11 @@ test.skip('process queue requeues the same session after tool calls and resolves
     {
       requestId: 'request-0',
       sessionId: 'session-1',
+      size: 0,
       timestamp: '2026-04-19T00:00:00.000Z',
       toolCalls: [{ args: { query: 'status' }, id: 'tool_1' }],
       turnId: 'turn-1',
       type: 'ai-response',
-        size: 0,
       value: {
         id: 'resp_0',
         status: 'completed',
@@ -643,12 +643,12 @@ test.skip('process queue requeues the same session after tool calls and resolves
         },
         requestId: '00000000-0000-4000-8000-000000000011',
         sessionId: 'session-1',
+        size: 0,
         statusCode: 200,
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response',
-        size: 0,
         value: {
           id: 'resp_10',
           output_text: 'Tool call follow-up',

@@ -103,8 +103,8 @@ test('make ai request uses registered mock response text', async () => {
       user: null,
     }),
     headers: {},
-    statusCode: 200,
     size: 0,
+    statusCode: 200,
     type: 'success',
   })
   if (result.type !== 'success') {
@@ -154,8 +154,8 @@ test('make ai request forwards the system prompt and returns response data', asy
       'content-type': 'application/json',
       'x-request-id': 'req_123',
     },
-    statusCode: 200,
     size: 321,
+    statusCode: 200,
     // text: 'Hello from assistant',
     // toolCalls: [],
     type: 'success',
@@ -232,8 +232,8 @@ test('make ai request extracts assistant text from output items', async () => {
       'content-type': 'application/json',
       'x-request-id': 'req_124',
     },
-    statusCode: 200,
     size: 0,
+    statusCode: 200,
     // text: 'Hello world',
     // toolCalls: [],
     type: 'success',
@@ -291,8 +291,8 @@ test('make ai request extracts tool calls from response output items', async () 
       'content-type': 'application/json',
       'x-request-id': 'req_125',
     },
-    statusCode: 200,
     size: 0,
+    statusCode: 200,
     // text: undefined,
     // toolCalls: [
     //   {
@@ -341,8 +341,8 @@ test('make ai request returns error result for non-2xx responses', async () => {
         message: 'rate limited',
       },
     },
-    statusCode: 429,
     size: 0,
+    statusCode: 429,
     type: 'error',
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
