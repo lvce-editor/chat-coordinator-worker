@@ -154,6 +154,7 @@ test('make network request parses SSE mock responses with response.completed too
 test('make network request returns response headers', async () => {
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([
+      ['content-length', '256'],
       ['content-type', 'application/json'],
       ['x-request-id', 'req_123'],
     ]),
@@ -162,7 +163,6 @@ test('make network request returns response headers', async () => {
       status: 'completed',
     }),
     ok: true,
-    size: 256,
     status: 200,
   } as any)
 
@@ -181,6 +181,7 @@ test('make network request returns response headers', async () => {
       status: 'completed',
     },
     headers: {
+      'content-length': '256',
       'content-type': 'application/json',
       'x-request-id': 'req_123',
     },
