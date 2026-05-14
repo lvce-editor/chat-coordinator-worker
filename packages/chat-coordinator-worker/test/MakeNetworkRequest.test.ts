@@ -100,6 +100,7 @@ test('make network request returns registered mock response without calling fetc
     }),
     headers: {},
     statusCode: 200,
+    size: 0,
     type: 'success',
   })
   if (result.type !== 'success') {
@@ -144,6 +145,7 @@ test('make network request parses SSE mock responses with response.completed too
     },
     headers: {},
     statusCode: 200,
+    size: 0,
     type: 'success',
   })
   expect(fetchSpy).not.toHaveBeenCalled()
@@ -160,6 +162,7 @@ test('make network request returns response headers', async () => {
       status: 'completed',
     }),
     ok: true,
+    size: 256,
     status: 200,
   } as any)
 
@@ -182,6 +185,7 @@ test('make network request returns response headers', async () => {
       'x-request-id': 'req_123',
     },
     statusCode: 200,
+    size: 256,
     type: 'success',
   })
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
@@ -216,6 +220,7 @@ test('make network request omits body and headers when not provided', async () =
       'content-type': 'application/json',
     },
     statusCode: 200,
+    size: 0,
     type: 'success',
   })
   expect(fetchSpy).toHaveBeenCalledWith('https://example.com/data', {
@@ -252,6 +257,7 @@ test('make network request returns error result for non-2xx responses', async ()
       'content-type': 'application/json',
     },
     statusCode: 429,
+    size: 0,
     type: 'error',
   })
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {

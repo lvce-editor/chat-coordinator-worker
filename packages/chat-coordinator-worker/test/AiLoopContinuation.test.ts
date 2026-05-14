@@ -151,6 +151,7 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_201',
           output_text: 'Done',

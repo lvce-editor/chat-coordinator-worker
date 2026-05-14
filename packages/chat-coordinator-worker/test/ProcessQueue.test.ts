@@ -201,6 +201,7 @@ test.skip('process queue resolves when ai loop returns an error', async () => {
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           error: {
             message: 'rate limited',
@@ -383,6 +384,7 @@ test.skip('process queue resolves only after the requested session version has b
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_1',
           output_text: 'First answer',
@@ -466,6 +468,7 @@ test.skip('process queue resolves only after the requested session version has b
         toolCalls: [],
         turnId: 'turn-2',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_2',
           output_text: 'Second answer',
@@ -494,6 +497,7 @@ test.skip('process queue requeues the same session after tool calls and resolves
       toolCalls: [{ args: { query: 'status' }, id: 'tool_1' }],
       turnId: 'turn-1',
       type: 'ai-response',
+        size: 0,
       value: {
         id: 'resp_0',
         status: 'completed',
@@ -644,6 +648,7 @@ test.skip('process queue requeues the same session after tool calls and resolves
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_10',
           output_text: 'Tool call follow-up',

@@ -136,6 +136,7 @@ test('ai loop iteration stores exposed response headers with the response body',
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_1',
           output_text: 'Hello from assistant',
@@ -248,6 +249,7 @@ test.skip('ai loop iteration executes pending tool calls and stores a resumable 
         toolCalls: [{ args: { query: 'status' }, id: 'tool_1' }],
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_0',
           status: 'completed',
@@ -456,6 +458,7 @@ test.skip('ai loop iteration resumes from stored tool call results and makes the
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_2',
           output_text: 'Follow-up answer',
@@ -641,6 +644,7 @@ test.skip('ai loop iteration replays stored assistant messages with assistant ro
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_3',
           output_text: 'Another answer',
@@ -775,6 +779,7 @@ test.skip('ai loop iteration stores status code for non-2xx ai responses', async
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           error: {
             message: 'rate limited',
@@ -892,6 +897,7 @@ test.skip('ai loop iteration appends a visible assistant message when the ai req
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: new Error('request failed'),
       },
     ],

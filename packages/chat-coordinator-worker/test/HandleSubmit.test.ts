@@ -188,6 +188,7 @@ test.skip('handle submit stores the openai response headers', async () => {
         toolCalls: [],
         turnId: 'request-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_1',
           output_text: 'Hello from assistant',
@@ -493,6 +494,7 @@ test.skip('handle submit should persist attachments and send attachment-aware re
         toolCalls: [],
         turnId: 'request-attachments',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_attachments',
           output_text: 'Hello from assistant',
@@ -657,6 +659,7 @@ test.skip('handle submit should resolve after handled openai http errors', async
         timestamp: '2026-04-19T00:00:00.000Z',
         turnId: 'request-1',
         type: 'ai-response',
+        size: 0,
         value: {
           error: {
             code: 'invalid_api_key',
@@ -830,6 +833,7 @@ test.skip('handle submit should use backend requests when own backend is enabled
         toolCalls: [],
         turnId: 'request-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_invalid',
           output: [],

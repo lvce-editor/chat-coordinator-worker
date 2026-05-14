@@ -131,6 +131,7 @@ test.skip('ai loop returns success and appends the ai response event', async () 
         toolCalls: [],
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_1',
           output_text: 'Hello from assistant',
@@ -162,6 +163,7 @@ test.skip('ai loop returns reschedule after executing tool calls', async () => {
         toolCalls: [{ args: { query: 'status' }, id: 'tool_1' }],
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_0',
           status: 'completed',
@@ -315,6 +317,7 @@ test.skip('ai loop returns reschedule when ai response contains tool calls', asy
         ],
         turnId: 'turn-1',
         type: 'ai-response',
+        size: 0,
         value: {
           id: 'resp_2',
           output: [
