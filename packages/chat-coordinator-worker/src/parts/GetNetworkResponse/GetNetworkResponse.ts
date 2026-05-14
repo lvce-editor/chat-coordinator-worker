@@ -11,16 +11,29 @@ export interface ParsedNetworkResponse {
   readonly status: number
 }
 
-const getResponseSize = (headers: Headers): number => {
+const parseContentLength = (headers: Headers): number => {
   const contentLength = headers.get('content-length')
   if (!contentLength) {
-    return 0
+    return -1
   }
   const parsed = Number.parseInt(contentLength, 10)
   if (!Number.isFinite(parsed) || parsed < 0) {
-    return 0
+    return -1
   }
   return parsed
+}
+
+const getResponseSize = async (response: Response): Promise<number> => {
+  const parsedContentLength = parseContentLength(response.headers)
+  if (parsedContentLength !== -1) {
+    return parsedContentLength
+  }
+  try {
+    const blob = await response.clone().blob()
+    return blob.size
+  } catch {
+    return 0
+  }
 }
 
 const createParsedResponse = (ok: boolean, status: number, body: unknown): ParsedNetworkResponse => {
@@ -51,11 +64,12 @@ export const getNetworkResponse = async (options: NetworkRequestOptions, request
     return createParsedResponse(true, 200, data)
   }
   const response = await fetch(url, requestInit)
+  const size = await getResponseSize(response)
   return {
     headers: response.headers,
     json: response.json.bind(response),
     ok: response.ok,
-    size: getResponseSize(response.headers),
+    size,
     status: response.status,
   }
 }

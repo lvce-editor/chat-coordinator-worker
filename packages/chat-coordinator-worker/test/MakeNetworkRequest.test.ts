@@ -229,6 +229,40 @@ test('make network request omits body and headers when not provided', async () =
   })
 })
 
+test('make network request computes response size when content-length header is missing', async () => {
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    clone: () => ({
+      blob: async () => new Blob(['{"ok":true}']),
+    }),
+    headers: new Headers([['content-type', 'application/json']]),
+    json: async () => ({
+      ok: true,
+    }),
+    ok: true,
+    status: 200,
+  } as any)
+
+  const result = await makeNetworkRequest({
+    method: 'GET',
+    url: 'https://example.com/data',
+  })
+
+  expect(result).toEqual({
+    data: {
+      ok: true,
+    },
+    headers: {
+      'content-type': 'application/json',
+    },
+    size: 11,
+    statusCode: 200,
+    type: 'success',
+  })
+  expect(fetchSpy).toHaveBeenCalledWith('https://example.com/data', {
+    method: 'GET',
+  })
+})
+
 test('make network request returns error result for non-2xx responses', async () => {
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
     headers: new Headers([['content-type', 'application/json']]),
