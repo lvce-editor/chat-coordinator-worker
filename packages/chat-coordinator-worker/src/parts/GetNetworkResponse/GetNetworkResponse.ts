@@ -7,6 +7,7 @@ export interface ParsedNetworkResponse {
   readonly headers: Headers
   readonly json: () => Promise<any>
   readonly ok: boolean
+  readonly size: number
   readonly status: number
 }
 
@@ -15,6 +16,7 @@ const createParsedResponse = (ok: boolean, status: number, body: unknown): Parse
     headers: new Headers(),
     json: async () => body,
     ok,
+    size: 0,
     status,
   }
 }
@@ -36,5 +38,13 @@ export const getNetworkResponse = async (options: NetworkRequestOptions, request
     const data = createMockOpenAiResponse(body, mockResponseText)
     return createParsedResponse(true, 200, data)
   }
-  return fetch(url, requestInit)
+  const response = await fetch(url, requestInit)
+  const size = Reflect.get(response, 'size')
+  return {
+    headers: response.headers,
+    json: response.json.bind(response),
+    ok: response.ok,
+    size: typeof size === 'number' ? size : 0,
+    status: response.status,
+  }
 }

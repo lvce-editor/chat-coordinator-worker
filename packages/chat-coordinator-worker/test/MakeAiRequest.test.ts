@@ -103,6 +103,7 @@ test('make ai request uses registered mock response text', async () => {
       user: null,
     }),
     headers: {},
+    size: 0,
     statusCode: 200,
     type: 'success',
   })
@@ -126,6 +127,7 @@ test('make ai request forwards the system prompt and returns response data', asy
       status: 'completed',
     }),
     ok: true,
+    size: 321,
     status: 200,
   } as any)
 
@@ -152,6 +154,7 @@ test('make ai request forwards the system prompt and returns response data', asy
       'content-type': 'application/json',
       'x-request-id': 'req_123',
     },
+    size: 321,
     statusCode: 200,
     // text: 'Hello from assistant',
     // toolCalls: [],
@@ -229,6 +232,7 @@ test('make ai request extracts assistant text from output items', async () => {
       'content-type': 'application/json',
       'x-request-id': 'req_124',
     },
+    size: 0,
     statusCode: 200,
     // text: 'Hello world',
     // toolCalls: [],
@@ -287,6 +291,7 @@ test('make ai request extracts tool calls from response output items', async () 
       'content-type': 'application/json',
       'x-request-id': 'req_125',
     },
+    size: 0,
     statusCode: 200,
     // text: undefined,
     // toolCalls: [
@@ -336,6 +341,7 @@ test('make ai request returns error result for non-2xx responses', async () => {
         message: 'rate limited',
       },
     },
+    size: 0,
     statusCode: 429,
     type: 'error',
   })

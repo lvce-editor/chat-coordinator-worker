@@ -99,6 +99,7 @@ test('make network request returns registered mock response without calling fetc
       user: null,
     }),
     headers: {},
+    size: 0,
     statusCode: 200,
     type: 'success',
   })
@@ -143,6 +144,7 @@ test('make network request parses SSE mock responses with response.completed too
       status: 'completed',
     },
     headers: {},
+    size: 0,
     statusCode: 200,
     type: 'success',
   })
@@ -160,6 +162,7 @@ test('make network request returns response headers', async () => {
       status: 'completed',
     }),
     ok: true,
+    size: 256,
     status: 200,
   } as any)
 
@@ -181,6 +184,7 @@ test('make network request returns response headers', async () => {
       'content-type': 'application/json',
       'x-request-id': 'req_123',
     },
+    size: 256,
     statusCode: 200,
     type: 'success',
   })
@@ -215,6 +219,7 @@ test('make network request omits body and headers when not provided', async () =
     headers: {
       'content-type': 'application/json',
     },
+    size: 0,
     statusCode: 200,
     type: 'success',
   })
@@ -251,6 +256,7 @@ test('make network request returns error result for non-2xx responses', async ()
     headers: {
       'content-type': 'application/json',
     },
+    size: 0,
     statusCode: 429,
     type: 'error',
   })

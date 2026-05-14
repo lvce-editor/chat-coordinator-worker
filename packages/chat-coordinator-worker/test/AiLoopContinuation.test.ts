@@ -146,6 +146,7 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
         },
         requestId: '00000000-0000-4000-8000-000000000201',
         sessionId: 'session-1',
+        size: 0,
         statusCode: 200,
         timestamp: '2026-04-19T00:00:00.000Z',
         toolCalls: [],
