@@ -40,6 +40,7 @@ interface AppendAiErrorResponseOptions {
   readonly error: unknown
   readonly requestId: string
   readonly sessionId: string
+  readonly size?: number
   readonly statusCode?: number
   readonly timestamp: string
   readonly turnId: string
@@ -78,11 +79,12 @@ const getBackendInvalidResponseDetails = (data: unknown): string => {
 }
 
 const appendAiErrorResponse = async (options: AppendAiErrorResponseOptions): Promise<void> => {
-  const { error, requestId, sessionId, statusCode, timestamp, turnId } = options
+  const { error, requestId, sessionId, size = 0, statusCode, timestamp, turnId } = options
   await appendChatDebugEvent({
     ...(typeof statusCode === 'number' ? { statusCode } : {}),
     requestId,
     sessionId,
+    size,
     timestamp,
     turnId,
     type: ChatEventType.AiResponse,
@@ -198,6 +200,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
       headers: result.headers,
       requestId,
       sessionId,
+      size: result.size,
       statusCode: result.statusCode,
       timestamp: endTimestamp,
       toolCalls: newToolCalls,
@@ -234,6 +237,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     headers: result.headers,
     requestId,
     sessionId,
+    size: result.size,
     statusCode: result.statusCode,
     timestamp: endTimestamp,
     toolCalls: newToolCalls,
