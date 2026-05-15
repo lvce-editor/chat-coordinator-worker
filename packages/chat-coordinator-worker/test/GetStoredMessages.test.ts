@@ -237,3 +237,96 @@ test('getStoredMessages keeps every prior turn as a separate structured message'
     },
   ])
 })
+
+test('getStoredMessages unwraps stored chat-view events before converting them to request inputs', async () => {
+  ChatStorageWorker.registerMockRpc({
+    'ChatStorage.getEvents': async (sessionId: string) => [
+      {
+        eventId: 1,
+        message: {
+          message: {
+            content: [
+              {
+                text: 'user 1',
+                type: 'text',
+              },
+            ],
+            role: 'user',
+          },
+          sessionId,
+          timestamp: '2026-05-15T00:00:00.000Z',
+          type: 'message',
+        },
+        sessionId,
+      },
+      {
+        eventId: 2,
+        message: {
+          message: {
+            content: [
+              {
+                text: 'assistant 1',
+                type: 'text',
+              },
+            ],
+            role: 'assistant',
+          },
+          sessionId,
+          timestamp: '2026-05-15T00:00:01.000Z',
+          type: 'message',
+        },
+        sessionId,
+      },
+      {
+        eventId: 3,
+        message: {
+          message: {
+            content: [
+              {
+                text: 'user 2',
+                type: 'text',
+              },
+            ],
+            role: 'user',
+          },
+          sessionId,
+          timestamp: '2026-05-15T00:00:02.000Z',
+          type: 'message',
+        },
+        sessionId,
+      },
+    ],
+  })
+
+  const messages = await getStoredMessages('session-1', 'fallback')
+
+  expect(messages).toEqual([
+    {
+      content: [
+        {
+          text: 'user 1',
+          type: 'input_text',
+        },
+      ],
+      role: 'user',
+    },
+    {
+      content: [
+        {
+          text: 'assistant 1',
+          type: 'input_text',
+        },
+      ],
+      role: 'assistant',
+    },
+    {
+      content: [
+        {
+          text: 'user 2',
+          type: 'input_text',
+        },
+      ],
+      role: 'user',
+    },
+  ])
+})
