@@ -88,6 +88,31 @@ type StoredEvent =
   | StoredMessageEvent
   | ToolCallsFinishedEvent
 
+const isKnownStoredEventType = (type: unknown): type is StoredEvent['type'] => {
+  return (
+    type === ChatEventType.Message ||
+    type === 'chat-message-added' ||
+    type === 'handle-submit' ||
+    type === ChatEventType.AiResponse ||
+    type === ChatEventType.ToolCallsFinished
+  )
+}
+
+const getNormalizedStoredEvent = (event: unknown): StoredEvent | undefined => {
+  if (!event || typeof event !== 'object') {
+    return undefined
+  }
+  const type = Reflect.get(event, 'type')
+  if (isKnownStoredEventType(type)) {
+    return event as StoredEvent
+  }
+  const nestedMessage = Reflect.get(event, 'message')
+  if (!nestedMessage || typeof nestedMessage !== 'object' || nestedMessage === event) {
+    return undefined
+  }
+  return getNormalizedStoredEvent(nestedMessage)
+}
+
 interface StoredAiLoopState {
   readonly messages: readonly AiRequestMessageInput[]
   readonly toolCallResults: readonly ToolCallResult[]
@@ -161,7 +186,11 @@ export const getStoredAiLoopState = async (
   let toolCalls = fallbackToolCalls
   let toolCallResults = fallbackToolCallResults
 
-  for (const event of events as readonly StoredEvent[]) {
+  for (const storedEvent of events as readonly StoredEvent[]) {
+    const event = getNormalizedStoredEvent(storedEvent)
+    if (!event) {
+      continue
+    }
     if (isStoredMessageEvent(event)) {
       const message = getStoredMessage(event)
       if (message) {
