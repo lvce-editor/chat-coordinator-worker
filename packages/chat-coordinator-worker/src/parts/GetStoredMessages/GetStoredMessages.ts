@@ -1,5 +1,5 @@
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
-import type { AiRequestFunctionCall, AiRequestInput, AiRequestMessageInput, AiRequestPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
+import type { AiRequestFunctionCall, AiRequestInput, AiRequestPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import type { SubmitAttachment } from '../SubmitOptions/SubmitOptions.ts'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
@@ -223,6 +223,10 @@ const isToolCallsFinishedEvent = (event: StoredEvent): event is ToolCallsFinishe
   return event.type === ChatEventType.ToolCallsFinished
 }
 
+const isFunctionCallInput = (input: AiRequestInput): input is AiRequestFunctionCall => {
+  return 'type' in input && input.type === 'function_call'
+}
+
 export const getStoredMessages = async (sessionId: string, fallbackText: string): Promise<readonly AiRequestInput[]> => {
   const state = await getStoredAiLoopState(sessionId, fallbackText, [], [])
   return state.messages
@@ -249,7 +253,7 @@ export const getStoredAiLoopState = async (
       const storedMessages = getStoredMessage(event)
       messages.push(...storedMessages)
       for (const storedMessage of storedMessages) {
-        if (storedMessage.type === 'function_call') {
+        if (isFunctionCallInput(storedMessage)) {
           seenFunctionCallIds.add(storedMessage.call_id)
         }
       }
