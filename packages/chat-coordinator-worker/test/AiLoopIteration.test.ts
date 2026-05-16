@@ -41,6 +41,7 @@ test('ai loop iteration stores exposed response headers with the response body',
 
   const result = await aiLoopIteration({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     sessionId: 'session-1',
@@ -48,6 +49,20 @@ test('ai loop iteration stores exposed response headers with the response body',
     text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
+    tools: [
+      {
+        function: {
+          description: 'Read a file',
+          name: 'read_file',
+          parameters: {
+            additionalProperties: false,
+            properties: {},
+            type: 'object',
+          },
+        },
+        type: 'function',
+      },
+    ],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
@@ -64,7 +79,7 @@ test('ai loop iteration stores exposed response headers with the response body',
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"}],"model":"gpt-5-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[{"function":{"description":"Read a file","name":"read_file","parameters":{"additionalProperties":false,"properties":{},"type":"object"}},"type":"function"}]}',
     headers: {},
     method: 'POST',
   })
@@ -89,7 +104,23 @@ test('ai loop iteration stores exposed response headers with the response body',
               role: 'user',
             },
           ],
+          max_tool_calls: 100,
           model: 'gpt-5-mini',
+          tool_choice: 'auto',
+          tools: [
+            {
+              function: {
+                description: 'Read a file',
+                name: 'read_file',
+                parameters: {
+                  additionalProperties: false,
+                  properties: {},
+                  type: 'object',
+                },
+              },
+              type: 'function',
+            },
+          ],
         },
         headers: {},
         method: 'POST',
@@ -206,6 +237,7 @@ test('ai loop iteration replays stored chat messages when continuing a session',
 
   await aiLoopIteration({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     sessionId: 'session-1',
@@ -213,12 +245,13 @@ test('ai loop iteration replays stored chat messages when continuing a session',
     text: 'Ignored fallback text',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     turnId: 'turn-2',
     url: 'https://api.openai.com/v1/responses',
   })
 
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"},{"content":[{"text":"Hi there","type":"input_text"}],"role":"assistant"},{"content":[{"text":"Follow up question","type":"input_text"}],"role":"user"}],"model":"gpt-5-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"},{"content":[{"text":"Hi there","type":"input_text"}],"role":"assistant"},{"content":[{"text":"Follow up question","type":"input_text"}],"role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[]}',
     headers: {},
     method: 'POST',
   })
@@ -308,6 +341,7 @@ test('ai loop iteration queries stored chat-view events first and sends all conv
 
   await aiLoopIteration({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     sessionId: 'session-1',
@@ -315,12 +349,13 @@ test('ai loop iteration queries stored chat-view events first and sends all conv
     text: 'Ignored fallback text',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     turnId: 'turn-3',
     url: 'https://api.openai.com/v1/responses',
   })
 
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"user 1","type":"input_text"}],"role":"user"},{"content":[{"text":"assistant 1","type":"input_text"}],"role":"assistant"},{"content":[{"text":"user 2","type":"input_text"}],"role":"user"}],"model":"gpt-5-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"user 1","type":"input_text"}],"role":"user"},{"content":[{"text":"assistant 1","type":"input_text"}],"role":"assistant"},{"content":[{"text":"user 2","type":"input_text"}],"role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[]}',
     headers: {},
     method: 'POST',
   })

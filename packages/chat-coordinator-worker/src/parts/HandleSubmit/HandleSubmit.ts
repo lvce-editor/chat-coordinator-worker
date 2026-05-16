@@ -6,6 +6,7 @@ import { getAttachmentParts } from '../GetAttachmentParts/GetAttachmentParts.ts'
 import { addPendingSessionWork, processQueue } from '../ProcessQueue/ProcessQueue.ts'
 
 const openApiApiKeyRequiredMessage = 'OpenAI API key is not configured. Enter your OpenAI API key below and click Save.'
+const defaultMaxToolCalls = 100
 
 const getBackendResponsesEndpoint = (backendUrl: string): string => {
   return backendUrl.endsWith('/') ? `${backendUrl}v1/responses` : `${backendUrl}/v1/responses`
@@ -49,6 +50,7 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
     authAccessToken = '',
     backendUrl = '',
     id,
+    maxToolCalls = defaultMaxToolCalls,
     modelId,
     openAiKey,
     requestId,
@@ -56,6 +58,7 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
     sessionId,
     systemPrompt,
     text,
+    tools = [],
     useOwnBackend = false,
   } = options
   const date = new Date()
@@ -108,11 +111,13 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
       Authorization: `Bearer ${useOwnBackend ? authAccessToken : openAiKey}`,
       'Content-Type': 'application/json',
     },
+    maxToolCalls,
     modelId: normalizeOpenAiModelId(modelId),
     providerId: useOwnBackend ? 'backend' : 'openai',
     sessionId,
     systemPrompt,
     text: getQueuedText(text, role, attachments),
+    tools,
     turnId: requestId,
     url: useOwnBackend ? getBackendResponsesEndpoint(backendUrl) : 'https://api.openai.com/v1/responses',
   })

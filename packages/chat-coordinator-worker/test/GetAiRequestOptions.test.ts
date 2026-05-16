@@ -6,11 +6,26 @@ test('get ai request options returns network request options for ai requests', (
     headers: {
       Authorization: 'Bearer test-key',
     },
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
+    tools: [
+      {
+        function: {
+          description: 'Read a file',
+          name: 'read_file',
+          parameters: {
+            additionalProperties: false,
+            properties: {},
+            type: 'object',
+          },
+        },
+        type: 'function',
+      },
+    ],
     url: 'https://api.openai.com/v1/responses',
   })
 
@@ -26,7 +41,23 @@ test('get ai request options returns network request options for ai requests', (
           role: 'user',
         },
       ],
+      max_tool_calls: 100,
       model: 'gpt-5-mini',
+      tool_choice: 'auto',
+      tools: [
+        {
+          function: {
+            description: 'Read a file',
+            name: 'read_file',
+            parameters: {
+              additionalProperties: false,
+              properties: {},
+              type: 'object',
+            },
+          },
+          type: 'function',
+        },
+      ],
     },
     headers: {
       Authorization: 'Bearer test-key',

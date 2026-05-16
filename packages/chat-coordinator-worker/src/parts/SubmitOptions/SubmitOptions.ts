@@ -1,3 +1,5 @@
+import type { ChatTool } from '../ChatTool/ChatTool.ts'
+
 export type SubmitAttachmentDisplayType = 'file' | 'image' | 'invalid-image' | 'text-file'
 
 export interface SubmitAttachment {
@@ -15,6 +17,7 @@ export interface SubmitOptions {
   readonly authAccessToken?: string
   readonly backendUrl?: string
   readonly id: string
+  readonly maxToolCalls?: number
   readonly modelId: string
   readonly openAiKey: string
   readonly requestId: string
@@ -22,5 +25,6 @@ export interface SubmitOptions {
   readonly sessionId: string
   readonly systemPrompt: string
   readonly text: string
+  readonly tools?: readonly ChatTool[]
   readonly useOwnBackend?: boolean
 }
