@@ -12,6 +12,7 @@ import { getError } from '../GetError/GetError.ts'
 import { getRedactedHeaders } from '../GetRedactedHeaders/GetRedactedHeaders.ts'
 import { getVisibleAiErrorMessage } from '../GetVisibleAiErrorMessage/GetVisibleAiErrorMessage.ts'
 import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
+import { resolveAiRequestHeaders } from '../ResolveAiRequestHeaders/ResolveAiRequestHeaders.ts'
 
 interface AiLoopIterationAiRequestOptions {
   readonly headers: AiLoopIterationOptions['headers']
@@ -120,8 +121,13 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     turnId,
     url,
   } = options
-  const requestOptions = getAiRequestOptions({
+  const resolvedHeaders = await resolveAiRequestHeaders({
     headers,
+    providerId,
+    url,
+  })
+  const requestOptions = getAiRequestOptions({
+    headers: resolvedHeaders,
     maxToolCalls,
     modelId,
     providerId,
@@ -134,7 +140,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
 
   await appendChatDebugEvent({
     body: requestOptions.body,
-    headers: getRedactedHeaders(headers),
+    headers: getRedactedHeaders(resolvedHeaders),
     method: 'POST',
     requestId,
     sessionId,
@@ -146,7 +152,7 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
   let result
   try {
     result = await makeAiRequest({
-      headers,
+      headers: resolvedHeaders,
       maxToolCalls,
       modelId,
       providerId,
