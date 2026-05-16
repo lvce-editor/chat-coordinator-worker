@@ -65,8 +65,14 @@ const getStoredMessageParts = (message: {
 const getStoredFunctionCalls = (message: { readonly content?: readonly StoredMessageContentPart[] }): readonly AiRequestFunctionCall[] => {
   return (message.content || [])
     .filter(
-      (part): part is StoredMessageContentPart & { readonly arguments: string; readonly call_id: string; readonly name: string; readonly type: 'function_call' } =>
-        part.type === 'function_call' && typeof part.arguments === 'string' && typeof part.call_id === 'string' && typeof part.name === 'string',
+      (
+        part,
+      ): part is StoredMessageContentPart & {
+        readonly arguments: string
+        readonly call_id: string
+        readonly name: string
+        readonly type: 'function_call'
+      } => part.type === 'function_call' && typeof part.arguments === 'string' && typeof part.call_id === 'string' && typeof part.name === 'string',
     )
     .map((part) => ({
       arguments: part.arguments,

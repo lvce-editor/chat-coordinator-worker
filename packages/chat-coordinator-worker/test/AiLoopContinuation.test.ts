@@ -107,7 +107,7 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
     type: 'success',
   })
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"add one line to notes.txt","type":"input_text"}],"role":"user"},{"arguments":"{\"uri\":\"file:///workspace/notes.txt\"}","call_id":"call_1","name":"read_file","type":"function_call"},{"call_id":"call_1","output":"{\\"content\\":\\"alpha\\\\nbeta\\\\ngamma\\",\\"uri\\":\\"file:///workspace/notes.txt\\"}","type":"function_call_output"}],"max_tool_calls":100,"model":"gpt-4.1-mini","tool_choice":"auto","tools":[]}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"add one line to notes.txt","type":"input_text"}],"role":"user"},{"arguments":"{\\"uri\\":\\"file:///workspace/notes.txt\\"}","call_id":"call_1","name":"read_file","type":"function_call"},{"call_id":"call_1","output":"{\\"content\\":\\"alpha\\\\nbeta\\\\ngamma\\",\\"uri\\":\\"file:///workspace/notes.txt\\"}","type":"function_call_output"}],"max_tool_calls":100,"model":"gpt-4.1-mini","tool_choice":"auto","tools":[]}',
     headers: {},
     method: 'POST',
   })
