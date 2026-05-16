@@ -178,7 +178,7 @@ test('make ai request forwards the system prompt and returns response data', asy
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[{"function":{"description":"Read a file","name":"read_file","parameters":{"additionalProperties":false,"properties":{},"type":"object"}},"type":"function"}]}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[{"description":"Read a file","name":"read_file","parameters":{"additionalProperties":false,"properties":{},"type":"object"},"type":"function"}]}',
     headers: {
       Authorization: 'Bearer test-key',
     },

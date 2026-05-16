@@ -79,7 +79,7 @@ test('ai loop iteration stores exposed response headers with the response body',
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[{"function":{"description":"Read a file","name":"read_file","parameters":{"additionalProperties":false,"properties":{},"type":"object"}},"type":"function"}]}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[{"description":"Read a file","name":"read_file","parameters":{"additionalProperties":false,"properties":{},"type":"object"},"type":"function"}]}',
     headers: {},
     method: 'POST',
   })
@@ -109,14 +109,12 @@ test('ai loop iteration stores exposed response headers with the response body',
           tool_choice: 'auto',
           tools: [
             {
-              function: {
-                description: 'Read a file',
-                name: 'read_file',
-                parameters: {
-                  additionalProperties: false,
-                  properties: {},
-                  type: 'object',
-                },
+              description: 'Read a file',
+              name: 'read_file',
+              parameters: {
+                additionalProperties: false,
+                properties: {},
+                type: 'object',
               },
               type: 'function',
             },

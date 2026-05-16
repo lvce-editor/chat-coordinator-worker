@@ -46,14 +46,12 @@ test('get ai request options returns network request options for ai requests', (
       tool_choice: 'auto',
       tools: [
         {
-          function: {
-            description: 'Read a file',
-            name: 'read_file',
-            parameters: {
-              additionalProperties: false,
-              properties: {},
-              type: 'object',
-            },
+          description: 'Read a file',
+          name: 'read_file',
+          parameters: {
+            additionalProperties: false,
+            properties: {},
+            type: 'object',
           },
           type: 'function',
         },
