@@ -3,6 +3,9 @@ import type { SubmitAttachment } from '../SubmitOptions/SubmitOptions.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 
 interface TextPart {
+  readonly arguments?: string
+  readonly call_id?: string
+  readonly name?: string
   readonly text?: string
   readonly type?: string
 }
@@ -32,7 +35,12 @@ const isRawMessageEvent = (event: unknown): event is RawMessageEvent => {
 }
 
 const getMessageContent = (message: MessagePayload): readonly TextPart[] => {
-  return (message.content || []).filter((part) => (part.type === 'text' || part.type === 'input_text') && typeof part.text === 'string')
+  return (message.content || []).filter((part) => {
+    if ((part.type === 'text' || part.type === 'input_text') && typeof part.text === 'string') {
+      return true
+    }
+    return part.type === 'function_call' && typeof part.arguments === 'string' && typeof part.call_id === 'string' && typeof part.name === 'string'
+  })
 }
 
 export const appendChatEvent = async (event: any): Promise<void> => {

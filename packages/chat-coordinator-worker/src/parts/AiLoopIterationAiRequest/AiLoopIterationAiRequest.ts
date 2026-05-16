@@ -1,7 +1,7 @@
 import type { AiLoopIterationOptions } from '../AiLoopIterationOptions/AiLoopIterationOptions.ts'
 import type { AiLoopIterationResult } from '../AiLoopIterationResult/AiLoopIterationResult.ts'
 import type { ChatTool } from '../ChatTool/ChatTool.ts'
-import type { AiRequestMessageInput } from '../GetAiRequestBody/GetAiRequestBody.ts'
+import type { AiRequestInput } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import { appendChatDebugEvent } from '../AppendChatDebugEvent/AppendChatDebugEvent.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
@@ -16,7 +16,7 @@ import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 interface AiLoopIterationAiRequestOptions {
   readonly headers: AiLoopIterationOptions['headers']
   readonly maxToolCalls: number
-  readonly messages: readonly AiRequestMessageInput[]
+  readonly messages: readonly AiRequestInput[]
   readonly modelId: string
   readonly providerId: string
   readonly requestId: string
@@ -47,6 +47,14 @@ interface AppendAiErrorResponseOptions {
   readonly statusCode?: number
   readonly timestamp: string
   readonly turnId: string
+}
+
+const serializeToolCallArguments = (value: unknown): string => {
+  if (typeof value === 'string') {
+    return value
+  }
+  const serialized = JSON.stringify(value)
+  return typeof serialized === 'string' ? serialized : 'null'
 }
 
 const appendVisibleAiErrorMessage = async (options: AppendVisibleAiErrorMessageOptions): Promise<void> => {
@@ -241,15 +249,25 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
     }
   }
 
-  if (text) {
+  if (text || newToolCalls.length > 0) {
     await appendChatEvent({
       id: requestId,
       message: {
         content: [
-          {
-            text: text,
-            type: 'text',
-          },
+          ...(text
+            ? [
+                {
+                  text,
+                  type: 'text',
+                },
+              ]
+            : []),
+          ...newToolCalls.map((toolCall) => ({
+            arguments: serializeToolCallArguments(toolCall.args),
+            call_id: toolCall.id,
+            name: toolCall.name,
+            type: 'function_call' as const,
+          })),
         ],
         role: 'assistant',
       },

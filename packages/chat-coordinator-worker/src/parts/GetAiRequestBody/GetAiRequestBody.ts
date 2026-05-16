@@ -5,6 +5,13 @@ export interface AiRequestTextPart {
   readonly type: 'input_text'
 }
 
+export interface AiRequestFunctionCall {
+  readonly arguments: string
+  readonly call_id: string
+  readonly name: string
+  readonly type: 'function_call'
+}
+
 export interface AiRequestImagePart {
   readonly image_url: string
   readonly type: 'input_image'
@@ -23,10 +30,10 @@ export interface AiRequestFunctionCallOutput {
   readonly type: 'function_call_output'
 }
 
-export type AiRequestInput = AiRequestMessageInput | AiRequestFunctionCallOutput
+export type AiRequestInput = AiRequestFunctionCall | AiRequestFunctionCallOutput | AiRequestMessageInput
 
-const isAiRequestInput = (value: unknown): value is AiRequestMessageInput => {
-  return !!value && typeof value === 'object' && 'content' in value && 'role' in value
+const isAiRequestInput = (value: unknown): value is AiRequestInput => {
+  return !!value && typeof value === 'object' && (('content' in value && 'role' in value) || 'call_id' in value)
 }
 
 const serializeToolCallOutput = (value: unknown): string => {
@@ -64,7 +71,7 @@ const getToolCallOutput = (toolCallResult: ToolCallResult): string => {
 
 export const getAiRequestBody = (
   systemPrompt: string,
-  text: string | readonly string[] | readonly AiRequestMessageInput[],
+  text: string | readonly string[] | readonly AiRequestInput[],
   toolCallResults: readonly ToolCallResult[] = [],
 ): Readonly<{ input: readonly AiRequestInput[] }> => {
   const messages =
