@@ -80,15 +80,15 @@ const executeGetWorkspaceUri = async (): Promise<unknown> => {
 const executeToolCall = async (toolCall: ToolCall<unknown>): Promise<unknown> => {
   const args = isRecord(toolCall.args) ? toolCall.args : {}
   switch (toolCall.name) {
+    case 'get_workspace_uri':
+    case 'getWorkspaceUri':
+      return executeGetWorkspaceUri()
+    case 'list_files':
+      return executeListFiles(args)
     case 'read_file':
       return executeReadFile(args)
     case 'write_file':
       return executeWriteFile(args)
-    case 'list_files':
-      return executeListFiles(args)
-    case 'getWorkspaceUri':
-    case 'get_workspace_uri':
-      return executeGetWorkspaceUri()
     default:
       return toolCall.args
   }
