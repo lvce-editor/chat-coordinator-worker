@@ -433,3 +433,113 @@ test('getStoredMessages preserves stored assistant function calls and tool outpu
     },
   ])
 })
+
+test('getStoredMessages preserves multiple tool-call rounds in exact alternating order', async () => {
+  ChatStorageWorker.registerMockRpc({
+    'ChatStorage.getEvents': async (sessionId: string) => [
+      {
+        message: {
+          role: 'user',
+          text: 'inspect two files',
+        },
+        sessionId,
+        timestamp: '2026-05-13T00:00:00.000Z',
+        type: 'chat-message-added',
+      },
+      {
+        requestId: 'request-1',
+        sessionId,
+        timestamp: '2026-05-13T00:00:01.000Z',
+        toolCalls: [
+          {
+            args: { uri: 'file:///workspace/one.txt' },
+            id: 'call_1',
+            name: 'read_file',
+          },
+        ],
+        turnId: 'turn-1',
+        type: 'ai-response',
+      },
+      {
+        sessionId,
+        timestamp: '2026-05-13T00:00:02.000Z',
+        toolCallResults: [
+          {
+            callId: 'call_1',
+            type: 'success',
+            value: {
+              content: 'first file',
+              uri: 'file:///workspace/one.txt',
+            },
+          },
+        ],
+        type: 'tool-calls-finished',
+      },
+      {
+        requestId: 'request-2',
+        sessionId,
+        timestamp: '2026-05-13T00:00:03.000Z',
+        toolCalls: [
+          {
+            args: { uri: 'file:///workspace/two.txt' },
+            id: 'call_2',
+            name: 'read_file',
+          },
+        ],
+        turnId: 'turn-1',
+        type: 'ai-response',
+      },
+      {
+        sessionId,
+        timestamp: '2026-05-13T00:00:04.000Z',
+        toolCallResults: [
+          {
+            callId: 'call_2',
+            type: 'success',
+            value: {
+              content: 'second file',
+              uri: 'file:///workspace/two.txt',
+            },
+          },
+        ],
+        type: 'tool-calls-finished',
+      },
+    ],
+  })
+
+  const messages = await getStoredMessages('session-1', 'fallback')
+
+  expect(messages).toEqual([
+    {
+      content: [
+        {
+          text: 'inspect two files',
+          type: 'input_text',
+        },
+      ],
+      role: 'user',
+    },
+    {
+      arguments: '{"uri":"file:///workspace/one.txt"}',
+      call_id: 'call_1',
+      name: 'read_file',
+      type: 'function_call',
+    },
+    {
+      call_id: 'call_1',
+      output: '{"content":"first file","uri":"file:///workspace/one.txt"}',
+      type: 'function_call_output',
+    },
+    {
+      arguments: '{"uri":"file:///workspace/two.txt"}',
+      call_id: 'call_2',
+      name: 'read_file',
+      type: 'function_call',
+    },
+    {
+      call_id: 'call_2',
+      output: '{"content":"second file","uri":"file:///workspace/two.txt"}',
+      type: 'function_call_output',
+    },
+  ])
+})
