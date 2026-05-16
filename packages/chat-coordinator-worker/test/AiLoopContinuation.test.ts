@@ -109,8 +109,6 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
           ],
           model: 'gpt-4.1-mini',
         },
-        headers: {},
-        method: 'POST',
         body: {
           input: [
             {
@@ -135,6 +133,8 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
           model: 'gpt-4.1-mini',
           tool_choice: 'auto',
         },
+        headers: {},
+        method: 'POST',
         requestId: '00000000-0000-4000-8000-000000000201',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
