@@ -30,6 +30,10 @@ test('getToolCallResults should not mutate the provided tool calls', async () =>
 })
 
 test('getToolCallResults returns one result per tool call', async () => {
+  const rpc = RendererWorker.registerMockRpc({
+    'FileSystem.writeFile': async () => undefined,
+  })
+
   const result = await getToolCallResults([
     { args: { query: 'status' }, id: 'tool_1', name: 'read_status' },
     { args: { path: '/tmp/file.txt' }, id: 'tool_2', name: 'write_file' },
@@ -47,10 +51,12 @@ test('getToolCallResults returns one result per tool call', async () => {
       callId: 'tool_2',
       type: 'success',
       value: {
+        ok: true,
         path: '/tmp/file.txt',
       },
     },
   ])
+  expect(rpc.invocations).toEqual([['FileSystem.writeFile', '/tmp/file.txt', '']])
 })
 
 test('getToolCallResults executes read_file calls and keeps each result matched to its call id', async () => {
