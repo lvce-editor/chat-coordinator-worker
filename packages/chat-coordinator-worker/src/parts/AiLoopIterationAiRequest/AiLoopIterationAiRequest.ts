@@ -1,11 +1,12 @@
 import type { AiLoopIterationOptions } from '../AiLoopIterationOptions/AiLoopIterationOptions.ts'
 import type { AiLoopIterationResult } from '../AiLoopIterationResult/AiLoopIterationResult.ts'
+import type { ChatTool } from '../ChatTool/ChatTool.ts'
 import type { AiRequestMessageInput } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import { appendChatDebugEvent } from '../AppendChatDebugEvent/AppendChatDebugEvent.ts'
 import { appendChatEvent } from '../AppendChatEvent/AppendChatEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { extractAiResponse } from '../ExtractAiResponseText/ExtractAiResponseText.ts'
-import { getAiRequestBody } from '../GetAiRequestBody/GetAiRequestBody.ts'
+import { getAiRequestOptions } from '../GetAiRequestOptions/GetAiRequestOptions.ts'
 import { getBackendErrorMessage } from '../GetBackendErrorMessage/GetBackendErrorMessage.ts'
 import { getError } from '../GetError/GetError.ts'
 import { getRedactedHeaders } from '../GetRedactedHeaders/GetRedactedHeaders.ts'
@@ -14,6 +15,7 @@ import { makeAiRequest } from '../MakeAiRequest/MakeAiRequest.ts'
 
 interface AiLoopIterationAiRequestOptions {
   readonly headers: AiLoopIterationOptions['headers']
+  readonly maxToolCalls: number
   readonly messages: readonly AiRequestMessageInput[]
   readonly modelId: string
   readonly providerId: string
@@ -23,6 +25,7 @@ interface AiLoopIterationAiRequestOptions {
   readonly timestamp: string
   readonly toolCallResults: AiLoopIterationOptions['toolCallResults']
   readonly toolCalls: AiLoopIterationOptions['toolCalls']
+  readonly tools: readonly ChatTool[]
   readonly turnId: string
   readonly url: string
 }
@@ -93,14 +96,36 @@ const appendAiErrorResponse = async (options: AppendAiErrorResponseOptions): Pro
 }
 
 export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequestOptions): Promise<AiLoopIterationResult> => {
-  const { headers, messages, modelId, providerId, requestId, sessionId, systemPrompt, timestamp, toolCallResults, toolCalls, turnId, url } = options
-  const requestBody = {
-    ...getAiRequestBody(systemPrompt, messages, toolCallResults),
-    model: modelId,
-  }
+  const {
+    headers,
+    maxToolCalls,
+    messages,
+    modelId,
+    providerId,
+    requestId,
+    sessionId,
+    systemPrompt,
+    timestamp,
+    toolCallResults,
+    toolCalls,
+    tools,
+    turnId,
+    url,
+  } = options
+  const requestOptions = getAiRequestOptions({
+    headers,
+    maxToolCalls,
+    modelId,
+    providerId,
+    systemPrompt,
+    text: messages,
+    toolCallResults,
+    tools,
+    url,
+  })
 
   await appendChatDebugEvent({
-    body: requestBody,
+    body: requestOptions.body,
     headers: getRedactedHeaders(headers),
     method: 'POST',
     requestId,
@@ -114,12 +139,14 @@ export const aiLoopIterationAiRequest = async (options: AiLoopIterationAiRequest
   try {
     result = await makeAiRequest({
       headers,
+      maxToolCalls,
       modelId,
       providerId,
       systemPrompt,
       text: messages,
       toolCallResults,
       toolCalls,
+      tools,
       url,
     })
   } catch (error) {

@@ -55,6 +55,7 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
 
   const result = await aiLoopIteration({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-4.1-mini',
     providerId: 'openai',
     sessionId: 'session-1',
@@ -62,6 +63,7 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
     text: 'ignored fallback',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
@@ -77,7 +79,7 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
     type: 'success',
   })
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"add one line to notes.txt","type":"input_text"}],"role":"user"},{"call_id":"call_1","output":"{\\"content\\":\\"alpha\\\\nbeta\\\\ngamma\\",\\"uri\\":\\"file:///workspace/notes.txt\\"}","type":"function_call_output"}],"model":"gpt-4.1-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"add one line to notes.txt","type":"input_text"}],"role":"user"},{"call_id":"call_1","output":"{\\"content\\":\\"alpha\\\\nbeta\\\\ngamma\\",\\"uri\\":\\"file:///workspace/notes.txt\\"}","type":"function_call_output"}],"max_tool_calls":100,"model":"gpt-4.1-mini","tool_choice":"auto","tools":[]}',
     headers: {},
     method: 'POST',
   })
@@ -107,7 +109,10 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
               type: 'function_call_output',
             },
           ],
+          max_tool_calls: 100,
           model: 'gpt-4.1-mini',
+          tool_choice: 'auto',
+          tools: [],
         },
         headers: {},
         method: 'POST',

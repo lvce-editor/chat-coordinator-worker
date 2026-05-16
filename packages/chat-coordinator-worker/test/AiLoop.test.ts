@@ -41,11 +41,13 @@ test.skip('ai loop returns success and appends the ai response event', async () 
       Authorization: 'Bearer test-key',
       'Content-Type': 'application/json',
     },
+    maxToolCalls: 100,
     modelId: 'gpt-4.1-mini',
     providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
+    tools: [],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
@@ -70,7 +72,10 @@ test.skip('ai loop returns success and appends the ai response event', async () 
               role: 'user',
             },
           ],
+          max_tool_calls: 100,
           model: 'gpt-4.1-mini',
+          tool_choice: 'auto',
+          tools: [],
         },
         headers: {
           Authorization: 'Bearer [redacted]',
@@ -178,11 +183,13 @@ test.skip('ai loop returns reschedule after executing tool calls', async () => {
 
   const result = await aiLoop({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-4.1-mini',
     providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
+    tools: [],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
@@ -255,11 +262,13 @@ test.skip('ai loop returns reschedule when ai response contains tool calls', asy
 
   const result = await aiLoop({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-4.1-mini',
     providerId: 'openai',
     sessionId: 'session-1',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
+    tools: [],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })

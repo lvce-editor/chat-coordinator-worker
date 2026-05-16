@@ -20,12 +20,14 @@ test('make ai request uses registered mock response text', async () => {
     headers: {
       Authorization: 'Bearer test-key',
     },
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     url: 'https://api.openai.com/v1/responses',
   })
 
@@ -135,12 +137,27 @@ test('make ai request forwards the system prompt and returns response data', asy
     headers: {
       Authorization: 'Bearer test-key',
     },
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
+    tools: [
+      {
+        function: {
+          description: 'Read a file',
+          name: 'read_file',
+          parameters: {
+            additionalProperties: false,
+            properties: {},
+            type: 'object',
+          },
+        },
+        type: 'function',
+      },
+    ],
     url: 'https://api.openai.com/v1/responses',
   })
 
@@ -157,13 +174,11 @@ test('make ai request forwards the system prompt and returns response data', asy
     },
     size: 321,
     statusCode: 200,
-    // text: 'Hello from assistant',
-    // toolCalls: [],
     type: 'success',
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"model":"gpt-5-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[{"description":"Read a file","name":"read_file","parameters":{"additionalProperties":false,"properties":{},"type":"object"},"type":"function"}]}',
     headers: {
       Authorization: 'Bearer test-key',
     },
@@ -201,12 +216,14 @@ test('make ai request extracts assistant text from output items', async () => {
 
   const result = await makeAiRequest({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     url: 'https://api.openai.com/v1/responses',
   })
 
@@ -235,8 +252,6 @@ test('make ai request extracts assistant text from output items', async () => {
     },
     size: 0,
     statusCode: 200,
-    // text: 'Hello world',
-    // toolCalls: [],
     type: 'success',
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
@@ -261,12 +276,14 @@ test('make ai request computes response size when content-length header is missi
 
   const result = await makeAiRequest({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     url: 'https://api.openai.com/v1/responses',
   })
 
@@ -310,12 +327,14 @@ test('make ai request extracts tool calls from response output items', async () 
 
   const result = await makeAiRequest({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     url: 'https://api.openai.com/v1/responses',
   })
 
@@ -338,15 +357,6 @@ test('make ai request extracts tool calls from response output items', async () 
     },
     size: 0,
     statusCode: 200,
-    // text: undefined,
-    // toolCalls: [
-    //   {
-    //     args: {
-    //       query: 'status',
-    //     },
-    //     id: 'tool_1',
-    //   },
-    // ],
     type: 'success',
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
@@ -371,12 +381,14 @@ test('make ai request returns error result for non-2xx responses', async () => {
     headers: {
       Authorization: 'Bearer test-key',
     },
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     url: 'https://api.openai.com/v1/responses',
   })
 
@@ -392,7 +404,7 @@ test('make ai request returns error result for non-2xx responses', async () => {
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"model":"gpt-5-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[]}',
     headers: {
       Authorization: 'Bearer test-key',
     },
@@ -407,18 +419,20 @@ test('make ai request propagates network failures', async () => {
   await expect(
     makeAiRequest({
       headers: {},
+      maxToolCalls: 100,
       modelId: 'gpt-5-mini',
       providerId: 'openai',
       systemPrompt: 'You are a helpful assistant.',
       text: 'Hello world',
       toolCallResults: [],
       toolCalls: [],
+      tools: [],
       url: 'https://api.openai.com/v1/responses',
     }),
   ).rejects.toThrow(error)
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"model":"gpt-5-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[]}',
     headers: {},
     method: 'POST',
   })

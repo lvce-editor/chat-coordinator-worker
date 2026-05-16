@@ -9,6 +9,7 @@ import { getTimeStamp } from '../GetTimeStamp/GetTimeStamp.ts'
 export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Promise<AiLoopIterationResult> => {
   const {
     headers,
+    maxToolCalls,
     modelId,
     providerId,
     sessionId,
@@ -16,6 +17,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
     text,
     toolCallResults: fallbackToolCallResults,
     toolCalls: fallbackToolCalls,
+    tools,
     turnId,
     url,
   } = loopOptions
@@ -36,6 +38,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
 
   return aiLoopIterationAiRequest({
     headers,
+    maxToolCalls,
     messages,
     modelId,
     providerId,
@@ -45,6 +48,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
     timestamp,
     toolCallResults,
     toolCalls,
+    tools,
     turnId,
     url,
   })
