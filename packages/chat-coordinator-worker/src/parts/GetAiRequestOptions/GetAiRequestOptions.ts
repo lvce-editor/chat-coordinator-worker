@@ -2,7 +2,7 @@ import type { AiRequestOptions } from '../AiRequestOptions/AiRequestOptions.ts'
 import type { NetworkRequestOptions } from '../NetworkRequestOptions/NetworkRequestOptions.ts'
 import { getAiRequestBody } from '../GetAiRequestBody/GetAiRequestBody.ts'
 
-const getOpenAiTools = (tools: readonly AiRequestOptions['tools']): readonly unknown[] => {
+const getOpenAiTools = (tools: AiRequestOptions['tools']): readonly unknown[] => {
   return tools.map((tool) => ({
     description: tool.function.description,
     name: tool.function.name,

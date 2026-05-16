@@ -399,6 +399,7 @@ test.skip('ai loop iteration executes pending tool calls and stores a resumable 
 
   const result = await aiLoopIteration({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     sessionId: 'session-1',
@@ -406,6 +407,7 @@ test.skip('ai loop iteration executes pending tool calls and stores a resumable 
     text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
@@ -497,6 +499,7 @@ test.skip('ai loop iteration resumes from stored tool call results and makes the
 
   const result = await aiLoopIteration({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     sessionId: 'session-1',
@@ -504,6 +507,7 @@ test.skip('ai loop iteration resumes from stored tool call results and makes the
     text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
@@ -681,6 +685,7 @@ test.skip('ai loop iteration replays stored assistant messages with assistant ro
 
   await aiLoopIteration({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     sessionId: 'session-1',
@@ -688,6 +693,7 @@ test.skip('ai loop iteration replays stored assistant messages with assistant ro
     text: 'Ignored fallback text',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
@@ -825,6 +831,7 @@ test.skip('ai loop iteration stores status code for non-2xx ai responses', async
 
   const result = await aiLoopIteration({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     sessionId: 'session-1',
@@ -832,6 +839,7 @@ test.skip('ai loop iteration stores status code for non-2xx ai responses', async
     text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
@@ -948,6 +956,7 @@ test.skip('ai loop iteration appends a visible assistant message when the ai req
 
   const result = await aiLoopIteration({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     sessionId: 'session-1',
@@ -955,6 +964,7 @@ test.skip('ai loop iteration appends a visible assistant message when the ai req
     text: 'Hello world',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })
