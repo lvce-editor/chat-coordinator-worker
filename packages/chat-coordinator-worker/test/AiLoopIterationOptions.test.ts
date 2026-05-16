@@ -4,6 +4,7 @@ import type { AiLoopIterationOptions } from '../src/parts/AiLoopIterationOptions
 test('AiLoopIterationOptions type is importable', () => {
   const options: AiLoopIterationOptions = {
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     sessionId: 'session-1',
@@ -11,12 +12,14 @@ test('AiLoopIterationOptions type is importable', () => {
     text: 'hello',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   }
 
   expect(options).toEqual({
     headers: {},
+    maxToolCalls: 100,
     modelId: 'gpt-5-mini',
     providerId: 'openai',
     sessionId: 'session-1',
@@ -24,6 +27,7 @@ test('AiLoopIterationOptions type is importable', () => {
     text: 'hello',
     toolCallResults: [],
     toolCalls: [],
+    tools: [],
     turnId: 'turn-1',
     url: 'https://api.openai.com/v1/responses',
   })

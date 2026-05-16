@@ -20,11 +20,13 @@ const createOptions = (sessionId: string, turnId: string): AiLoopOptions => {
       Authorization: 'Bearer test-key',
       'Content-Type': 'application/json',
     },
+    maxToolCalls: 100,
     modelId: 'gpt-4.1-mini',
     providerId: 'openai',
     sessionId,
     systemPrompt: 'You are a helpful assistant.',
     text: 'Hello world',
+    tools: [],
     turnId,
     url: 'https://api.openai.com/v1/responses',
   }
