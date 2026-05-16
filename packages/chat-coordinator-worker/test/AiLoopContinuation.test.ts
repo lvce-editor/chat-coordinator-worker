@@ -77,7 +77,7 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
     type: 'success',
   })
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"add one line to notes.txt","type":"input_text"}],"role":"user"},{"call_id":"call_1","output":"{\\"content\\":\\"alpha\\\\nbeta\\\\ngamma\\",\\"uri\\":\\"file:///workspace/notes.txt\\"}","type":"function_call_output"}],"model":"gpt-4.1-mini"}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"add one line to notes.txt","type":"input_text"}],"role":"user"},{"call_id":"call_1","output":"{\\"content\\":\\"alpha\\\\nbeta\\\\ngamma\\",\\"uri\\":\\"file:///workspace/notes.txt\\"}","type":"function_call_output"}],"model":"gpt-4.1-mini","tool_choice":"auto"}',
     headers: {},
     method: 'POST',
   })
@@ -111,6 +111,30 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
         },
         headers: {},
         method: 'POST',
+        body: {
+          input: [
+            {
+              content: 'You are a helpful assistant.',
+              role: 'system',
+            },
+            {
+              content: [
+                {
+                  text: 'add one line to notes.txt',
+                  type: 'input_text',
+                },
+              ],
+              role: 'user',
+            },
+            {
+              call_id: 'call_1',
+              output: '{"content":"alpha\\nbeta\\ngamma","uri":"file:///workspace/notes.txt"}',
+              type: 'function_call_output',
+            },
+          ],
+          model: 'gpt-4.1-mini',
+          tool_choice: 'auto',
+        },
         requestId: '00000000-0000-4000-8000-000000000201',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
