@@ -1,6 +1,7 @@
 // cspell:ignore logprobs
 
 import { afterEach, expect, jest, test } from '@jest/globals'
+import { AuthWorker } from '@lvce-editor/rpc-registry'
 import { makeAiRequest } from '../src/parts/MakeAiRequest/MakeAiRequest.ts'
 import * as MockOpenApiStream from '../src/parts/MockOpenApiStream/MockOpenApiStream.ts'
 import { registerMockResponse } from '../src/parts/RegisterMockResponse/RegisterMockResponse.ts'
@@ -360,6 +361,70 @@ test('make ai request extracts tool calls from response output items', async () 
     type: 'success',
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
+})
+
+test('make ai request refreshes backend auth token through auth worker', async () => {
+  using mockAuthRpc = AuthWorker.registerMockRpc({
+    'Auth.syncBackendAuth': async () => ({
+      authAccessToken: 'refreshed-backend-token',
+      authErrorMessage: '',
+      userName: 'test-user',
+      userState: 'loggedIn',
+    }),
+  })
+  const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_backend_1'],
+    ]),
+    json: jest.fn<() => Promise<unknown>>().mockResolvedValue({
+      id: 'resp_backend_1',
+      output_text: 'Hello from backend assistant',
+      status: 'completed',
+    }),
+    ok: true,
+    status: 200,
+  } as any)
+
+  const result = await makeAiRequest({
+    headers: {
+      Authorization: 'Bearer stale-token',
+      'Content-Type': 'application/json',
+    },
+    maxToolCalls: 100,
+    modelId: 'gpt-5-mini',
+    providerId: 'backend',
+    systemPrompt: 'You are a helpful assistant.',
+    text: 'Hello world',
+    toolCallResults: [],
+    toolCalls: [],
+    tools: [],
+    url: 'https://backend.example.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    data: {
+      id: 'resp_backend_1',
+      output_text: 'Hello from backend assistant',
+      status: 'completed',
+    },
+    headers: {
+      'content-type': 'application/json',
+      'x-request-id': 'req_backend_1',
+    },
+    size: 0,
+    statusCode: 200,
+    type: 'success',
+  })
+  expect(mockAuthRpc.invocations).toEqual([['Auth.syncBackendAuth', 'https://backend.example.com']])
+  expect(fetchSpy).toHaveBeenCalledWith('https://backend.example.com/v1/responses', {
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":"Hello world","role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[]}',
+    headers: {
+      Authorization: 'Bearer refreshed-backend-token',
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+  })
 })
 
 test('make ai request returns error result for non-2xx responses', async () => {

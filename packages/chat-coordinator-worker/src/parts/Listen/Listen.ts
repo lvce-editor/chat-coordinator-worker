@@ -1,6 +1,7 @@
 import { LazyTransferMessagePortRpcParent, WebWorkerRpcClient } from '@lvce-editor/rpc'
-import { AuthWorker, ChatStorageWorker, RendererWorker } from '@lvce-editor/rpc-registry'
+import { ChatStorageWorker, RendererWorker } from '@lvce-editor/rpc-registry'
 import * as CommandMap from '../CommandMap/CommandMap.ts'
+import { initializeAuthWorker } from '../InitializeAuthWorker/InitializeAuthWorker.ts'
 
 export const listen = async (): Promise<void> => {
   const r = await WebWorkerRpcClient.create({
@@ -15,11 +16,5 @@ export const listen = async (): Promise<void> => {
     },
   })
   ChatStorageWorker.set(s)
-  const a = await LazyTransferMessagePortRpcParent.create({
-    commandMap: {},
-    send(port) {
-      return RendererWorker.sendMessagePortToAuthWorker(port, 0)
-    },
-  })
-  AuthWorker.set(a)
+  await initializeAuthWorker()
 }
