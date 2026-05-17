@@ -113,10 +113,7 @@ const getStoredFunctionCallOutputs = (message: { readonly toolCalls?: readonly S
     )
     .map((toolCall) => ({
       call_id: toolCall.id,
-      output:
-        toolCall.status === 'success'
-          ? toolCall.result || 'null'
-          : toolCall.errorMessage || JSON.stringify({ error: 'Tool call failed.' }),
+      output: toolCall.status === 'success' ? toolCall.result || 'null' : toolCall.errorMessage || JSON.stringify({ error: 'Tool call failed.' }),
       type: 'function_call_output' as const,
     }))
 }
@@ -163,6 +160,8 @@ interface StoredMessageEvent {
     readonly attachments?: readonly SubmitAttachment[]
     readonly content?: readonly StoredMessageContentPart[]
     readonly role?: 'assistant' | 'user'
+    readonly text?: string
+    readonly toolCalls?: readonly StoredToolCall[]
   }
   readonly type: typeof ChatEventType.Message
 }
