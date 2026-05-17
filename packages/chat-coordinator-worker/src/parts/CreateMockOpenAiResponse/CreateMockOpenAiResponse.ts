@@ -137,7 +137,7 @@ const getInputTexts = (body: unknown): readonly string[] => {
         continue
       }
       const type = Reflect.get(contentPart, 'type')
-      if (type === undefined || type === 'input_text') {
+      if (type === undefined || type === 'input_text' || type === 'output_text') {
         parts.push(text)
       }
     }

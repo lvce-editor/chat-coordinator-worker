@@ -5,6 +5,11 @@ export interface AiRequestTextPart {
   readonly type: 'input_text'
 }
 
+export interface AiRequestAssistantTextPart {
+  readonly text: string
+  readonly type: 'output_text'
+}
+
 export interface AiRequestFunctionCall {
   readonly arguments: string
   readonly call_id: string
@@ -17,7 +22,7 @@ export interface AiRequestImagePart {
   readonly type: 'input_image'
 }
 
-export type AiRequestPart = AiRequestImagePart | AiRequestTextPart
+export type AiRequestPart = AiRequestAssistantTextPart | AiRequestImagePart | AiRequestTextPart
 
 export interface AiRequestMessageInput {
   readonly content: string | readonly AiRequestPart[]
@@ -31,6 +36,42 @@ export interface AiRequestFunctionCallOutput {
 }
 
 export type AiRequestInput = AiRequestFunctionCall | AiRequestFunctionCallOutput | AiRequestMessageInput
+
+const normalizeAssistantMessage = (message: AiRequestMessageInput): AiRequestMessageInput => {
+  if (message.role !== 'assistant') {
+    return message
+  }
+  if (typeof message.content === 'string') {
+    return {
+      content: [
+        {
+          text: message.content,
+          type: 'output_text',
+        },
+      ],
+      role: 'assistant',
+    }
+  }
+  return {
+    content: message.content.map((part) => {
+      if ('text' in part && part.type === 'input_text') {
+        return {
+          text: part.text,
+          type: 'output_text' as const,
+        }
+      }
+      return part
+    }),
+    role: 'assistant',
+  }
+}
+
+const normalizeMessage = (message: AiRequestInput): AiRequestInput => {
+  if ('role' in message && 'content' in message) {
+    return normalizeAssistantMessage(message)
+  }
+  return message
+}
 
 const isAiRequestInput = (value: unknown): value is AiRequestInput => {
   return !!value && typeof value === 'object' && (('content' in value && 'role' in value) || 'call_id' in value)
@@ -84,7 +125,7 @@ export const getAiRequestBody = (
         ]
       : text.map((message) =>
           isAiRequestInput(message)
-            ? message
+            ? normalizeMessage(message)
             : {
                 content: message,
                 role: 'user' as const,
