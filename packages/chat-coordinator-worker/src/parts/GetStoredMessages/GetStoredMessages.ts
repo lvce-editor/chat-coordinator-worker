@@ -5,6 +5,7 @@ import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { getAttachmentParts } from '../GetAttachmentParts/GetAttachmentParts.ts'
+import { appendMissingAiRequestInputTail } from '../MergeAiRequestInputs/MergeAiRequestInputs.ts'
 
 interface ToolCallsFinishedEvent {
   readonly sessionId: string
@@ -277,8 +278,8 @@ export const getStoredAiLoopState = async (
     }
   }
 
-  if (messages.length === 0) {
-    if (typeof fallbackText === 'string') {
+  if (typeof fallbackText === 'string') {
+    if (messages.length === 0) {
       messages.push({
         content: [
           {
@@ -288,8 +289,12 @@ export const getStoredAiLoopState = async (
         ],
         role: 'user',
       })
-    } else {
-      messages.push(...fallbackText)
+    }
+  } else {
+    return {
+      messages: appendMissingAiRequestInputTail(messages, fallbackText),
+      toolCallResults,
+      toolCalls,
     }
   }
 
