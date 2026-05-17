@@ -544,6 +544,76 @@ test('getStoredMessages preserves multiple tool-call rounds in exact alternating
   ])
 })
 
+test('getStoredMessages reads stored tool calls and results from chat-view message data', async () => {
+  ChatStorageWorker.registerMockRpc({
+    'ChatStorage.getMessages': async (sessionId: string) => [
+      {
+        message: {
+          role: 'user',
+          text: 'inspect notes.txt',
+        },
+        sessionId,
+        timestamp: '2026-05-13T00:00:00.000Z',
+        type: 'chat-message-added',
+      },
+      {
+        message: {
+          id: 'message-2',
+          role: 'assistant',
+          text: 'Let me check.',
+          time: '2026-05-13T00:00:01.000Z',
+          toolCalls: [
+            {
+              arguments: '{"uri":"file:///workspace/notes.txt"}',
+              id: 'call_1',
+              name: 'read_file',
+              result: '{"content":"alpha"}',
+              status: 'success',
+            },
+          ],
+        },
+        sessionId,
+        timestamp: '2026-05-13T00:00:02.000Z',
+        type: 'chat-message-added',
+      },
+    ],
+  })
+
+  const messages = await getStoredMessages('session-1', 'fallback')
+
+  expect(messages).toEqual([
+    {
+      content: [
+        {
+          text: 'inspect notes.txt',
+          type: 'input_text',
+        },
+      ],
+      role: 'user',
+    },
+    {
+      content: [
+        {
+          text: 'Let me check.',
+          type: 'input_text',
+        },
+      ],
+      role: 'assistant',
+    },
+    {
+      arguments: '{"uri":"file:///workspace/notes.txt"}',
+      call_id: 'call_1',
+      name: 'read_file',
+      type: 'function_call',
+    },
+    {
+      call_id: 'call_1',
+      output: '{"content":"alpha"}',
+      type: 'function_call_output',
+    },
+  ])
+})
+
 test('getStoredAiLoopState appends only the missing fallback tail after stored history', async () => {
   ChatStorageWorker.registerMockRpc({
     'ChatStorage.getMessages': async (sessionId: string) => [
