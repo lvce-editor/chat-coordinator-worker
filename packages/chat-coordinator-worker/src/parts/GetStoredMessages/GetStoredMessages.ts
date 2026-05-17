@@ -245,6 +245,8 @@ export const getStoredAiLoopState = async (
   let toolCalls = fallbackToolCalls
   let toolCallResults = fallbackToolCallResults
 
+  console.log({ events })
+
   for (const storedEvent of events as readonly StoredEvent[]) {
     const event = getNormalizedStoredEvent(storedEvent)
     if (!event) {

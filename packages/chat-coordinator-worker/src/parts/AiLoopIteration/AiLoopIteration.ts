@@ -24,6 +24,7 @@ export const aiLoopIteration = async (loopOptions: AiLoopIterationOptions): Prom
   const requestId = getRequestId()
   const timestamp = getTimeStamp()
   const storedState = await getStoredAiLoopState(sessionId, text, fallbackToolCalls, fallbackToolCallResults)
+  console.log({ storedState })
   const { messages, toolCallResults, toolCalls } = storedState
 
   if (toolCallResults.length === 0 && toolCalls.length > 0) {
