@@ -60,7 +60,7 @@ test('getAiRequestBody preserves stored assistant messages', () => {
         content: [
           {
             text: 'Hi there',
-            type: 'input_text',
+            type: 'output_text',
           },
         ],
         role: 'assistant',
@@ -94,7 +94,7 @@ test('getAiRequestBody preserves stored assistant messages', () => {
         content: [
           {
             text: 'Hi there',
-            type: 'input_text',
+            type: 'output_text',
           },
         ],
         role: 'assistant',
@@ -128,7 +128,7 @@ test('getAiRequestBody preserves multi-turn structured history exactly', () => {
         content: [
           {
             text: 'assistant 1',
-            type: 'input_text',
+            type: 'output_text',
           },
         ],
         role: 'assistant',
@@ -146,7 +146,7 @@ test('getAiRequestBody preserves multi-turn structured history exactly', () => {
         content: [
           {
             text: 'assistant 2',
-            type: 'input_text',
+            type: 'output_text',
           },
         ],
         role: 'assistant',
@@ -180,7 +180,7 @@ test('getAiRequestBody preserves multi-turn structured history exactly', () => {
         content: [
           {
             text: 'assistant 1',
-            type: 'input_text',
+            type: 'output_text',
           },
         ],
         role: 'assistant',
@@ -198,7 +198,7 @@ test('getAiRequestBody preserves multi-turn structured history exactly', () => {
         content: [
           {
             text: 'assistant 2',
-            type: 'input_text',
+            type: 'output_text',
           },
         ],
         role: 'assistant',
@@ -258,6 +258,41 @@ test('getAiRequestBody preserves attachment-aware user content', () => {
             type: 'input_text',
           },
         ],
+        role: 'user',
+      },
+    ],
+  })
+})
+
+test('getAiRequestBody normalizes assistant string content to output_text', () => {
+  expect(
+    getAiRequestBody('You are a helpful assistant.', [
+      {
+        content: 'Previous assistant answer',
+        role: 'assistant',
+      },
+      {
+        content: 'Follow-up question',
+        role: 'user',
+      },
+    ]),
+  ).toEqual({
+    input: [
+      {
+        content: 'You are a helpful assistant.',
+        role: 'system',
+      },
+      {
+        content: [
+          {
+            text: 'Previous assistant answer',
+            type: 'output_text',
+          },
+        ],
+        role: 'assistant',
+      },
+      {
+        content: 'Follow-up question',
         role: 'user',
       },
     ],

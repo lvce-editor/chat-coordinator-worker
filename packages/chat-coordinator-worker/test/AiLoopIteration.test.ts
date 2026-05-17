@@ -249,7 +249,7 @@ test('ai loop iteration replays stored chat messages when continuing a session',
   })
 
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"},{"content":[{"text":"Hi there","type":"input_text"}],"role":"assistant"},{"content":[{"text":"Follow up question","type":"input_text"}],"role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[]}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"Hello world","type":"input_text"}],"role":"user"},{"content":[{"text":"Hi there","type":"output_text"}],"role":"assistant"},{"content":[{"text":"Follow up question","type":"input_text"}],"role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[]}',
     headers: {},
     method: 'POST',
   })
@@ -353,7 +353,7 @@ test('ai loop iteration queries stored chat-view events first and sends all conv
   })
 
   expect(fetchSpy).toHaveBeenCalledWith('https://api.openai.com/v1/responses', {
-    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"user 1","type":"input_text"}],"role":"user"},{"content":[{"text":"assistant 1","type":"input_text"}],"role":"assistant"},{"content":[{"text":"user 2","type":"input_text"}],"role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[]}',
+    body: '{"input":[{"content":"You are a helpful assistant.","role":"system"},{"content":[{"text":"user 1","type":"input_text"}],"role":"user"},{"content":[{"text":"assistant 1","type":"output_text"}],"role":"assistant"},{"content":[{"text":"user 2","type":"input_text"}],"role":"user"}],"max_tool_calls":100,"model":"gpt-5-mini","tool_choice":"auto","tools":[]}',
     headers: {},
     method: 'POST',
   })

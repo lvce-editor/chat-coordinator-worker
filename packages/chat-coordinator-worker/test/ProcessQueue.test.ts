@@ -820,7 +820,7 @@ test('process queue sends stored history plus queued fallback turns on overlappi
             content: [
               {
                 text: 'assistant 1',
-                type: 'input_text',
+                type: 'output_text',
               },
             ],
             role: 'assistant',
