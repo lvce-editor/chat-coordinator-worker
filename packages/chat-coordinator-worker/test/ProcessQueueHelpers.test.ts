@@ -138,7 +138,15 @@ test('addPendingSessionWork updates existing pending session work', () => {
 
   expect(pendingSessionIds).toEqual(['session-1'])
   expect(pendingSessionWorkBySessionId.get('session-1')).toEqual({
-    options: secondOptions,
+    options: {
+      ...secondOptions,
+      text: [
+        {
+          content: 'Hello world',
+          role: 'user',
+        },
+      ],
+    },
     pendingVersion: 2,
     processedVersion: 0,
     queued: true,
