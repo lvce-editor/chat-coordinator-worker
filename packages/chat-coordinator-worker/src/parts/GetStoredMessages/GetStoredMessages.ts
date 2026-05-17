@@ -72,7 +72,20 @@ const getStoredMessageParts = (message: {
   ]
 }
 
-const getStoredFunctionCalls = (message: { readonly content?: readonly StoredMessageContentPart[] }): readonly AiRequestFunctionCall[] => {
+const getStoredFunctionCalls = (message: {
+  readonly content?: readonly StoredMessageContentPart[]
+  readonly toolCalls?: readonly StoredToolCall[]
+}): readonly AiRequestFunctionCall[] => {
+  if (message.toolCalls && message.toolCalls.length > 0) {
+    return message.toolCalls
+      .filter((toolCall): toolCall is StoredToolCall & { readonly id: string } => typeof toolCall.id === 'string')
+      .map((toolCall) => ({
+        arguments: toolCall.arguments,
+        call_id: toolCall.id,
+        name: toolCall.name,
+        type: 'function_call',
+      }))
+  }
   return (message.content || [])
     .filter(
       (
@@ -89,6 +102,42 @@ const getStoredFunctionCalls = (message: { readonly content?: readonly StoredMes
       call_id: part.call_id,
       name: part.name,
       type: 'function_call',
+    }))
+}
+
+const getStoredFunctionCallOutputs = (message: { readonly toolCalls?: readonly StoredToolCall[] }): readonly AiRequestInput[] => {
+  return (message.toolCalls || [])
+    .filter(
+      (toolCall): toolCall is StoredToolCall & { readonly id: string; readonly status: 'error' | 'not-found' | 'success' } =>
+        typeof toolCall.id === 'string' && typeof toolCall.status === 'string',
+    )
+    .map((toolCall) => ({
+      call_id: toolCall.id,
+      output:
+        toolCall.status === 'success'
+          ? toolCall.result || 'null'
+          : toolCall.errorMessage || JSON.stringify({ error: 'Tool call failed.' }),
+      type: 'function_call_output' as const,
+    }))
+}
+
+const parseToolCallArguments = (argumentsText: string): unknown => {
+  try {
+    return JSON.parse(argumentsText)
+  } catch {
+    return argumentsText
+  }
+}
+
+const getPendingToolCalls = (message: { readonly toolCalls?: readonly StoredToolCall[] }): readonly ToolCall<unknown>[] => {
+  return (message.toolCalls || [])
+    .filter(
+      (toolCall): toolCall is StoredToolCall & { readonly id: string } => typeof toolCall.id === 'string' && typeof toolCall.status === 'undefined',
+    )
+    .map((toolCall) => ({
+      args: parseToolCallArguments(toolCall.arguments),
+      id: toolCall.id,
+      name: toolCall.name,
     }))
 }
 
@@ -199,6 +248,7 @@ const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredChatMessageAdde
   }
   const textParts = getStoredMessageParts(event.message)
   const functionCalls = role === 'assistant' ? getStoredFunctionCalls(event.message) : []
+  const functionCallOutputs = role === 'assistant' ? getStoredFunctionCallOutputs(event.message) : []
   const inputs: AiRequestInput[] = []
   if (attachments.length === 0) {
     if (textParts.length > 0) {
@@ -217,6 +267,7 @@ const getStoredMessage = (event: LegacyHandleSubmitEvent | StoredChatMessageAdde
     }
   }
   inputs.push(...functionCalls)
+  inputs.push(...functionCallOutputs)
   return inputs
 }
 
@@ -257,6 +308,16 @@ export const getStoredAiLoopState = async (
     if (isStoredMessageEvent(event)) {
       const storedMessages = getStoredMessage(event)
       messages.push(...storedMessages)
+      if ('message' in event && event.message && typeof event.message === 'object') {
+        const pendingToolCalls = getPendingToolCalls(event.message)
+        if (pendingToolCalls.length > 0) {
+          toolCalls = pendingToolCalls
+          toolCallResults = []
+        } else if (event.message.toolCalls && event.message.toolCalls.length > 0) {
+          toolCalls = []
+          toolCallResults = []
+        }
+      }
       for (const storedMessage of storedMessages) {
         if (isFunctionCallInput(storedMessage)) {
           seenFunctionCallIds.add(storedMessage.call_id)
