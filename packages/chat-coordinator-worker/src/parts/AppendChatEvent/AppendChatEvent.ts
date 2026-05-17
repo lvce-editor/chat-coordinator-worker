@@ -86,13 +86,13 @@ export const appendChatEvent = async (event: any): Promise<void> => {
               content,
             }
           : {}),
-        ...(text
-          ? {
-              text,
-            }
-          : {}),
         ...(toolCalls.length > 0
           ? {
+              ...(text
+                ? {
+                    text,
+                  }
+                : {}),
               time: event.timestamp,
               toolCalls,
             }

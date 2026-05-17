@@ -41,9 +41,18 @@ const serializeToolCallValue = (value: unknown): string => {
   return typeof serialized === 'string' ? serialized : 'null'
 }
 
+const hasPendingToolCall = (event: StoredChatMessageEvent): boolean => {
+  return !!event.message?.toolCalls?.some((toolCall) => typeof toolCall.status === 'undefined')
+}
+
 const getStoredMessageEvent = async (sessionId: string, requestId: string): Promise<StoredChatMessageEvent | undefined> => {
   const events = await ChatStorageWorker.invoke('ChatStorage.getMessages', sessionId)
-  return (events as readonly StoredChatMessageEvent[]).find((event) => event.type === 'chat-message-added' && event.message?.id === requestId)
+  const storedEvents = events as readonly StoredChatMessageEvent[]
+  const matchingEvent = storedEvents.find((event) => event.type === 'chat-message-added' && event.message?.id === requestId)
+  if (matchingEvent) {
+    return matchingEvent
+  }
+  return [...storedEvents].reverse().find((event) => event.type === 'chat-message-added' && hasPendingToolCall(event))
 }
 
 const getUpdatedToolCalls = (storedToolCalls: readonly StoredToolCall[], toolCallResults: readonly ToolCallResult[]): readonly StoredToolCall[] => {
@@ -84,7 +93,7 @@ const appendStoredToolCallResults = async (
   }
   await ChatStorageWorker.invoke('ChatStorage.appendEvent', {
     inProgress: false,
-    messageId: requestId,
+    messageId: storedMessageEvent?.message?.id || requestId,
     sessionId,
     text: storedMessageEvent?.message?.text || '',
     time: storedMessageEvent?.message?.time || timestamp,

@@ -452,6 +452,99 @@ test.skip('ai loop iteration executes pending tool calls and stores a resumable 
   dateSpy.mockRestore()
 })
 
+test('ai loop iteration stores tool call results in chat-view storage', async () => {
+  const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendDebugEvent': async () => undefined,
+    'ChatStorage.appendEvent': async () => undefined,
+    'ChatStorage.getMessages': async (sessionId: string) => [
+      {
+        message: {
+          id: 'request-1',
+          role: 'assistant',
+          text: 'Let me check.',
+          time: '2026-04-19T00:00:00.000Z',
+          toolCalls: [
+            {
+              arguments: '{"query":"status"}',
+              id: 'tool_1',
+              name: 'read_status',
+            },
+          ],
+        },
+        sessionId,
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
+      },
+    ],
+  })
+
+  const result = await aiLoopIteration({
+    headers: {},
+    maxToolCalls: 100,
+    modelId: 'gpt-5-mini',
+    providerId: 'openai',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: [
+      {
+        arguments: '{"query":"status"}',
+        call_id: 'tool_1',
+        name: 'read_status',
+        type: 'function_call',
+      },
+    ],
+    toolCallResults: [],
+    toolCalls: [
+      {
+        args: {
+          query: 'status',
+        },
+        id: 'tool_1',
+        name: 'read_status',
+      },
+    ],
+    tools: [],
+    turnId: 'turn-1',
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    data: undefined,
+    toolCallResults: [
+      {
+        callId: 'tool_1',
+        type: 'success',
+        value: {
+          query: 'status',
+        },
+      },
+    ],
+    toolCalls: [],
+    type: 'success',
+  })
+  expect(appendEventMockRpc.invocations).toContainEqual([
+    'ChatStorage.appendEvent',
+    {
+      inProgress: false,
+      messageId: 'request-1',
+      sessionId: 'session-1',
+      text: 'Let me check.',
+      time: '2026-04-19T00:00:00.000Z',
+      timestamp: expect.any(String),
+      toolCalls: [
+        {
+          arguments: '{"query":"status"}',
+          id: 'tool_1',
+          name: 'read_status',
+          result: '{"query":"status"}',
+          status: 'success',
+        },
+      ],
+      type: 'chat-message-updated',
+    },
+  ])
+})
+
 test.skip('ai loop iteration resumes from stored tool call results and makes the next ai request', async () => {
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
