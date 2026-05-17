@@ -1,10 +1,10 @@
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
 import type { AiLoopIterationOptions } from '../AiLoopIterationOptions/AiLoopIterationOptions.ts'
 import type { AiLoopIterationResult } from '../AiLoopIterationResult/AiLoopIterationResult.ts'
+import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 import { appendChatDebugEvent } from '../AppendChatDebugEvent/AppendChatDebugEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
-import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 
 interface AiLoopIterationToolCallOptions {
   readonly requestId: string
@@ -42,7 +42,7 @@ const serializeToolCallValue = (value: unknown): string => {
 }
 
 const hasPendingToolCall = (event: StoredChatMessageEvent): boolean => {
-  return !!event.message?.toolCalls?.some((toolCall) => typeof toolCall.status === 'undefined')
+  return !!event.message?.toolCalls?.some((toolCall) => toolCall.status === undefined)
 }
 
 const getStoredMessageEvent = async (sessionId: string, requestId: string): Promise<StoredChatMessageEvent | undefined> => {
@@ -52,7 +52,7 @@ const getStoredMessageEvent = async (sessionId: string, requestId: string): Prom
   if (matchingEvent) {
     return matchingEvent
   }
-  return [...storedEvents].reverse().find((event) => event.type === 'chat-message-added' && hasPendingToolCall(event))
+  return storedEvents.toReversed().find((event) => event.type === 'chat-message-added' && hasPendingToolCall(event))
 }
 
 const getUpdatedToolCalls = (storedToolCalls: readonly StoredToolCall[], toolCallResults: readonly ToolCallResult[]): readonly StoredToolCall[] => {

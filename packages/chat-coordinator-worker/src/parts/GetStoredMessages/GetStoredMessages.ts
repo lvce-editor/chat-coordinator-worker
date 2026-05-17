@@ -128,9 +128,7 @@ const parseToolCallArguments = (argumentsText: string): unknown => {
 
 const getPendingToolCalls = (message: { readonly toolCalls?: readonly StoredToolCall[] }): readonly ToolCall<unknown>[] => {
   return (message.toolCalls || [])
-    .filter(
-      (toolCall): toolCall is StoredToolCall & { readonly id: string } => typeof toolCall.id === 'string' && typeof toolCall.status === 'undefined',
-    )
+    .filter((toolCall): toolCall is StoredToolCall & { readonly id: string } => typeof toolCall.id === 'string' && toolCall.status === undefined)
     .map((toolCall) => ({
       args: parseToolCallArguments(toolCall.arguments),
       id: toolCall.id,
