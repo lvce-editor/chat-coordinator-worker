@@ -22,6 +22,15 @@ interface StoredMessageContentPart {
   readonly type?: string
 }
 
+interface StoredToolCall {
+  readonly arguments: string
+  readonly errorMessage?: string
+  readonly id?: string
+  readonly name: string
+  readonly result?: string
+  readonly status?: 'error' | 'not-found' | 'success'
+}
+
 const serializeStoredValue = (value: unknown): string => {
   if (typeof value === 'string') {
     return value
@@ -115,6 +124,7 @@ interface StoredChatMessageAddedEvent {
     readonly content?: readonly StoredMessageContentPart[]
     readonly role?: 'assistant' | 'user'
     readonly text?: string
+    readonly toolCalls?: readonly StoredToolCall[]
   }
   readonly type: 'chat-message-added'
 }
