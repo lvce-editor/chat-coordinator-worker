@@ -1,6 +1,6 @@
 import { afterEach, expect, jest, test } from '@jest/globals'
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
-import { getStoredMessages } from '../src/parts/GetStoredMessages/GetStoredMessages.ts'
+import { getStoredAiLoopState, getStoredMessages } from '../src/parts/GetStoredMessages/GetStoredMessages.ts'
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -540,6 +540,96 @@ test('getStoredMessages preserves multiple tool-call rounds in exact alternating
       call_id: 'call_2',
       output: '{"content":"second file","uri":"file:///workspace/two.txt"}',
       type: 'function_call_output',
+    },
+  ])
+})
+
+test('getStoredAiLoopState appends only the missing fallback tail after stored history', async () => {
+  ChatStorageWorker.registerMockRpc({
+    'ChatStorage.getEvents': async (sessionId: string) => [
+      {
+        message: {
+          role: 'user',
+          text: 'user 1',
+        },
+        sessionId,
+        timestamp: '2026-05-13T00:00:00.000Z',
+        type: 'chat-message-added',
+      },
+      {
+        message: {
+          role: 'assistant',
+          text: 'assistant 1',
+        },
+        sessionId,
+        timestamp: '2026-05-13T00:00:01.000Z',
+        type: 'chat-message-added',
+      },
+    ],
+  })
+
+  const state = await getStoredAiLoopState(
+    'session-1',
+    [
+      {
+        content: [
+          {
+            text: 'user 1',
+            type: 'input_text',
+          },
+        ],
+        role: 'user',
+      },
+      {
+        content: [
+          {
+            text: 'assistant 1',
+            type: 'input_text',
+          },
+        ],
+        role: 'assistant',
+      },
+      {
+        content: [
+          {
+            text: 'user 2',
+            type: 'input_text',
+          },
+        ],
+        role: 'user',
+      },
+    ],
+    [],
+    [],
+  )
+
+  expect(state.messages).toEqual([
+    {
+      content: [
+        {
+          text: 'user 1',
+          type: 'input_text',
+        },
+      ],
+      role: 'user',
+    },
+    {
+      content: [
+        {
+          text: 'assistant 1',
+          type: 'input_text',
+        },
+      ],
+      role: 'assistant',
+    },
+    {
+      content: [
+        {
+          text: 'user 2',
+          type: 'input_text',
+        },
+      ],
+      role: 'user',
     },
   ])
 })

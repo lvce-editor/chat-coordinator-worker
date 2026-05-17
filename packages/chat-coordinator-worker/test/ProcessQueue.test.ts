@@ -674,3 +674,186 @@ test.skip('process queue requeues the same session after tool calls and resolves
   randomUUIDSpy.mockRestore()
   dateSpy.mockRestore()
 })
+
+test('process queue sends stored history plus queued fallback turns on overlapping submits', async () => {
+  const events: any[] = [
+    {
+      message: {
+        role: 'user',
+        text: 'user 1',
+      },
+      sessionId: 'session-1',
+      timestamp: '2026-04-19T00:00:00.000Z',
+      type: 'chat-message-added',
+    },
+  ]
+  const appendEvent = jest.fn(async (event: any) => {
+    events.push(event)
+  })
+  const getEvents = jest.fn(async () => {
+    return events
+  })
+  const rpc = ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
+    'ChatStorage.appendEvent': appendEvent,
+    'ChatStorage.getEvents': getEvents,
+  })
+  const realDate = globalThis.Date
+  const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
+  const randomUUIDSpy = jest
+    .spyOn(crypto, 'randomUUID')
+    .mockReturnValueOnce('00000000-0000-4000-8000-000000000021')
+    .mockReturnValueOnce('00000000-0000-4000-8000-000000000022')
+  const firstResponse = createDeferred<any>()
+  const secondResponse = createDeferred<any>()
+  const fetchSpy = jest
+    .spyOn(globalThis, 'fetch')
+    .mockImplementationOnce(async () => firstResponse.promise as any)
+    .mockImplementationOnce(async () => secondResponse.promise as any)
+
+  addPendingSessionWork({
+    headers: {
+      Authorization: 'Bearer test-key',
+      'Content-Type': 'application/json',
+    },
+    maxToolCalls: 100,
+    modelId: 'gpt-4.1-mini',
+    providerId: 'openai',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: [
+      {
+        content: [
+          {
+            text: 'user 1',
+            type: 'input_text',
+          },
+        ],
+        role: 'user',
+      },
+    ],
+    tools: [],
+    turnId: 'turn-1',
+    url: 'https://api.openai.com/v1/responses',
+  })
+  const firstPromise = processQueue('session-1')
+
+  addPendingSessionWork({
+    headers: {
+      Authorization: 'Bearer test-key',
+      'Content-Type': 'application/json',
+    },
+    maxToolCalls: 100,
+    modelId: 'gpt-4.1-mini',
+    providerId: 'openai',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: [
+      {
+        content: [
+          {
+            text: 'user 2',
+            type: 'input_text',
+          },
+        ],
+        role: 'user',
+      },
+    ],
+    tools: [],
+    turnId: 'turn-2',
+    url: 'https://api.openai.com/v1/responses',
+  })
+  const secondPromise = processQueue('session-1')
+
+  firstResponse.resolve({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_21'],
+    ]),
+    json: async () => ({
+      id: 'resp_21',
+      output_text: 'assistant 1',
+      status: 'completed',
+    }),
+    ok: true,
+    status: 200,
+  } as any)
+
+  await expect(firstPromise).resolves.toBeUndefined()
+
+  secondResponse.resolve({
+    headers: new Headers([
+      ['content-type', 'application/json'],
+      ['x-request-id', 'req_22'],
+    ]),
+    json: async () => ({
+      id: 'resp_22',
+      output_text: 'assistant 2',
+      status: 'completed',
+    }),
+    ok: true,
+    status: 200,
+  } as any)
+
+  await expect(secondPromise).resolves.toBeUndefined()
+
+  expect(fetchSpy).toHaveBeenCalledTimes(2)
+  expect(rpc.invocations).toContainEqual([
+    'ChatStorage.appendDebugEvent',
+    {
+      body: {
+        input: [
+          {
+            content: 'You are a helpful assistant.',
+            role: 'system',
+          },
+          {
+            content: [
+              {
+                text: 'user 1',
+                type: 'input_text',
+              },
+            ],
+            role: 'user',
+          },
+          {
+            content: [
+              {
+                text: 'assistant 1',
+                type: 'input_text',
+              },
+            ],
+            role: 'assistant',
+          },
+          {
+            content: [
+              {
+                text: 'user 2',
+                type: 'input_text',
+              },
+            ],
+            role: 'user',
+          },
+        ],
+        max_tool_calls: 100,
+        model: 'gpt-4.1-mini',
+        tool_choice: 'auto',
+        tools: [],
+      },
+      headers: {
+        Authorization: 'Bearer [redacted]',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      requestId: '00000000-0000-4000-8000-000000000022',
+      sessionId: 'session-1',
+      timestamp: '2026-04-19T00:00:00.000Z',
+      turnId: 'turn-2',
+      type: 'ai-request',
+      url: 'https://api.openai.com/v1/responses',
+    },
+  ])
+
+  randomUUIDSpy.mockRestore()
+  dateSpy.mockRestore()
+})
