@@ -46,10 +46,7 @@ const getStoredMessageEvent = async (sessionId: string, requestId: string): Prom
   return (events as readonly StoredChatMessageEvent[]).find((event) => event.type === 'chat-message-added' && event.message?.id === requestId)
 }
 
-const getUpdatedToolCalls = (
-  storedToolCalls: readonly StoredToolCall[],
-  toolCallResults: readonly ToolCallResult[],
-): readonly StoredToolCall[] => {
+const getUpdatedToolCalls = (storedToolCalls: readonly StoredToolCall[], toolCallResults: readonly ToolCallResult[]): readonly StoredToolCall[] => {
   const toolCallResultsById = new Map(toolCallResults.map((toolCallResult) => [toolCallResult.callId, toolCallResult]))
   return storedToolCalls.map((storedToolCall) => {
     if (!storedToolCall.id) {
