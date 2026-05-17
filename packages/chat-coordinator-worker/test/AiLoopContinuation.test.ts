@@ -10,7 +10,7 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         sessionId,
         timestamp: '2026-04-19T00:00:00.000Z',
@@ -112,7 +112,7 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
     method: 'POST',
   })
   expect(rpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {

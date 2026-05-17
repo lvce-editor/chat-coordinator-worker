@@ -10,7 +10,7 @@ test('ai loop iteration stores exposed response headers with the response body',
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         sessionId,
         timestamp: '2026-04-19T00:00:00.000Z',
@@ -84,7 +84,7 @@ test('ai loop iteration stores exposed response headers with the response body',
     method: 'POST',
   })
   expect(appendEventMockRpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -183,7 +183,7 @@ test('ai loop iteration replays stored chat messages when continuing a session',
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         message: {
           id: 'message-1',
@@ -253,7 +253,7 @@ test('ai loop iteration replays stored chat messages when continuing a session',
     headers: {},
     method: 'POST',
   })
-  expect(appendEventMockRpc.invocations[0]).toEqual(['ChatStorage.getEvents', 'session-1'])
+  expect(appendEventMockRpc.invocations[0]).toEqual(['ChatStorage.getMessages', 'session-1'])
 
   randomUUIDSpy.mockRestore()
   dateSpy.mockRestore()
@@ -263,7 +263,7 @@ test('ai loop iteration queries stored chat-view events first and sends all conv
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         eventId: 1,
         message: {
@@ -357,7 +357,7 @@ test('ai loop iteration queries stored chat-view events first and sends all conv
     headers: {},
     method: 'POST',
   })
-  expect(appendEventMockRpc.invocations[0]).toEqual(['ChatStorage.getEvents', 'session-1'])
+  expect(appendEventMockRpc.invocations[0]).toEqual(['ChatStorage.getMessages', 'session-1'])
 
   randomUUIDSpy.mockRestore()
   dateSpy.mockRestore()
@@ -367,7 +367,7 @@ test.skip('ai loop iteration executes pending tool calls and stores a resumable 
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         sessionId,
         timestamp: '2026-04-19T00:00:00.000Z',
@@ -427,7 +427,7 @@ test.skip('ai loop iteration executes pending tool calls and stores a resumable 
   })
   expect(fetchSpy).not.toHaveBeenCalled()
   expect(appendEventMockRpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -456,7 +456,7 @@ test.skip('ai loop iteration resumes from stored tool call results and makes the
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         sessionId,
         timestamp: '2026-04-19T00:00:00.000Z',
@@ -524,7 +524,7 @@ test.skip('ai loop iteration resumes from stored tool call results and makes the
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(appendEventMockRpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -615,7 +615,7 @@ test.skip('ai loop iteration replays stored assistant messages with assistant ro
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         id: 'message-1',
         message: {
@@ -704,7 +704,7 @@ test.skip('ai loop iteration replays stored assistant messages with assistant ro
     method: 'POST',
   })
   expect(appendEventMockRpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -803,7 +803,7 @@ test.skip('ai loop iteration stores status code for non-2xx ai responses', async
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         sessionId,
         timestamp: '2026-04-19T00:00:00.000Z',
@@ -854,7 +854,7 @@ test.skip('ai loop iteration stores status code for non-2xx ai responses', async
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(appendEventMockRpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -940,7 +940,7 @@ test.skip('ai loop iteration appends a visible assistant message when the ai req
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         sessionId,
         timestamp: '2026-04-19T00:00:00.000Z',
@@ -975,7 +975,7 @@ test.skip('ai loop iteration appends a visible assistant message when the ai req
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(appendEventMockRpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
