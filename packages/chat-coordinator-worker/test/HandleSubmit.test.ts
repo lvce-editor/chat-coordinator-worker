@@ -35,7 +35,7 @@ test.skip('handle submit stores the openai response headers', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.appendEvent': appendEvent,
-    'ChatStorage.getEvents': async () => events,
+    'ChatStorage.getMessages': async () => events,
   })
   jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
   const realDate = globalThis.Date
@@ -107,7 +107,7 @@ test.skip('handle submit stores the openai response headers', async () => {
         type: 'chat-message-added',
       },
     ],
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -208,7 +208,7 @@ test.skip('handle submit should append a missing key message instead of calling 
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.appendEvent': appendEvent,
-    'ChatStorage.getEvents': async () => events,
+    'ChatStorage.getMessages': async () => events,
   })
   const realDate = globalThis.Date
   jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
@@ -306,7 +306,7 @@ test.skip('handle submit should persist attachments and send attachment-aware re
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.appendEvent': appendEvent,
-    'ChatStorage.getEvents': async () => events,
+    'ChatStorage.getMessages': async () => events,
   })
   jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000123')
   const realDate = globalThis.Date
@@ -405,7 +405,7 @@ test.skip('handle submit should persist attachments and send attachment-aware re
         type: 'chat-message-added',
       },
     ],
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -514,7 +514,7 @@ test.skip('handle submit should resolve after handled openai http errors', async
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.appendEvent': appendEvent,
-    'ChatStorage.getEvents': async () => events,
+    'ChatStorage.getMessages': async () => events,
   })
   jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000111')
   const realDate = globalThis.Date
@@ -583,7 +583,7 @@ test.skip('handle submit should resolve after handled openai http errors', async
         type: 'chat-message-added',
       },
     ],
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -681,7 +681,7 @@ test.skip('handle submit should use backend requests when own backend is enabled
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.appendEvent': appendEvent,
-    'ChatStorage.getEvents': async () => events,
+    'ChatStorage.getMessages': async () => events,
   })
   jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000112')
   const realDate = globalThis.Date
@@ -755,7 +755,7 @@ test.skip('handle submit should use backend requests when own backend is enabled
         type: 'chat-message-added',
       },
     ],
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {

@@ -129,13 +129,7 @@ interface StoredAiResponseSuccessEvent {
   readonly type: typeof ChatEventType.AiResponse
 }
 
-type StoredEvent =
-  | Awaited<ReturnType<typeof ChatStorageWorker.getEvents>>[number]
-  | LegacyHandleSubmitEvent
-  | StoredAiResponseSuccessEvent
-  | StoredChatMessageAddedEvent
-  | StoredMessageEvent
-  | ToolCallsFinishedEvent
+type StoredEvent = LegacyHandleSubmitEvent | StoredAiResponseSuccessEvent | StoredChatMessageAddedEvent | StoredMessageEvent | ToolCallsFinishedEvent
 
 const isKnownStoredEventType = (type: unknown): type is StoredEvent['type'] => {
   return (
@@ -239,7 +233,7 @@ export const getStoredAiLoopState = async (
   fallbackToolCalls: readonly ToolCall<unknown>[],
   fallbackToolCallResults: readonly ToolCallResult[],
 ): Promise<StoredAiLoopState> => {
-  const events = await ChatStorageWorker.getEvents(sessionId)
+  const events = await ChatStorageWorker.invoke('ChatStorage.getMessages', sessionId)
   const messages: AiRequestInput[] = []
   const seenFunctionCallIds = new Set<string>()
   let toolCalls = fallbackToolCalls

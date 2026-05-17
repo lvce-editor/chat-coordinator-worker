@@ -42,7 +42,7 @@ test.skip('process queue returns immediately when no newer version is pending', 
   ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.appendEvent': appendEvent,
-    'ChatStorage.getEvents': getEvents,
+    'ChatStorage.getMessages': getEvents,
   })
   const realDate = globalThis.Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
@@ -99,7 +99,7 @@ test.skip('process queue resolves when ai loop returns an error', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.appendEvent': async (_event: unknown) => undefined,
-    'ChatStorage.getEvents': getEvents,
+    'ChatStorage.getMessages': getEvents,
   })
   const realDate = globalThis.Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
@@ -134,7 +134,7 @@ test.skip('process queue resolves when ai loop returns an error', async () => {
   await expect(processQueue('session-1')).resolves.toBeUndefined()
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(rpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -237,7 +237,7 @@ test.skip('process queue resolves only after the requested session version has b
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.appendEvent': appendEvent,
-    'ChatStorage.getEvents': getEvents,
+    'ChatStorage.getMessages': getEvents,
   })
   const realDate = globalThis.Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
@@ -319,7 +319,7 @@ test.skip('process queue resolves only after the requested session version has b
   await expect(secondPromise).resolves.toBeUndefined()
   expect(fetchSpy).toHaveBeenCalledTimes(2)
   expect(rpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -403,7 +403,7 @@ test.skip('process queue resolves only after the requested session version has b
         },
       },
     ],
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -524,7 +524,7 @@ test.skip('process queue requeues the same session after tool calls and resolves
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': appendDebugEvent,
     'ChatStorage.appendEvent': appendEvent,
-    'ChatStorage.getEvents': async () => events,
+    'ChatStorage.getMessages': async () => events,
   })
   const realDate = globalThis.Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
@@ -566,7 +566,7 @@ test.skip('process queue requeues the same session after tool calls and resolves
 
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(rpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -585,7 +585,7 @@ test.skip('process queue requeues the same session after tool calls and resolves
         type: 'tool-calls-finished',
       },
     ],
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -696,7 +696,7 @@ test('process queue sends stored history plus queued fallback turns on overlappi
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async (_event: unknown) => undefined,
     'ChatStorage.appendEvent': appendEvent,
-    'ChatStorage.getEvents': getEvents,
+    'ChatStorage.getMessages': getEvents,
   })
   const realDate = globalThis.Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))

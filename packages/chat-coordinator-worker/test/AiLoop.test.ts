@@ -10,7 +10,7 @@ test.skip('ai loop returns success and appends the ai response event', async () 
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         sessionId,
         timestamp: '2026-04-19T00:00:00.000Z',
@@ -57,7 +57,7 @@ test.skip('ai loop returns success and appends the ai response event', async () 
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(rpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -154,7 +154,7 @@ test.skip('ai loop returns reschedule after executing tool calls', async () => {
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         sessionId,
         timestamp: '2026-04-19T00:00:00.000Z',
@@ -199,7 +199,7 @@ test.skip('ai loop returns reschedule after executing tool calls', async () => {
   })
   expect(fetchSpy).not.toHaveBeenCalled()
   expect(rpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -228,7 +228,7 @@ test.skip('ai loop returns reschedule when ai response contains tool calls', asy
   const rpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         sessionId,
         timestamp: '2026-04-19T00:00:00.000Z',
@@ -278,7 +278,7 @@ test.skip('ai loop returns reschedule when ai response contains tool calls', asy
   })
   expect(fetchSpy).toHaveBeenCalledTimes(1)
   expect(rpc.invocations).toEqual([
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {
@@ -340,7 +340,7 @@ test.skip('ai loop returns reschedule when ai response contains tool calls', asy
         },
       },
     ],
-    ['ChatStorage.getEvents', 'session-1'],
+    ['ChatStorage.getMessages', 'session-1'],
     [
       'ChatStorage.appendDebugEvent',
       {

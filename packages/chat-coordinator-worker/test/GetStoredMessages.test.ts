@@ -8,7 +8,7 @@ afterEach(() => {
 
 test('getStoredMessages reads mixed history event shapes in order', async () => {
   ChatStorageWorker.registerMockRpc({
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         message: {
           role: 'user',
@@ -79,7 +79,7 @@ test('getStoredMessages reads mixed history event shapes in order', async () => 
 
 test('getStoredMessages falls back to message.text when content is empty or non-text', async () => {
   ChatStorageWorker.registerMockRpc({
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         message: {
           content: [
@@ -138,7 +138,7 @@ test('getStoredMessages falls back to message.text when content is empty or non-
 
 test('getStoredMessages keeps every prior turn as a separate structured message', async () => {
   ChatStorageWorker.registerMockRpc({
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         message: {
           role: 'user',
@@ -240,7 +240,7 @@ test('getStoredMessages keeps every prior turn as a separate structured message'
 
 test('getStoredMessages unwraps stored chat-view events before converting them to request inputs', async () => {
   ChatStorageWorker.registerMockRpc({
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         eventId: 1,
         message: {
@@ -333,7 +333,7 @@ test('getStoredMessages unwraps stored chat-view events before converting them t
 
 test('getStoredMessages preserves stored assistant function calls and tool outputs in request order', async () => {
   ChatStorageWorker.registerMockRpc({
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         message: {
           role: 'user',
@@ -436,7 +436,7 @@ test('getStoredMessages preserves stored assistant function calls and tool outpu
 
 test('getStoredMessages preserves multiple tool-call rounds in exact alternating order', async () => {
   ChatStorageWorker.registerMockRpc({
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         message: {
           role: 'user',
@@ -546,7 +546,7 @@ test('getStoredMessages preserves multiple tool-call rounds in exact alternating
 
 test('getStoredAiLoopState appends only the missing fallback tail after stored history', async () => {
   ChatStorageWorker.registerMockRpc({
-    'ChatStorage.getEvents': async (sessionId: string) => [
+    'ChatStorage.getMessages': async (sessionId: string) => [
       {
         message: {
           role: 'user',
