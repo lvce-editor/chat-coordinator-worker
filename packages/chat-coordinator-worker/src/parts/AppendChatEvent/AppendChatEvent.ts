@@ -10,6 +10,12 @@ interface TextPart {
   readonly type?: string
 }
 
+interface StoredToolCall {
+  readonly arguments: string
+  readonly id: string
+  readonly name: string
+}
+
 interface MessagePayload {
   readonly attachments?: readonly SubmitAttachment[]
   readonly content?: readonly TextPart[]
@@ -43,9 +49,31 @@ const getMessageContent = (message: MessagePayload): readonly TextPart[] => {
   })
 }
 
+const getMessageText = (message: MessagePayload): string => {
+  return (message.content || [])
+    .filter((part) => (part.type === 'text' || part.type === 'input_text') && typeof part.text === 'string')
+    .map((part) => part.text || '')
+    .join('')
+}
+
+const getMessageToolCalls = (message: MessagePayload): readonly StoredToolCall[] => {
+  return (message.content || [])
+    .filter(
+      (part): part is TextPart & { readonly arguments: string; readonly call_id: string; readonly name: string; readonly type: 'function_call' } =>
+        part.type === 'function_call' && typeof part.arguments === 'string' && typeof part.call_id === 'string' && typeof part.name === 'string',
+    )
+    .map((part) => ({
+      arguments: part.arguments,
+      id: part.call_id,
+      name: part.name,
+    }))
+}
+
 export const appendChatEvent = async (event: any): Promise<void> => {
   if (isRawMessageEvent(event)) {
     const content = getMessageContent(event.message)
+    const text = getMessageText(event.message)
+    const toolCalls = getMessageToolCalls(event.message)
     await ChatStorageWorker.invoke('ChatStorage.appendEvent', {
       message: {
         ...(event.message.attachments && event.message.attachments.length > 0
@@ -56,6 +84,17 @@ export const appendChatEvent = async (event: any): Promise<void> => {
         ...(content.length > 0
           ? {
               content,
+            }
+          : {}),
+        ...(text
+          ? {
+              text,
+            }
+          : {}),
+        ...(toolCalls.length > 0
+          ? {
+              time: event.timestamp,
+              toolCalls,
             }
           : {}),
         id: event.id,
