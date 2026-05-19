@@ -15,6 +15,27 @@ interface MockOpenAiResponseOutputItem {
   readonly type: 'message'
 }
 
+interface MockOpenAiResponseFunctionCallOutputItem {
+  readonly arguments: string
+  readonly call_id: string
+  readonly id: string
+  readonly name: string
+  readonly status: 'completed'
+  readonly type: 'function_call'
+}
+
+interface MockToolCallDescriptor {
+  readonly arguments: unknown
+  readonly callId?: string
+  readonly id?: string
+  readonly name: string
+}
+
+interface MockResponseDescriptor {
+  readonly text?: string
+  readonly toolCalls?: readonly MockToolCallDescriptor[]
+}
+
 interface MockOpenAiResponseUsage {
   readonly input_tokens: number
   readonly input_tokens_details: {
@@ -45,7 +66,7 @@ interface MockOpenAiResponse {
   readonly model: string
   readonly moderation: null
   readonly object: 'response'
-  readonly output: readonly [MockOpenAiResponseOutputItem]
+  readonly output: readonly (MockOpenAiResponseOutputItem | MockOpenAiResponseFunctionCallOutputItem)[]
   readonly parallel_tool_calls: true
   readonly presence_penalty: 0
   readonly previous_response_id: null
@@ -190,6 +211,14 @@ const getCreatedAt = (seed: string): number => {
   return mockCreatedAtBase + (suffix % 1000)
 }
 
+const getFunctionCallId = (seed: string, index: number): string => {
+  return `fc_${getDeterministicHex(`function-call:${seed}:${index}`, 24)}`
+}
+
+const getCallId = (seed: string, index: number): string => {
+  return `call_${getDeterministicHex(`call:${seed}:${index}`, 24)}`
+}
+
 const getLastRequestSummary = (body: unknown): string => {
   if (!body || typeof body !== 'object') {
     return 'mock-request-summary images=0 text-files=0'
@@ -238,6 +267,121 @@ const getModel = (body: unknown): string => {
     return 'mock-model'
   }
   return model
+}
+
+const getToolCallArguments = (value: unknown): string => {
+  if (typeof value === 'string') {
+    return value
+  }
+  return JSON.stringify(value ?? {})
+}
+
+const parseToolCallDescriptor = (value: unknown): MockToolCallDescriptor | undefined => {
+  if (!value || typeof value !== 'object') {
+    return undefined
+  }
+  const name = Reflect.get(value, 'name')
+  if (typeof name !== 'string' || !name) {
+    return undefined
+  }
+  const argumentsValue = Reflect.get(value, 'arguments')
+  const id = Reflect.get(value, 'id')
+  const callId = Reflect.get(value, 'call_id')
+  return {
+    arguments: argumentsValue ?? {},
+    ...(typeof callId === 'string' && callId
+      ? {
+          callId,
+        }
+      : {}),
+    ...(typeof id === 'string' && id
+      ? {
+          id,
+        }
+      : {}),
+    name,
+  }
+}
+
+const parseMockResponseDescriptor = (text: string): MockResponseDescriptor | undefined => {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text) as unknown
+  } catch {
+    return undefined
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    return undefined
+  }
+  const parsedText = Reflect.get(parsed, 'text')
+  const rawToolCall = Reflect.get(parsed, 'toolCall')
+  const rawToolCalls = Reflect.get(parsed, 'toolCalls')
+  const toolCalls: MockToolCallDescriptor[] = []
+  const toolCall = parseToolCallDescriptor(rawToolCall)
+  if (toolCall) {
+    toolCalls.push(toolCall)
+  }
+  if (Array.isArray(rawToolCalls)) {
+    for (const rawToolCall of rawToolCalls) {
+      const parsedToolCall = parseToolCallDescriptor(rawToolCall)
+      if (parsedToolCall) {
+        toolCalls.push(parsedToolCall)
+      }
+    }
+  }
+  if (typeof parsedText !== 'string' && toolCalls.length === 0) {
+    return undefined
+  }
+  return {
+    ...(typeof parsedText === 'string'
+      ? {
+          text: parsedText,
+        }
+      : {}),
+    ...(toolCalls.length > 0
+      ? {
+          toolCalls,
+        }
+      : {}),
+  }
+}
+
+const getResponseOutputItems = (
+  seed: string,
+  outputText: string,
+  descriptor: MockResponseDescriptor | undefined,
+): readonly (MockOpenAiResponseOutputItem | MockOpenAiResponseFunctionCallOutputItem)[] => {
+  const outputItems: Array<MockOpenAiResponseOutputItem | MockOpenAiResponseFunctionCallOutputItem> = []
+  if (descriptor?.toolCalls) {
+    for (let index = 0; index < descriptor.toolCalls.length; index += 1) {
+      const toolCall = descriptor.toolCalls[index]
+      outputItems.push({
+        arguments: getToolCallArguments(toolCall.arguments),
+        call_id: toolCall.callId || getCallId(seed, index),
+        id: toolCall.id || getFunctionCallId(seed, index),
+        name: toolCall.name,
+        status: 'completed',
+        type: 'function_call',
+      })
+    }
+  }
+  if (descriptor?.text !== undefined || outputItems.length === 0) {
+    outputItems.push({
+      content: [
+        {
+          annotations: [],
+          logprobs: [],
+          text: outputText,
+          type: 'output_text',
+        },
+      ],
+      id: getMessageId(seed),
+      role: 'assistant',
+      status: 'completed',
+      type: 'message',
+    })
+  }
+  return outputItems
 }
 
 const parseSseDataLines = (text: string): readonly string[] => {
@@ -313,9 +457,10 @@ export const createMockOpenAiResponse = (body: unknown, text: string): ParsedMoc
       return parsedSseResponse
     }
   }
+  const descriptor = parseMockResponseDescriptor(text)
   const model = getModel(body)
-  const resolvedText = text === lastRequestSummaryToken ? getLastRequestSummary(body) : text
-  const seed = getResponseSeed(body, resolvedText)
+  const resolvedText = text === lastRequestSummaryToken ? getLastRequestSummary(body) : descriptor?.text || text
+  const seed = getResponseSeed(body, descriptor ? JSON.stringify(descriptor) : resolvedText)
   const createdAt = getCreatedAt(seed)
   return {
     background: false,
@@ -335,22 +480,7 @@ export const createMockOpenAiResponse = (body: unknown, text: string): ParsedMoc
     model,
     moderation: null,
     object: 'response',
-    output: [
-      {
-        content: [
-          {
-            annotations: [],
-            logprobs: [],
-            text: resolvedText,
-            type: 'output_text',
-          },
-        ],
-        id: getMessageId(seed),
-        role: 'assistant',
-        status: 'completed',
-        type: 'message',
-      },
-    ],
+    output: getResponseOutputItems(seed, resolvedText, descriptor),
     parallel_tool_calls: true,
     presence_penalty: 0,
     previous_response_id: null,
