@@ -14,6 +14,7 @@ export default [
       'sonarjs/updated-loop-counter': 'off',
       'sonarjs/use-type-alias': 'off',
       'sonarjs/void-use': 'off',
+      'sonarjs/no-nested-template-literals': 'off',
     },
   },
   {
