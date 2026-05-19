@@ -19,14 +19,6 @@ const defaultToolOptions = {
   platform: PlatformType.Web,
 }
 
-const serializeToolArguments = (args: unknown): string => {
-  const serialized = JSON.stringify(args)
-  if (typeof serialized === 'string') {
-    return serialized
-  }
-  return '{}'
-}
-
 const getToolResponseError = (value: unknown): string | undefined => {
   if (!isRecord(value)) {
     return undefined
@@ -41,8 +33,7 @@ const getToolResponseError = (value: unknown): string | undefined => {
 }
 
 const executeToolCall = async (toolCall: ToolCall<unknown>): Promise<unknown> => {
-  const rawArguments = serializeToolArguments(toolCall.args)
-  return ChatToolWorker.execute(toolCall.name, rawArguments, defaultToolOptions)
+  return ChatToolWorker.execute(toolCall.name, toolCall.args, defaultToolOptions)
 }
 
 export const getToolCallResults = async (toolCalls: readonly ToolCall<unknown>[]): Promise<readonly ToolCallResult[]> => {

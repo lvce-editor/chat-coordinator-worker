@@ -546,7 +546,7 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
       type: 'chat-message-updated',
     },
   ])
-  expect(toolMockRpc.invocations).toEqual([['ChatTool.execute', 'getWorkspaceUri', '{}', { assetDir: '', platform: 1 }]])
+  expect(toolMockRpc.invocations).toEqual([['ChatTool.execute', 'getWorkspaceUri', {}, { assetDir: '', platform: 1 }]])
 })
 
 test.skip('ai loop iteration resumes from stored tool call results and makes the next ai request', async () => {

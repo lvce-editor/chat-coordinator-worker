@@ -33,7 +33,7 @@ test('getToolCallResults should not mutate the provided tool calls', async () =>
     },
   ])
   expect(toolCalls).toEqual([{ args: {}, id: 'tool_1', name: 'getWorkspaceUri' }])
-  expect(rpc.invocations).toEqual([['ChatTool.execute', 'getWorkspaceUri', '{}', { assetDir: '', platform: 1 }]])
+  expect(rpc.invocations).toEqual([['ChatTool.execute', 'getWorkspaceUri', {}, { assetDir: '', platform: 1 }]])
 })
 
 test('getToolCallResults returns one result per tool call', async () => {
@@ -45,7 +45,7 @@ test('getToolCallResults returns one result per tool call', async () => {
         }
       }
       if (name === 'write_file') {
-        const args = JSON.parse(String(rawArguments)) as { readonly path: string }
+        const args = rawArguments as { readonly path: string }
         return {
           ok: true,
           path: args.path,
@@ -78,8 +78,8 @@ test('getToolCallResults returns one result per tool call', async () => {
     },
   ])
   expect(rpc.invocations).toEqual([
-    ['ChatTool.execute', 'getWorkspaceUri', '{}', { assetDir: '', platform: 1 }],
-    ['ChatTool.execute', 'write_file', '{"content":"","path":"/tmp/file.txt"}', { assetDir: '', platform: 1 }],
+    ['ChatTool.execute', 'getWorkspaceUri', {}, { assetDir: '', platform: 1 }],
+    ['ChatTool.execute', 'write_file', { content: '', path: '/tmp/file.txt' }, { assetDir: '', platform: 1 }],
   ])
 })
 
@@ -89,7 +89,7 @@ test('getToolCallResults executes read_file calls and keeps each result matched 
       if (name !== 'read_file') {
         throw new Error(`Unexpected tool name: ${name}`)
       }
-      const args = JSON.parse(String(rawArguments)) as { readonly uri: string }
+      const args = rawArguments as { readonly uri: string }
       if (args.uri === 'file:///workspace/one.txt') {
         return {
           content: 'first file',
@@ -134,8 +134,8 @@ test('getToolCallResults executes read_file calls and keeps each result matched 
     },
   ])
   expect(rpc.invocations).toEqual([
-    ['ChatTool.execute', 'read_file', '{"uri":"file:///workspace/one.txt"}', { assetDir: '', platform: 1 }],
-    ['ChatTool.execute', 'read_file', '{"uri":"file:///workspace/two.txt"}', { assetDir: '', platform: 1 }],
+    ['ChatTool.execute', 'read_file', { uri: 'file:///workspace/one.txt' }, { assetDir: '', platform: 1 }],
+    ['ChatTool.execute', 'read_file', { uri: 'file:///workspace/two.txt' }, { assetDir: '', platform: 1 }],
   ])
 })
 
@@ -172,7 +172,14 @@ test('getToolCallResults returns error results when chat-tool-worker reports a f
     [
       'ChatTool.execute',
       'run_in_terminal',
-      '{"options":{"command":"ls -la","explanation":"List files for inspection","goal":"Inspect workspace contents","shell":"/bin/missing"}}',
+      {
+        options: {
+          command: 'ls -la',
+          explanation: 'List files for inspection',
+          goal: 'Inspect workspace contents',
+          shell: '/bin/missing',
+        },
+      },
       { assetDir: '', platform: 1 },
     ],
   ])
