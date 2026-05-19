@@ -7,14 +7,6 @@ const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
   return !!value && typeof value === 'object'
 }
 
-const isAbsoluteUri = (value: string): boolean => {
-  return /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(value)
-}
-
-const isWindowsPath = (value: string): boolean => {
-  return /^[a-zA-Z]:[\\/]/.test(value)
-}
-
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
     return error.message
@@ -27,79 +19,8 @@ const defaultToolOptions = {
   platform: PlatformType.Web,
 }
 
-const normalizeToolName = (name: string): string => {
-  switch (name) {
-    case 'get_workspace_uri':
-      return 'getWorkspaceUri'
-    case 'open_editor':
-      return 'openEditor'
-    default:
-      return name
-  }
-}
-
-const toAbsoluteUri = (value: string): string => {
-  if (!value) {
-    return value
-  }
-  if (isAbsoluteUri(value)) {
-    return value
-  }
-  if (value.startsWith('/')) {
-    return new URL(value, 'file://').toString()
-  }
-  if (isWindowsPath(value)) {
-    return `file:///${encodeURI(value.replace(/\\/g, '/'))}`
-  }
-  return value
-}
-
-const normalizeUriArgument = (
-  args: Readonly<Record<string, unknown>>,
-  targetKey: string,
-  fallbackKey: string,
-): Readonly<Record<string, unknown>> => {
-  const targetValue = typeof args[targetKey] === 'string' ? args[targetKey] : ''
-  if (targetValue) {
-    return {
-      ...args,
-      [targetKey]: toAbsoluteUri(targetValue),
-    }
-  }
-  const fallbackValue = typeof args[fallbackKey] === 'string' ? args[fallbackKey] : ''
-  if (!fallbackValue) {
-    return args
-  }
-  return {
-    ...args,
-    [targetKey]: toAbsoluteUri(fallbackValue),
-  }
-}
-
-const normalizeToolArgs = (name: string, args: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> => {
-  switch (name) {
-    case 'create_directory':
-    case 'edit_file':
-    case 'list_files':
-    case 'open_preview':
-    case 'openEditor':
-    case 'read_file':
-    case 'write_file':
-      return normalizeUriArgument(args, 'uri', 'path')
-    case 'glob':
-      return normalizeUriArgument(args, 'baseUri', 'basePath')
-    case 'rename': {
-      const withOldUri = normalizeUriArgument(args, 'oldUri', 'oldPath')
-      return normalizeUriArgument(withOldUri, 'newUri', 'newPath')
-    }
-    default:
-      return args
-  }
-}
-
-const serializeToolArguments = (name: string, args: unknown): string => {
-  const normalizedArgs = normalizeToolArgs(name, isRecord(args) ? args : {})
-  const serialized = JSON.stringify(normalizedArgs)
+const serializeToolArguments = (args: unknown): string => {
+  const serialized = JSON.stringify(args)
   if (typeof serialized === 'string') {
     return serialized
   }
@@ -120,9 +41,8 @@ const getToolResponseError = (value: unknown): string | undefined => {
 }
 
 const executeToolCall = async (toolCall: ToolCall<unknown>): Promise<unknown> => {
-  const normalizedToolName = normalizeToolName(toolCall.name)
-  const rawArguments = serializeToolArguments(normalizedToolName, toolCall.args)
-  return ChatToolWorker.execute(normalizedToolName, rawArguments, defaultToolOptions)
+  const rawArguments = serializeToolArguments(toolCall.args)
+  return ChatToolWorker.execute(toolCall.name, rawArguments, defaultToolOptions)
 }
 
 export const getToolCallResults = async (toolCalls: readonly ToolCall<unknown>[]): Promise<readonly ToolCallResult[]> => {

@@ -472,7 +472,7 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
             {
               arguments: '{}',
               id: 'tool_1',
-              name: 'get_workspace_uri',
+              name: 'getWorkspaceUri',
             },
           ],
         },
@@ -494,7 +494,7 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
       {
         arguments: '{}',
         call_id: 'tool_1',
-        name: 'get_workspace_uri',
+        name: 'getWorkspaceUri',
         type: 'function_call',
       },
     ],
@@ -503,7 +503,7 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
       {
         args: {},
         id: 'tool_1',
-        name: 'get_workspace_uri',
+        name: 'getWorkspaceUri',
       },
     ],
     tools: [],
@@ -538,7 +538,7 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
         {
           arguments: '{}',
           id: 'tool_1',
-          name: 'get_workspace_uri',
+          name: 'getWorkspaceUri',
           result: '{"workspaceUri":"file:///workspace"}',
           status: 'success',
         },

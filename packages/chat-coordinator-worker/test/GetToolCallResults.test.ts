@@ -19,7 +19,7 @@ test('getToolCallResults should not mutate the provided tool calls', async () =>
     }),
   })
 
-  const toolCalls = [{ args: {}, id: 'tool_1', name: 'get_workspace_uri' }]
+  const toolCalls = [{ args: {}, id: 'tool_1', name: 'getWorkspaceUri' }]
 
   const result = await getToolCallResults(toolCalls)
 
@@ -32,7 +32,7 @@ test('getToolCallResults should not mutate the provided tool calls', async () =>
       },
     },
   ])
-  expect(toolCalls).toEqual([{ args: {}, id: 'tool_1', name: 'get_workspace_uri' }])
+  expect(toolCalls).toEqual([{ args: {}, id: 'tool_1', name: 'getWorkspaceUri' }])
   expect(rpc.invocations).toEqual([['ChatTool.execute', 'getWorkspaceUri', '{}', { assetDir: '', platform: 1 }]])
 })
 
@@ -45,12 +45,10 @@ test('getToolCallResults returns one result per tool call', async () => {
         }
       }
       if (name === 'write_file') {
-        const args = JSON.parse(String(rawArguments)) as { readonly uri: string }
+        const args = JSON.parse(String(rawArguments)) as { readonly path: string }
         return {
-          addedLines: 0,
           ok: true,
-          removedLines: 0,
-          uri: args.uri,
+          path: args.path,
         }
       }
       throw new Error(`Unexpected tool name: ${name}`)
@@ -58,7 +56,7 @@ test('getToolCallResults returns one result per tool call', async () => {
   })
 
   const result = await getToolCallResults([
-    { args: {}, id: 'tool_1', name: 'get_workspace_uri' },
+    { args: {}, id: 'tool_1', name: 'getWorkspaceUri' },
     { args: { content: '', path: '/tmp/file.txt' }, id: 'tool_2', name: 'write_file' },
   ])
 
@@ -74,16 +72,14 @@ test('getToolCallResults returns one result per tool call', async () => {
       callId: 'tool_2',
       type: 'success',
       value: {
-        addedLines: 0,
         ok: true,
-        removedLines: 0,
-        uri: 'file:///tmp/file.txt',
+        path: '/tmp/file.txt',
       },
     },
   ])
   expect(rpc.invocations).toEqual([
     ['ChatTool.execute', 'getWorkspaceUri', '{}', { assetDir: '', platform: 1 }],
-    ['ChatTool.execute', 'write_file', '{"content":"","path":"/tmp/file.txt","uri":"file:///tmp/file.txt"}', { assetDir: '', platform: 1 }],
+    ['ChatTool.execute', 'write_file', '{"content":"","path":"/tmp/file.txt"}', { assetDir: '', platform: 1 }],
   ])
 })
 
