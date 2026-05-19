@@ -1,4 +1,5 @@
-import { RendererWorker } from '@lvce-editor/rpc-registry'
+import { PlatformType } from '@lvce-editor/constants'
+import { ChatToolWorker } from '@lvce-editor/rpc-registry'
 import type { ToolCall } from '../ToolCall/ToolCall.ts'
 import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 
@@ -10,6 +11,10 @@ const isAbsoluteUri = (value: string): boolean => {
   return /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(value)
 }
 
+const isWindowsPath = (value: string): boolean => {
+  return /^[a-zA-Z]:[\\/]/.test(value)
+}
+
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
     return error.message
@@ -17,81 +22,107 @@ const getErrorMessage = (error: unknown): string => {
   return String(error)
 }
 
-const executeReadFile = async (args: Readonly<Record<string, unknown>>): Promise<unknown> => {
-  const uri = typeof args.uri === 'string' ? args.uri : ''
-  if (uri) {
-    const content = await RendererWorker.readFile(uri)
+const defaultToolOptions = {
+  assetDir: '',
+  platform: PlatformType.Web,
+}
+
+const normalizeToolName = (name: string): string => {
+  switch (name) {
+    case 'get_workspace_uri':
+      return 'getWorkspaceUri'
+    case 'open_editor':
+      return 'openEditor'
+    default:
+      return name
+  }
+}
+
+const toAbsoluteUri = (value: string): string => {
+  if (!value) {
+    return value
+  }
+  if (isAbsoluteUri(value)) {
+    return value
+  }
+  if (value.startsWith('/')) {
+    return new URL(value, 'file://').toString()
+  }
+  if (isWindowsPath(value)) {
+    return `file:///${encodeURI(value.replace(/\\/g, '/'))}`
+  }
+  return value
+}
+
+const normalizeUriArgument = (
+  args: Readonly<Record<string, unknown>>,
+  targetKey: string,
+  fallbackKey: string,
+): Readonly<Record<string, unknown>> => {
+  const targetValue = typeof args[targetKey] === 'string' ? args[targetKey] : ''
+  if (targetValue) {
     return {
-      content,
-      uri,
+      ...args,
+      [targetKey]: toAbsoluteUri(targetValue),
     }
   }
-  const path = typeof args.path === 'string' ? args.path : ''
-  if (!path) {
-    throw new Error('Missing argument: expected uri or path.')
+  const fallbackValue = typeof args[fallbackKey] === 'string' ? args[fallbackKey] : ''
+  if (!fallbackValue) {
+    return args
   }
-  const content = await RendererWorker.readFile(path)
   return {
-    content,
-    path,
+    ...args,
+    [targetKey]: toAbsoluteUri(fallbackValue),
   }
 }
 
-const executeWriteFile = async (args: Readonly<Record<string, unknown>>): Promise<unknown> => {
-  const content = typeof args.content === 'string' ? args.content : ''
-  const uri = typeof args.uri === 'string' ? args.uri : ''
-  if (uri) {
-    await RendererWorker.writeFile(uri, content)
-    return {
-      ok: true,
-      uri,
+const normalizeToolArgs = (name: string, args: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> => {
+  switch (name) {
+    case 'create_directory':
+    case 'edit_file':
+    case 'list_files':
+    case 'open_preview':
+    case 'openEditor':
+    case 'read_file':
+    case 'write_file':
+      return normalizeUriArgument(args, 'uri', 'path')
+    case 'glob':
+      return normalizeUriArgument(args, 'baseUri', 'basePath')
+    case 'rename': {
+      const withOldUri = normalizeUriArgument(args, 'oldUri', 'oldPath')
+      return normalizeUriArgument(withOldUri, 'newUri', 'newPath')
     }
-  }
-  const path = typeof args.path === 'string' ? args.path : ''
-  if (!path) {
-    throw new Error('Missing argument: expected uri or path.')
-  }
-  await RendererWorker.writeFile(path, content)
-  return {
-    ok: true,
-    path,
+    default:
+      return args
   }
 }
 
-const executeListFiles = async (args: Readonly<Record<string, unknown>>): Promise<unknown> => {
-  const uri = typeof args.uri === 'string' ? args.uri : ''
-  if (!uri || !isAbsoluteUri(uri)) {
-    throw new Error('Invalid argument: uri must be an absolute URI.')
+const serializeToolArguments = (name: string, args: unknown): string => {
+  const normalizedArgs = normalizeToolArgs(name, isRecord(args) ? args : {})
+  const serialized = JSON.stringify(normalizedArgs)
+  if (typeof serialized === 'string') {
+    return serialized
   }
-  const entries = await RendererWorker.invoke('FileSystem.readDirWithFileTypes', uri)
-  return {
-    entries,
-    uri,
-  }
+  return '{}'
 }
 
-const executeGetWorkspaceUri = async (): Promise<unknown> => {
-  const workspaceUri = await RendererWorker.getWorkspacePath()
-  return {
-    workspaceUri,
+const getToolResponseError = (value: unknown): string | undefined => {
+  if (!isRecord(value)) {
+    return undefined
   }
+  if (typeof value.error === 'string' && value.error) {
+    return value.error
+  }
+  if (typeof value.errorMessage === 'string' && value.errorMessage) {
+    return value.errorMessage
+  }
+  return undefined
 }
 
 const executeToolCall = async (toolCall: ToolCall<unknown>): Promise<unknown> => {
-  const args = isRecord(toolCall.args) ? toolCall.args : {}
-  switch (toolCall.name) {
-    case 'get_workspace_uri':
-    case 'getWorkspaceUri':
-      return executeGetWorkspaceUri()
-    case 'list_files':
-      return executeListFiles(args)
-    case 'read_file':
-      return executeReadFile(args)
-    case 'write_file':
-      return executeWriteFile(args)
-    default:
-      return toolCall.args
-  }
+  const normalizedToolName = normalizeToolName(toolCall.name)
+  const rawArguments = serializeToolArguments(normalizedToolName, toolCall.args)
+  return ChatToolWorker.execute(normalizedToolName, rawArguments, defaultToolOptions)
 }
 
 export const getToolCallResults = async (toolCalls: readonly ToolCall<unknown>[]): Promise<readonly ToolCallResult[]> => {
@@ -99,6 +130,14 @@ export const getToolCallResults = async (toolCalls: readonly ToolCall<unknown>[]
     toolCalls.map(async (toolCall) => {
       try {
         const value = await executeToolCall(toolCall)
+        const error = getToolResponseError(value)
+        if (error) {
+          return {
+            callId: toolCall.id,
+            error,
+            type: 'error' as const,
+          }
+        }
         return {
           callId: toolCall.id,
           type: 'success' as const,

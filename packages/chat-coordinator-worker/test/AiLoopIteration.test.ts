@@ -1,5 +1,5 @@
 import { afterEach, expect, jest, test } from '@jest/globals'
-import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
+import { ChatStorageWorker, ChatToolWorker } from '@lvce-editor/rpc-registry'
 import { aiLoopIteration } from '../src/parts/AiLoopIteration/AiLoopIteration.ts'
 
 afterEach(() => {
@@ -453,6 +453,11 @@ test.skip('ai loop iteration executes pending tool calls and stores a resumable 
 })
 
 test('ai loop iteration stores tool call results in chat-view storage', async () => {
+  using toolMockRpc = ChatToolWorker.registerMockRpc({
+    'ChatTool.execute': async () => ({
+      workspaceUri: 'file:///workspace',
+    }),
+  })
   const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
     'ChatStorage.appendDebugEvent': async () => undefined,
     'ChatStorage.appendEvent': async () => undefined,
@@ -465,9 +470,9 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
           time: '2026-04-19T00:00:00.000Z',
           toolCalls: [
             {
-              arguments: '{"query":"status"}',
+              arguments: '{}',
               id: 'tool_1',
-              name: 'read_status',
+              name: 'get_workspace_uri',
             },
           ],
         },
@@ -487,20 +492,18 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
     systemPrompt: 'You are a helpful assistant.',
     text: [
       {
-        arguments: '{"query":"status"}',
+        arguments: '{}',
         call_id: 'tool_1',
-        name: 'read_status',
+        name: 'get_workspace_uri',
         type: 'function_call',
       },
     ],
     toolCallResults: [],
     toolCalls: [
       {
-        args: {
-          query: 'status',
-        },
+        args: {},
         id: 'tool_1',
-        name: 'read_status',
+        name: 'get_workspace_uri',
       },
     ],
     tools: [],
@@ -515,7 +518,7 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
         callId: 'tool_1',
         type: 'success',
         value: {
-          query: 'status',
+          workspaceUri: 'file:///workspace',
         },
       },
     ],
@@ -533,16 +536,17 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
       timestamp: expect.any(String),
       toolCalls: [
         {
-          arguments: '{"query":"status"}',
+          arguments: '{}',
           id: 'tool_1',
-          name: 'read_status',
-          result: '{"query":"status"}',
+          name: 'get_workspace_uri',
+          result: '{"workspaceUri":"file:///workspace"}',
           status: 'success',
         },
       ],
       type: 'chat-message-updated',
     },
   ])
+  expect(toolMockRpc.invocations).toEqual([['ChatTool.execute', 'getWorkspaceUri', '{}', { assetDir: '', platform: 1 }]])
 })
 
 test.skip('ai loop iteration resumes from stored tool call results and makes the next ai request', async () => {
