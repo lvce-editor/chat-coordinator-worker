@@ -8,6 +8,7 @@ import { getAttachmentParts } from '../GetAttachmentParts/GetAttachmentParts.ts'
 import { appendMissingAiRequestInputTail } from '../MergeAiRequestInputs/MergeAiRequestInputs.ts'
 
 interface ToolCallsFinishedEvent {
+  readonly endTime?: string
   readonly sessionId: string
   readonly timestamp: string
   readonly toolCallResults: readonly ToolCallResult[]
