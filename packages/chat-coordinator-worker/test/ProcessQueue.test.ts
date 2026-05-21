@@ -570,6 +570,7 @@ test.skip('process queue requeues the same session after tool calls and resolves
     [
       'ChatStorage.appendDebugEvent',
       {
+        endTime: '2026-04-19T00:00:00.000Z',
         requestId: '00000000-0000-4000-8000-000000000010',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',

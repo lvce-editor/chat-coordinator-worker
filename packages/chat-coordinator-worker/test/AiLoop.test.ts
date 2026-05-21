@@ -203,6 +203,7 @@ test.skip('ai loop returns reschedule after executing tool calls', async () => {
     [
       'ChatStorage.appendDebugEvent',
       {
+        endTime: '2026-04-19T00:00:00.000Z',
         requestId: '00000000-0000-4000-8000-000000000001',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
@@ -344,6 +345,7 @@ test.skip('ai loop returns reschedule when ai response contains tool calls', asy
     [
       'ChatStorage.appendDebugEvent',
       {
+        endTime: '2026-04-19T00:00:00.000Z',
         requestId: '00000000-0000-4000-8000-000000000002',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',

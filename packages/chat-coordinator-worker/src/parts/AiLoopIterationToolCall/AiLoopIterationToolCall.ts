@@ -5,6 +5,7 @@ import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 import { appendChatDebugEvent } from '../AppendChatDebugEvent/AppendChatDebugEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
 import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
+import { getTimeStamp } from '../GetTimeStamp/GetTimeStamp.ts'
 
 interface AiLoopIterationToolCallOptions {
   readonly requestId: string
@@ -106,8 +107,10 @@ const appendStoredToolCallResults = async (
 export const aiLoopIterationToolCall = async (options: AiLoopIterationToolCallOptions): Promise<AiLoopIterationResult> => {
   const { requestId, sessionId, timestamp, toolCalls, turnId } = options
   const resolvedToolCallResults = await getToolCallResults(toolCalls)
+  const endTime = getTimeStamp()
   await appendStoredToolCallResults(requestId, sessionId, timestamp, resolvedToolCallResults)
   await appendChatDebugEvent({
+    endTime,
     requestId,
     sessionId,
     timestamp,
