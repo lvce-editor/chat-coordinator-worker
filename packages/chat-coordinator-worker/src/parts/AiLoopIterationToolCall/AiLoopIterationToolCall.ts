@@ -4,8 +4,8 @@ import type { AiLoopIterationResult } from '../AiLoopIterationResult/AiLoopItera
 import type { ToolCallResult } from '../ToolCallResult/ToolCallResult.ts'
 import { appendChatDebugEvent } from '../AppendChatDebugEvent/AppendChatDebugEvent.ts'
 import * as ChatEventType from '../ChatEventType/ChatEventType.ts'
-import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
 import { getTimeStamp } from '../GetTimeStamp/GetTimeStamp.ts'
+import { getToolCallResults } from '../GetToolCallResults/GetToolCallResults.ts'
 
 interface AiLoopIterationToolCallOptions {
   readonly requestId: string

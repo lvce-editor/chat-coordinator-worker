@@ -432,6 +432,7 @@ test.skip('ai loop iteration executes pending tool calls and stores a resumable 
       'ChatStorage.appendDebugEvent',
       {
         endTime: '2026-04-19T00:00:00.000Z',
+        endTime: expect.any(String),
         requestId: '00000000-0000-4000-8000-000000000102',
         sessionId: 'session-1',
         timestamp: '2026-04-19T00:00:00.000Z',
@@ -443,7 +444,6 @@ test.skip('ai loop iteration executes pending tool calls and stores a resumable 
             },
           },
         ],
-                endTime: expect.any(String),
         turnId: 'turn-1',
         type: 'tool-calls-finished',
       },
