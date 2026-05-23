@@ -1,5 +1,7 @@
 import { afterEach, expect, jest, test } from '@jest/globals'
 import { ChatToolWorker } from '@lvce-editor/rpc-registry'
+import type { ToolCall } from '../src/parts/ToolCall/ToolCall.ts'
+import type { ToolCallResult } from '../src/parts/ToolCallResult/ToolCallResult.ts'
 import { getToolCallResults } from '../src/parts/GetToolCallResults/GetToolCallResults.ts'
 
 afterEach(() => {
@@ -176,4 +178,49 @@ test('getToolCallResults returns error results when chat-tool-worker reports a f
       { assetDir: '', platform: 1 },
     ],
   ])
+})
+
+test('getToolCallResults invokes start and finish hooks for each tool call', async () => {
+  using rpc = ChatToolWorker.registerMockRpc({
+    'ChatTool.execute': async () => ({
+      workspaceUri: 'file:///workspace',
+    }),
+  })
+  const onToolCallStarted = jest.fn<(toolCall: ToolCall<unknown>) => void>()
+  const onToolCallFinished = jest.fn<(toolCall: ToolCall<unknown>, result: ToolCallResult) => void>()
+
+  const result = await getToolCallResults([{ args: {}, id: 'tool_1', name: 'getWorkspaceUri' }], {
+    onToolCallFinished,
+    onToolCallStarted,
+  })
+
+  expect(result).toEqual([
+    {
+      callId: 'tool_1',
+      type: 'success',
+      value: {
+        workspaceUri: 'file:///workspace',
+      },
+    },
+  ])
+  expect(onToolCallStarted).toHaveBeenCalledWith({
+    args: {},
+    id: 'tool_1',
+    name: 'getWorkspaceUri',
+  })
+  expect(onToolCallFinished).toHaveBeenCalledWith(
+    {
+      args: {},
+      id: 'tool_1',
+      name: 'getWorkspaceUri',
+    },
+    {
+      callId: 'tool_1',
+      type: 'success',
+      value: {
+        workspaceUri: 'file:///workspace',
+      },
+    },
+  )
+  expect(rpc.invocations).toEqual([['ChatTool.execute', 'getWorkspaceUri', '{}', { assetDir: '', platform: 1 }]])
 })
