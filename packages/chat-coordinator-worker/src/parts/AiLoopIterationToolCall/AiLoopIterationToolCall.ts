@@ -106,18 +106,33 @@ const appendStoredToolCallResults = async (
 
 export const aiLoopIterationToolCall = async (options: AiLoopIterationToolCallOptions): Promise<AiLoopIterationResult> => {
   const { requestId, sessionId, timestamp, toolCalls, turnId } = options
-  const resolvedToolCallResults = await getToolCallResults(toolCalls)
-  const endTime = getTimeStamp()
-  await appendStoredToolCallResults(requestId, sessionId, timestamp, resolvedToolCallResults)
-  await appendChatDebugEvent({
-    endTime,
-    requestId,
-    sessionId,
-    timestamp,
-    toolCallResults: resolvedToolCallResults,
-    turnId,
-    type: ChatEventType.ToolCallsFinished,
+  const resolvedToolCallResults = await getToolCallResults(toolCalls, {
+    onToolCallFinished: async (toolCall, toolCallResult) => {
+      await appendChatDebugEvent({
+        callId: toolCall.id,
+        name: toolCall.name,
+        requestId,
+        sessionId,
+        timestamp: getTimeStamp(),
+        toolCallResult,
+        turnId,
+        type: ChatEventType.ToolCallFinished,
+      })
+    },
+    onToolCallStarted: async (toolCall) => {
+      await appendChatDebugEvent({
+        args: toolCall.args,
+        callId: toolCall.id,
+        name: toolCall.name,
+        requestId,
+        sessionId,
+        timestamp: getTimeStamp(),
+        turnId,
+        type: ChatEventType.ToolCallStarted,
+      })
+    },
   })
+  await appendStoredToolCallResults(requestId, sessionId, timestamp, resolvedToolCallResults)
   return {
     data: undefined,
     toolCallResults: resolvedToolCallResults,

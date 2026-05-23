@@ -526,26 +526,62 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
     toolCalls: [],
     type: 'success',
   })
-  expect(appendEventMockRpc.invocations).toContainEqual([
-    'ChatStorage.appendEvent',
-    {
-      inProgress: false,
-      messageId: 'request-1',
-      sessionId: 'session-1',
-      text: 'Let me check.',
-      time: '2026-04-19T00:00:00.000Z',
-      timestamp: expect.any(String),
-      toolCalls: [
-        {
-          arguments: '{}',
-          id: 'tool_1',
-          name: 'getWorkspaceUri',
-          result: '{"workspaceUri":"file:///workspace"}',
-          status: 'success',
+  expect(appendEventMockRpc.invocations).toEqual([
+    ['ChatStorage.getMessages', 'session-1'],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        args: {},
+        callId: 'tool_1',
+        name: 'getWorkspaceUri',
+        requestId: expect.any(String),
+        sessionId: 'session-1',
+        timestamp: expect.any(String),
+        turnId: 'turn-1',
+        type: 'tool-call-started',
+      },
+    ],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        callId: 'tool_1',
+        name: 'getWorkspaceUri',
+        requestId: expect.any(String),
+        sessionId: 'session-1',
+        timestamp: expect.any(String),
+        toolCallResult: {
+          callId: 'tool_1',
+          type: 'success',
+          value: {
+            workspaceUri: 'file:///workspace',
+          },
         },
-      ],
-      type: 'chat-message-updated',
-    },
+        turnId: 'turn-1',
+        type: 'tool-call-finished',
+      },
+    ],
+    ['ChatStorage.getMessages', 'session-1'],
+    [
+      'ChatStorage.appendEvent',
+      {
+        inProgress: false,
+        messageId: 'request-1',
+        sessionId: 'session-1',
+        text: 'Let me check.',
+        time: '2026-04-19T00:00:00.000Z',
+        timestamp: expect.any(String),
+        toolCalls: [
+          {
+            arguments: '{}',
+            id: 'tool_1',
+            name: 'getWorkspaceUri',
+            result: '{"workspaceUri":"file:///workspace"}',
+            status: 'success',
+          },
+        ],
+        type: 'chat-message-updated',
+      },
+    ],
   ])
   expect(toolMockRpc.invocations).toEqual([['ChatTool.execute', 'getWorkspaceUri', '{}', { assetDir: '', platform: 1 }]])
 })

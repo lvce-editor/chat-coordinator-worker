@@ -177,3 +177,51 @@ test('getToolCallResults returns error results when chat-tool-worker reports a f
     ],
   ])
 })
+
+test('getToolCallResults invokes start and finish hooks for each tool call', async () => {
+  using rpc = ChatToolWorker.registerMockRpc({
+    'ChatTool.execute': async () => ({
+      workspaceUri: 'file:///workspace',
+    }),
+  })
+  const onToolCallStarted = jest.fn()
+  const onToolCallFinished = jest.fn()
+
+  const result = await getToolCallResults(
+    [{ args: {}, id: 'tool_1', name: 'getWorkspaceUri' }],
+    {
+      onToolCallFinished,
+      onToolCallStarted,
+    },
+  )
+
+  expect(result).toEqual([
+    {
+      callId: 'tool_1',
+      type: 'success',
+      value: {
+        workspaceUri: 'file:///workspace',
+      },
+    },
+  ])
+  expect(onToolCallStarted).toHaveBeenCalledWith({
+    args: {},
+    id: 'tool_1',
+    name: 'getWorkspaceUri',
+  })
+  expect(onToolCallFinished).toHaveBeenCalledWith(
+    {
+      args: {},
+      id: 'tool_1',
+      name: 'getWorkspaceUri',
+    },
+    {
+      callId: 'tool_1',
+      type: 'success',
+      value: {
+        workspaceUri: 'file:///workspace',
+      },
+    },
+  )
+  expect(rpc.invocations).toEqual([['ChatTool.execute', 'getWorkspaceUri', '{}', { assetDir: '', platform: 1 }]])
+})
