@@ -187,13 +187,10 @@ test('getToolCallResults invokes start and finish hooks for each tool call', asy
   const onToolCallStarted = jest.fn()
   const onToolCallFinished = jest.fn()
 
-  const result = await getToolCallResults(
-    [{ args: {}, id: 'tool_1', name: 'getWorkspaceUri' }],
-    {
-      onToolCallFinished,
-      onToolCallStarted,
-    },
-  )
+  const result = await getToolCallResults([{ args: {}, id: 'tool_1', name: 'getWorkspaceUri' }], {
+    onToolCallFinished,
+    onToolCallStarted,
+  })
 
   expect(result).toEqual([
     {
