@@ -1,6 +1,8 @@
 import { afterEach, expect, jest, test } from '@jest/globals'
 import { ChatToolWorker } from '@lvce-editor/rpc-registry'
 import { getToolCallResults } from '../src/parts/GetToolCallResults/GetToolCallResults.ts'
+import type { ToolCall } from '../src/parts/ToolCall/ToolCall.ts'
+import type { ToolCallResult } from '../src/parts/ToolCallResult/ToolCallResult.ts'
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -184,8 +186,8 @@ test('getToolCallResults invokes start and finish hooks for each tool call', asy
       workspaceUri: 'file:///workspace',
     }),
   })
-  const onToolCallStarted = jest.fn()
-  const onToolCallFinished = jest.fn()
+  const onToolCallStarted = jest.fn<(toolCall: ToolCall<unknown>) => void>()
+  const onToolCallFinished = jest.fn<(toolCall: ToolCall<unknown>, result: ToolCallResult) => void>()
 
   const result = await getToolCallResults([{ args: {}, id: 'tool_1', name: 'getWorkspaceUri' }], {
     onToolCallFinished,
