@@ -1,8 +1,8 @@
 import { afterEach, expect, jest, test } from '@jest/globals'
 import { ChatToolWorker } from '@lvce-editor/rpc-registry'
-import { getToolCallResults } from '../src/parts/GetToolCallResults/GetToolCallResults.ts'
 import type { ToolCall } from '../src/parts/ToolCall/ToolCall.ts'
 import type { ToolCallResult } from '../src/parts/ToolCallResult/ToolCallResult.ts'
+import { getToolCallResults } from '../src/parts/GetToolCallResults/GetToolCallResults.ts'
 
 afterEach(() => {
   jest.restoreAllMocks()
