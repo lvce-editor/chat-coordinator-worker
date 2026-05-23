@@ -548,6 +548,7 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
         name: 'getWorkspaceUri',
         requestId: expect.any(String),
         sessionId: 'session-1',
+        statusCode: 200,
         timestamp: expect.any(String),
         toolCallResult: {
           callId: 'tool_1',
@@ -577,6 +578,7 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
             name: 'getWorkspaceUri',
             result: '{"workspaceUri":"file:///workspace"}',
             status: 'success',
+            statusCode: 200,
           },
         ],
         type: 'chat-message-updated',
@@ -584,6 +586,143 @@ test('ai loop iteration stores tool call results in chat-view storage', async ()
     ],
   ])
   expect(toolMockRpc.invocations).toEqual([['ChatTool.execute', 'getWorkspaceUri', '{}', { assetDir: '', platform: 1 }]])
+})
+
+test('ai loop iteration stores not-found tool call results with a 404 status code', async () => {
+  using toolMockRpc = ChatToolWorker.registerMockRpc({
+    'ChatTool.execute': async () => ({
+      errorMessage: 'Error: File not found: memfs:///workspace/not-found.txt',
+    }),
+  })
+  const appendEventMockRpc = ChatStorageWorker.registerMockRpc({
+    'ChatStorage.appendDebugEvent': async () => undefined,
+    'ChatStorage.appendEvent': async () => undefined,
+    'ChatStorage.getMessages': async (sessionId: string) => [
+      {
+        message: {
+          id: 'request-1',
+          role: 'assistant',
+          text: 'Let me check.',
+          time: '2026-04-19T00:00:00.000Z',
+          toolCalls: [
+            {
+              arguments: '{"uri":"memfs:///workspace/not-found.txt"}',
+              id: 'tool_1',
+              name: 'read_file',
+            },
+          ],
+        },
+        sessionId,
+        timestamp: '2026-04-19T00:00:00.000Z',
+        type: 'chat-message-added',
+      },
+    ],
+  })
+
+  const result = await aiLoopIteration({
+    headers: {},
+    maxToolCalls: 100,
+    modelId: 'gpt-5-mini',
+    providerId: 'openai',
+    sessionId: 'session-1',
+    systemPrompt: 'You are a helpful assistant.',
+    text: [
+      {
+        arguments: '{"uri":"memfs:///workspace/not-found.txt"}',
+        call_id: 'tool_1',
+        name: 'read_file',
+        type: 'function_call',
+      },
+    ],
+    toolCallResults: [],
+    toolCalls: [
+      {
+        args: {
+          uri: 'memfs:///workspace/not-found.txt',
+        },
+        id: 'tool_1',
+        name: 'read_file',
+      },
+    ],
+    tools: [],
+    turnId: 'turn-1',
+    url: 'https://api.openai.com/v1/responses',
+  })
+
+  expect(result).toEqual({
+    data: undefined,
+    toolCallResults: [
+      {
+        callId: 'tool_1',
+        error: 'Error: File not found: memfs:///workspace/not-found.txt',
+        type: 'error',
+      },
+    ],
+    toolCalls: [],
+    type: 'success',
+  })
+  expect(appendEventMockRpc.invocations).toEqual([
+    ['ChatStorage.getMessages', 'session-1'],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        args: {
+          uri: 'memfs:///workspace/not-found.txt',
+        },
+        callId: 'tool_1',
+        name: 'read_file',
+        requestId: expect.any(String),
+        sessionId: 'session-1',
+        timestamp: expect.any(String),
+        turnId: 'turn-1',
+        type: 'tool-call-started',
+      },
+    ],
+    [
+      'ChatStorage.appendDebugEvent',
+      {
+        callId: 'tool_1',
+        name: 'read_file',
+        requestId: expect.any(String),
+        sessionId: 'session-1',
+        statusCode: 404,
+        timestamp: expect.any(String),
+        toolCallResult: {
+          callId: 'tool_1',
+          error: 'Error: File not found: memfs:///workspace/not-found.txt',
+          type: 'error',
+        },
+        turnId: 'turn-1',
+        type: 'tool-call-finished',
+      },
+    ],
+    ['ChatStorage.getMessages', 'session-1'],
+    [
+      'ChatStorage.appendEvent',
+      {
+        inProgress: false,
+        messageId: 'request-1',
+        sessionId: 'session-1',
+        text: 'Let me check.',
+        time: '2026-04-19T00:00:00.000Z',
+        timestamp: expect.any(String),
+        toolCalls: [
+          {
+            arguments: '{"uri":"memfs:///workspace/not-found.txt"}',
+            errorMessage: '{"error":"Error: File not found: memfs:///workspace/not-found.txt"}',
+            id: 'tool_1',
+            name: 'read_file',
+            status: 'not-found',
+            statusCode: 404,
+          },
+        ],
+        type: 'chat-message-updated',
+      },
+    ],
+  ])
+  expect(toolMockRpc.invocations).toEqual([
+    ['ChatTool.execute', 'read_file', '{"uri":"memfs:///workspace/not-found.txt"}', { assetDir: '', platform: 1 }],
+  ])
 })
 
 test.skip('ai loop iteration resumes from stored tool call results and makes the next ai request', async () => {

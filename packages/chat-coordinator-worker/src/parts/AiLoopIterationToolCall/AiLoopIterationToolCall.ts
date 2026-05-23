@@ -22,6 +22,7 @@ interface StoredToolCall {
   readonly name: string
   readonly result?: string
   readonly status?: 'error' | 'not-found' | 'success'
+  readonly statusCode?: number
 }
 
 interface StoredChatMessageEvent {
@@ -40,6 +41,33 @@ const serializeToolCallValue = (value: unknown): string => {
   }
   const serialized = JSON.stringify(value)
   return typeof serialized === 'string' ? serialized : 'null'
+}
+
+const isToolCallNotFoundError = (error: unknown): boolean => {
+  if (typeof error !== 'string') {
+    return false
+  }
+  return error.startsWith('Error: File not found') || error.startsWith('File not found')
+}
+
+const getToolCallStatusCode = (toolCallResult: ToolCallResult): number => {
+  if (toolCallResult.type === 'success') {
+    return 200
+  }
+  if (isToolCallNotFoundError(toolCallResult.error)) {
+    return 404
+  }
+  return 500
+}
+
+const getStoredToolCallStatus = (toolCallResult: ToolCallResult): 'error' | 'not-found' | 'success' => {
+  if (toolCallResult.type === 'success') {
+    return 'success'
+  }
+  if (isToolCallNotFoundError(toolCallResult.error)) {
+    return 'not-found'
+  }
+  return 'error'
 }
 
 const hasPendingToolCall = (event: StoredChatMessageEvent): boolean => {
@@ -71,12 +99,14 @@ const getUpdatedToolCalls = (storedToolCalls: readonly StoredToolCall[], toolCal
         ...storedToolCall,
         result: serializeToolCallValue(toolCallResult.value),
         status: 'success',
+        statusCode: getToolCallStatusCode(toolCallResult),
       }
     }
     return {
       ...storedToolCall,
       errorMessage: serializeToolCallValue({ error: toolCallResult.error }),
-      status: 'error',
+      status: getStoredToolCallStatus(toolCallResult),
+      statusCode: getToolCallStatusCode(toolCallResult),
     }
   })
 }
@@ -113,6 +143,7 @@ export const aiLoopIterationToolCall = async (options: AiLoopIterationToolCallOp
         name: toolCall.name,
         requestId,
         sessionId,
+        statusCode: getToolCallStatusCode(toolCallResult),
         timestamp: getTimeStamp(),
         toolCallResult,
         turnId,
