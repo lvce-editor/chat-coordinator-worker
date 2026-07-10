@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax, unicorn/prefer-includes-over-repeated-comparisons */
 import { ChatStorageWorker } from '@lvce-editor/rpc-registry'
 import type { AiRequestFunctionCall, AiRequestInput, AiRequestPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import type { SubmitAttachment } from '../SubmitOptions/SubmitOptions.ts'

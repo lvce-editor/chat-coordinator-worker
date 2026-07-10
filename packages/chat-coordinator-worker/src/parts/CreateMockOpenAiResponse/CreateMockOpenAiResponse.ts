@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax, unicorn/no-break-in-nested-loop, unicorn/prefer-includes-over-repeated-comparisons */
 // cspell:ignore logprobs
 
 interface MockOpenAiResponseContentItem {
@@ -289,16 +290,14 @@ const parseToolCallDescriptor = (value: unknown): MockToolCallDescriptor | undef
   const callId = Reflect.get(value, 'call_id')
   return {
     arguments: argumentsValue ?? {},
-    ...(typeof callId === 'string' && callId
-      ? {
-          callId,
-        }
-      : {}),
-    ...(typeof id === 'string' && id
-      ? {
-          id,
-        }
-      : {}),
+    ...(typeof callId === 'string' &&
+      callId && {
+        callId,
+      }),
+    ...(typeof id === 'string' &&
+      id && {
+        id,
+      }),
     name,
   }
 }
@@ -333,16 +332,12 @@ const parseMockResponseDescriptor = (text: string): MockResponseDescriptor | und
     return undefined
   }
   return {
-    ...(typeof parsedText === 'string'
-      ? {
-          text: parsedText,
-        }
-      : {}),
-    ...(toolCalls.length > 0
-      ? {
-          toolCalls,
-        }
-      : {}),
+    ...(typeof parsedText === 'string' && {
+      text: parsedText,
+    }),
+    ...(toolCalls.length > 0 && {
+      toolCalls,
+    }),
   }
 }
 

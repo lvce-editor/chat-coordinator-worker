@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax, unicorn/no-top-level-assignment-in-function */
 import type { GetOpenApiAssistantTextErrorResult } from '../GetOpenApiAssistantTextErrorResult/GetOpenApiAssistantTextErrorResult.ts'
 
 type MockStreamState = {
@@ -61,21 +62,15 @@ export const setHttpErrorResponse = (statusCode: number, body: unknown, requestI
   const state = getOrCreateState(requestId)
   state.errorResult = {
     details: 'http-error',
-    ...(typeof errorCode === 'string'
-      ? {
-          errorCode,
-        }
-      : {}),
-    ...(typeof errorMessage === 'string'
-      ? {
-          errorMessage,
-        }
-      : {}),
-    ...(typeof errorType === 'string'
-      ? {
-          errorType,
-        }
-      : {}),
+    ...(typeof errorCode === 'string' && {
+      errorCode,
+    }),
+    ...(typeof errorMessage === 'string' && {
+      errorMessage,
+    }),
+    ...(typeof errorType === 'string' && {
+      errorType,
+    }),
     statusCode,
     type: 'error',
   }
@@ -85,11 +80,9 @@ export const setRequestFailedResponse = (isOffline: boolean = false, requestId: 
   const state = getOrCreateState(requestId)
   state.errorResult = {
     details: 'request-failed',
-    ...(isOffline
-      ? {
-          isOffline: true,
-        }
-      : {}),
+    ...(isOffline && {
+      isOffline: true,
+    }),
     type: 'error',
   }
 }

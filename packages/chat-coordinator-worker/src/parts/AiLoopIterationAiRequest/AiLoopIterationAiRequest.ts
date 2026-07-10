@@ -83,7 +83,7 @@ const getBackendInvalidResponseDetails = (data: unknown): string => {
   if (!data || typeof data !== 'object') {
     return 'Unexpected backend response format: no assistant text or tool calls were returned.'
   }
-  const output = Reflect.get(data, 'output')
+  const { output } = data as { readonly output?: unknown }
   if (Array.isArray(output) && output.length === 0) {
     return 'Unexpected backend response format: no assistant text or tool calls were returned.'
   }
@@ -93,7 +93,7 @@ const getBackendInvalidResponseDetails = (data: unknown): string => {
 const appendAiErrorResponse = async (options: AppendAiErrorResponseOptions): Promise<void> => {
   const { error, requestId, sessionId, size = 0, statusCode, timestamp, turnId } = options
   await appendChatDebugEvent({
-    ...(typeof statusCode === 'number' ? { statusCode } : {}),
+    ...(typeof statusCode === 'number' && { statusCode }),
     requestId,
     sessionId,
     size,

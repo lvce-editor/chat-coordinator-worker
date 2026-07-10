@@ -76,27 +76,20 @@ export const appendChatEvent = async (event: any): Promise<void> => {
     const toolCalls = getMessageToolCalls(event.message)
     await ChatStorageWorker.invoke('ChatStorage.appendEvent', {
       message: {
-        ...(event.message.attachments && event.message.attachments.length > 0
-          ? {
-              attachments: event.message.attachments,
-            }
-          : {}),
-        ...(content.length > 0
-          ? {
-              content,
-            }
-          : {}),
-        ...(toolCalls.length > 0
-          ? {
-              ...(text
-                ? {
-                    text,
-                  }
-                : {}),
-              time: event.timestamp,
-              toolCalls,
-            }
-          : {}),
+        ...(event.message.attachments &&
+          event.message.attachments.length > 0 && {
+            attachments: event.message.attachments,
+          }),
+        ...(content.length > 0 && {
+          content,
+        }),
+        ...(toolCalls.length > 0 && {
+          ...(text && {
+            text,
+          }),
+          time: event.timestamp,
+          toolCalls,
+        }),
         id: event.id,
         role: event.message.role || 'assistant',
       },

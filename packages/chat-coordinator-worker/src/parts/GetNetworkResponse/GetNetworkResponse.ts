@@ -16,7 +16,7 @@ const parseContentLength = (headers: Headers): number => {
   if (!contentLength) {
     return -1
   }
-  const parsed = Number.parseInt(contentLength, 10)
+  const parsed = Number(contentLength)
   if (!Number.isFinite(parsed) || parsed < 0) {
     return -1
   }
