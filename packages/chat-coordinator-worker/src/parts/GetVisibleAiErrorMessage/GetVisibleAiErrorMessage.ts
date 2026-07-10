@@ -22,7 +22,7 @@ const getBackendErrorCodeFromBody = (body: unknown): string | undefined => {
   if (!body || typeof body !== 'object') {
     return undefined
   }
-  const code = Reflect.get(body, 'code')
+  const { code } = body as { readonly code?: unknown }
   return typeof code === 'string' ? code : undefined
 }
 
@@ -30,7 +30,7 @@ const getBackendErrorMessageFromBody = (body: unknown): string | undefined => {
   if (!body || typeof body !== 'object') {
     return undefined
   }
-  const error = Reflect.get(body, 'error')
+  const { error } = body as { readonly error?: unknown }
   return typeof error === 'string' ? error : undefined
 }
 
@@ -42,26 +42,20 @@ export const getVisibleAiErrorMessage = (_error: unknown, statusCode?: number, p
     if (typeof statusCode === 'number') {
       return getBackendErrorMessage({
         details: 'http-error',
-        ...(errorCode
-          ? {
-              errorCode,
-            }
-          : {}),
-        ...(errorMessage
-          ? {
-              errorMessage,
-            }
-          : {}),
+        ...(errorCode && {
+          errorCode,
+        }),
+        ...(errorMessage && {
+          errorMessage,
+        }),
         statusCode,
       })
     }
     return getBackendErrorMessage({
       details: 'request-failed',
-      ...(errorMessage
-        ? {
-            errorMessage,
-          }
-        : {}),
+      ...(errorMessage && {
+        errorMessage,
+      }),
     })
   }
   if (typeof statusCode === 'number') {

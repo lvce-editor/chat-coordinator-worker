@@ -19,7 +19,7 @@ test('ai loop iteration stores exposed response headers with the response body',
       },
     ],
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000101')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -216,7 +216,7 @@ test('ai loop iteration replays stored chat messages when continuing a session',
       },
     ],
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:03:00.000Z'))
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000106')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -320,7 +320,7 @@ test('ai loop iteration queries stored chat-view events first and sends all conv
       },
     ],
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-05-15T00:00:03.000Z'))
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000107')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -392,7 +392,7 @@ test.skip('ai loop iteration executes pending tool calls and stores a resumable 
       },
     ],
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000102')
   const fetchSpy = jest.spyOn(globalThis, 'fetch')
@@ -753,7 +753,7 @@ test.skip('ai loop iteration resumes from stored tool call results and makes the
       },
     ],
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000103')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -939,7 +939,7 @@ test.skip('ai loop iteration replays stored assistant messages with assistant ro
       },
     ],
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000105')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -1085,7 +1085,7 @@ test.skip('ai loop iteration stores status code for non-2xx ai responses', async
       },
     ],
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000104')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -1222,7 +1222,7 @@ test.skip('ai loop iteration appends a visible assistant message when the ai req
       },
     ],
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000105')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('request failed'))

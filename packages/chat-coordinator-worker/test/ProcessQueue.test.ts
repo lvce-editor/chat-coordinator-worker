@@ -8,10 +8,7 @@ interface Deferred<T> {
 }
 
 const createDeferred = <T>(): Deferred<T> => {
-  let resolve!: (value: T) => void
-  const promise = new Promise<T>((resolvePromise) => {
-    resolve = resolvePromise
-  })
+  const { promise, resolve } = Promise.withResolvers<T>()
   return {
     promise,
     resolve,
@@ -44,7 +41,7 @@ test.skip('process queue returns immediately when no newer version is pending', 
     'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.getMessages': getEvents,
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000000')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -101,7 +98,7 @@ test.skip('process queue resolves when ai loop returns an error', async () => {
     'ChatStorage.appendEvent': async (_event: unknown) => undefined,
     'ChatStorage.getMessages': getEvents,
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000010')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -239,7 +236,7 @@ test.skip('process queue resolves only after the requested session version has b
     'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.getMessages': getEvents,
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest
     .spyOn(crypto, 'randomUUID')
@@ -526,7 +523,7 @@ test.skip('process queue requeues the same session after tool calls and resolves
     'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.getMessages': async () => events,
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest
     .spyOn(crypto, 'randomUUID')
@@ -699,7 +696,7 @@ test('process queue sends stored history plus queued fallback turns on overlappi
     'ChatStorage.appendEvent': appendEvent,
     'ChatStorage.getMessages': getEvents,
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest
     .spyOn(crypto, 'randomUUID')

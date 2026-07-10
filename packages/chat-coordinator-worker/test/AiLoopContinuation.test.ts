@@ -64,7 +64,7 @@ test('aiLoopIteration resumes stored tool results as function_call_output reques
       },
     ],
   })
-  const realDate = globalThis.Date
+  const realDate = Date
   const dateSpy = jest.spyOn(globalThis, 'Date').mockImplementation(() => new realDate('2026-04-19T00:00:00.000Z'))
   const randomUUIDSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-000000000201')
   const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({

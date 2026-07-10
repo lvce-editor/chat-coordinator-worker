@@ -67,11 +67,9 @@ export const handleSubmit = async (options: SubmitOptions): Promise<void> => {
   await appendChatEvent({
     id,
     message: {
-      ...(attachments.length > 0
-        ? {
-            attachments,
-          }
-        : {}),
+      ...(attachments.length > 0 && {
+        attachments,
+      }),
       content: [
         {
           text,

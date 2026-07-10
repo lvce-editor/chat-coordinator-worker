@@ -81,7 +81,7 @@ const getStoredMessageEvent = async (sessionId: string, requestId: string): Prom
   if (matchingEvent) {
     return matchingEvent
   }
-  return storedEvents.toReversed().find((event) => event.type === 'chat-message-added' && hasPendingToolCall(event))
+  return storedEvents.findLast((event) => event.type === 'chat-message-added' && hasPendingToolCall(event))
 }
 
 const getUpdatedToolCalls = (storedToolCalls: readonly StoredToolCall[], toolCallResults: readonly ToolCallResult[]): readonly StoredToolCall[] => {

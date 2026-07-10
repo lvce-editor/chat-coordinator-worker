@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-top-level-assignment-in-function */
 import type { AiLoopOptions } from '../AiLoopOptions/AiLoopOptions.ts'
 
 export interface QueueWaiter {

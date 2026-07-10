@@ -24,11 +24,7 @@ export const runQueue = async (): Promise<void> => {
         continue
       }
       pendingSessionWork.processedVersion = targetVersion
-      if (result.type === 'error') {
-        settleResolvedWaiters(pendingSessionWork, targetVersion)
-      } else {
-        settleResolvedWaiters(pendingSessionWork, targetVersion)
-      }
+      settleResolvedWaiters(pendingSessionWork, targetVersion)
     } catch (error) {
       const normalizedError = getError(error)
       pendingSessionWork.processedVersion = targetVersion
