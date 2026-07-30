@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "project": ["*.js"]
+    },
+    "packages/build": {
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["esbuild", "playwright"]
+    },
+    "packages/chat-coordinator-worker": {
+      "entry": ["src/chatCoordinatorWorkerMain.ts", "test/**/*.test.ts"],
+      "project": ["src/**/*.ts", "test/**/*.ts"]
+    },
+    "packages/e2e": {
+      "entry": ["src/**/*.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/server": {
+      "project": ["src/**/*.js"]
+    }
+  }
+}

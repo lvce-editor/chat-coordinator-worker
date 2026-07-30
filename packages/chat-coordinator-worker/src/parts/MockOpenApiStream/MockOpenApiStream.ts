@@ -1,11 +1,9 @@
-/* eslint-disable no-restricted-syntax, unicorn/no-top-level-assignment-in-function */
-import type { GetOpenApiAssistantTextErrorResult } from '../GetOpenApiAssistantTextErrorResult/GetOpenApiAssistantTextErrorResult.ts'
+/* eslint-disable unicorn/no-top-level-assignment-in-function */
 
 type MockStreamState = {
   readonly queue: string[]
   readonly waiters: Array<(chunk: string | undefined) => void>
   finished: boolean
-  errorResult: GetOpenApiAssistantTextErrorResult | undefined
 }
 
 const defaultRequestId = 'default'
@@ -15,7 +13,6 @@ let preparedRequestIds: string[] = []
 
 const createState = (): MockStreamState => {
   return {
-    errorResult: undefined,
     finished: false,
     queue: [],
     waiters: [],
@@ -54,46 +51,6 @@ export const reset = (requestId: string = defaultRequestId): void => {
   enqueuePreparedRequest(requestId)
 }
 
-export const setHttpErrorResponse = (statusCode: number, body: unknown, requestId: string = defaultRequestId): void => {
-  const rawError = body && typeof body === 'object' ? Reflect.get(body, 'error') : undefined
-  const errorCode = rawError && typeof rawError === 'object' ? Reflect.get(rawError, 'code') : undefined
-  const errorMessage = rawError && typeof rawError === 'object' ? Reflect.get(rawError, 'message') : undefined
-  const errorType = rawError && typeof rawError === 'object' ? Reflect.get(rawError, 'type') : undefined
-  const state = getOrCreateState(requestId)
-  state.errorResult = {
-    details: 'http-error',
-    ...(typeof errorCode === 'string' && {
-      errorCode,
-    }),
-    ...(typeof errorMessage === 'string' && {
-      errorMessage,
-    }),
-    ...(typeof errorType === 'string' && {
-      errorType,
-    }),
-    statusCode,
-    type: 'error',
-  }
-}
-
-export const setRequestFailedResponse = (isOffline: boolean = false, requestId: string = defaultRequestId): void => {
-  const state = getOrCreateState(requestId)
-  state.errorResult = {
-    details: 'request-failed',
-    ...(isOffline && {
-      isOffline: true,
-    }),
-    type: 'error',
-  }
-}
-
-export const takeErrorResponse = (requestId: string = defaultRequestId): GetOpenApiAssistantTextErrorResult | undefined => {
-  const state = getOrCreateState(requestId)
-  const error = state.errorResult
-  state.errorResult = undefined
-  return error
-}
-
 export const pushChunk = (chunk: string, requestId: string = defaultRequestId): void => {
   const state = getOrCreateState(requestId)
   if (state.waiters.length > 0) {
@@ -117,7 +74,7 @@ export const finish = (requestId: string = defaultRequestId): void => {
   }
 }
 
-export const readNextChunk = async (requestId: string = defaultRequestId): Promise<string | undefined> => {
+const readNextChunk = async (requestId: string = defaultRequestId): Promise<string | undefined> => {
   const state = getOrCreateState(requestId)
   if (state.queue.length > 0) {
     return state.queue.shift()
