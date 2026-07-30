@@ -1,7 +1,7 @@
 import type { AiRequestImagePart, AiRequestPart, AiRequestTextPart } from '../GetAiRequestBody/GetAiRequestBody.ts'
 import type { SubmitAttachment } from '../SubmitOptions/SubmitOptions.ts'
 
-export const getAttachmentTextPart = (attachment: SubmitAttachment): AiRequestTextPart => {
+const getAttachmentTextPart = (attachment: SubmitAttachment): AiRequestTextPart => {
   switch (attachment.displayType) {
     case 'file':
       return {

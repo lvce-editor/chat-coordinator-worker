@@ -1,6 +1,6 @@
 import type { ChatTool } from '../ChatTool/ChatTool.ts'
 
-export type SubmitAttachmentDisplayType = 'file' | 'image' | 'invalid-image' | 'text-file'
+type SubmitAttachmentDisplayType = 'file' | 'image' | 'invalid-image' | 'text-file'
 
 export interface SubmitAttachment {
   readonly attachmentId: string

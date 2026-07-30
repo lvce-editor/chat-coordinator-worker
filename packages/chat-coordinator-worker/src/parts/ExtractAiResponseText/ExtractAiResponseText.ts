@@ -101,7 +101,3 @@ export const extractAiResponse = (data: unknown): ExtractAiResponseResult => {
     text: text || undefined,
   }
 }
-
-export const extractAiResponseText = (data: unknown): string | undefined => {
-  return extractAiResponse(data).text
-}

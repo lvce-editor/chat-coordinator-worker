@@ -1,12 +1,12 @@
-export interface AiLoopSuccessResult {
+interface AiLoopSuccessResult {
   readonly type: 'success'
 }
 
-export interface AiLoopRescheduleResult {
+interface AiLoopRescheduleResult {
   readonly type: 'reschedule'
 }
 
-export interface AiLoopErrorResult {
+interface AiLoopErrorResult {
   readonly error: Error
   readonly type: 'error'
 }

@@ -5,7 +5,7 @@ export interface AiRequestTextPart {
   readonly type: 'input_text'
 }
 
-export interface AiRequestAssistantTextPart {
+interface AiRequestAssistantTextPart {
   readonly text: string
   readonly type: 'output_text'
 }
@@ -29,7 +29,7 @@ export interface AiRequestMessageInput {
   readonly role: 'assistant' | 'system' | 'user'
 }
 
-export interface AiRequestFunctionCallOutput {
+interface AiRequestFunctionCallOutput {
   readonly call_id: string
   readonly output: string
   readonly type: 'function_call_output'
