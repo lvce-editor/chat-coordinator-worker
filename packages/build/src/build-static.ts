@@ -58,4 +58,8 @@ newContent = replaceRemoteUrlWithAssetUrl(
 // }
 await writeFile(rendererWorkerPath, newContent)
 
+await cp(join(root, '.tmp/dist-chat-coordinator-worker/dist'), join(root, 'dist', commitHash, 'packages/chat-coordinator-worker/dist'), {
+  recursive: true,
+})
+
 await cp(join(root, 'dist'), join(root, '.tmp', 'static'), { recursive: true })
