@@ -34,6 +34,7 @@ export const test: Test = async ({ Command, expect, Locator }) => {
   const filterInput = Locator('.InputBox[name="filter"]')
 
   // act
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- Preserve the actual typing interaction in this regression test.
   await filterInput.type('beta')
 
   // assert
